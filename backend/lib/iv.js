@@ -1,6 +1,20 @@
-export function atmStraddleIV(call,put,fut,expiry) {
-    let now = new Date()
-    let T = (expiry-now)/(365*24*60*60*1000)
-    if (T <= 0) throw "Invalid expiry"
+import {tradingHoursToExpiry} from "./time.js"
+import {MARKETS} from "./markets.js"
+
+export function atmStraddleIV({
+    call,
+    put,
+    fut,
+    now,
+    expiry,
+    market
+}) {
+    if (call <=0 || put <= 0 || fut <= 0) {
+        throw "Invalid prices"
+    }
+
+    let remainingHours = tradingHoursToExpiry(now,expiry,market)
+    let T = remainingHours/MARKETS[market].annualHours
+
     return (call+put)/(fut*Math.sqrt(T))
 }
