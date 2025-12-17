@@ -1,0 +1,27 @@
+Segment,Name,Contract,Expiry Date
+Index,NIFTY,Weekly,Tuesday of the expiry week
+Index,SENSEX,Weekly,Thursday of the expiry week
+Index,NIFTY,"Monthly, Quarterly and Half yearly",Last Tuesday of the expiry month
+Index,BANKNIFTY,"Monthly, Quarterly and Half yearly",Last Tuesday of the expiry month
+Index,FINNIFTY,Monthly,Last Tuesday of the expiry month
+Index,MIDCPNIFTY,Monthly,Last Tuesday of the expiry month
+Index,NIFTYNEXT50,Monthly,Last Tuesday of the expiry month
+Index,SENSEX,"Monthly, Quarterly and Half yearly",Last Thursday of the expiry month
+Index,BANKEX,Monthly,Last Thursday of the expiry month
+Index,SX50,Monthly,Last Thursday of the expiry month
+Commodity,"Base metals (Copper, Aluminium, Aluminium Mini, Lead, Lead Mini, Nickel, Zinc, Zinc Mini)",futures,Last calendar day of the contract expiry month.
+Commodity,Electricity,futures,Business day immediately preceding the last calendar day of the contract expiry month.
+Commodity,Agri,futures,Last calendar day of contract expiry month.
+Commodity,"Bullion (Gold, Gold Mini, Gold 1G)",futures,5th day of contract expiry month.
+Commodity,Bullion (Gold Guinea),futures,Last calendar day of the contract expiry month.
+Commodity,"Bullion (Silver, Silver Micro)",futures,Last calendar day of the contract expiry month.
+Commodity,Bullion (Silver Mini),futures,Three business days prior to the first business day of the Tender Period of the underlying futures contract.
+Commodity,Energy (Brent crude oil),futures,Last Business Day of the contract expiry month.
+Commodity,Energy (WTI crude oil),futures,As per contract launch calendar
+Commodity,Energy (Natural gas),futures,As per contract launch calendar
+Commodity,"Base metals (Copper, Zinc)",options,Three business days prior to the first business day of the Tender Period of the underlying futures contract.
+Commodity,"Bullion (Gold, Gold Mini)",options,Three business days prior to the first business day of the Tender Period of the underlying futures contract.
+Commodity,Bullion (Silver),options,The business day preceding the start of tender period in the corresponding expiry Futures.
+Commodity,Energy (WTI crude oil),options,Seven business days prior to the Expiry Day of the underlying futures contract.
+Commodity,Energy (Natural gas),options,Two business days prior to the Expiry day of the underlying futures contract.
+Equity,All Individual Stock,Monthly,Last Tuesday of the expiry month

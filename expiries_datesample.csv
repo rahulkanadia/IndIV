@@ -1,0 +1,53 @@
+ticker,contract,exchange,expiry date
+SENSEX,"options, futures",BSE,18-Dec-25
+CRUDEOIL,futures,MCX,18-Dec-25
+CRUDEOILM,futures,MCX,18-Dec-25
+NIFTY,"options, futures",NSE,23-Dec-25
+MCXMETLDEX,"options, futures",MCX,23-Dec-25
+COPPER,options,MCX,23-Dec-25
+ZINC,options,MCX,23-Dec-25
+NATURALGAS,options,MCX,23-Dec-25
+NATGASMINI,options,MCX,23-Dec-25
+SENSEX,"options, futures",BSE,24-Dec-25
+BANKEX,"options, futures",BSE,24-Dec-25
+SENSEX50,"options, futures",BSE,24-Dec-25
+all stocks,"options, futures",BSE,24-Dec-25
+SILVER,options,MCX,24-Dec-25
+SILVERM,options,MCX,24-Dec-25
+NATURALGAS,futures,MCX,26-Dec-25
+NATGASMINI,futures,MCX,26-Dec-25
+GOLDM,options,MCX,29-Dec-25
+BANKNIFTY,"options, futures",NSE,30-Dec-25
+FINNIFTY,"options, futures",NSE,30-Dec-25
+MIDCPNIFTY,"options, futures",NSE,30-Dec-25
+NIFTY,"options, futures",NSE,30-Dec-25
+NIFTYNXT50,"options, futures",NSE,30-Dec-25
+all stocks,"options, futures",NSE,30-Dec-25
+ELECDMBL,futures,MCX,30-Dec-25
+COPPER,futures,MCX,31-Dec-25
+ZINC,futures,MCX,31-Dec-25
+GOLDTEN,futures,MCX,31-Dec-25
+ALUMINI,futures,MCX,31-Dec-25
+ALUMINIUM,futures,MCX,31-Dec-25
+MENTHAOIL,futures,MCX,31-Dec-25
+LEAD,futures,MCX,31-Dec-25
+LEADMINI,futures,MCX,31-Dec-25
+STEELREBAR,futures,MCX,31-Dec-25
+COTTON,futures,MCX,31-Dec-25
+ZINCMINI,futures,MCX,31-Dec-25
+CARDAMOM,futures,MCX,31-Dec-25
+GOLDGUINEA,futures,MCX,31-Dec-25
+GOLDPETAL,futures,MCX,31-Dec-25
+COTTONOIL,futures,MCX,31-Dec-25
+MCXBULLDEX,"options, futures",MCX,31-Dec-25
+GOLD,options,MCX,31-Dec-25
+SENSEX,"options, futures",BSE,01-Jan-26
+GOLDM,futures,MCX,05-Jan-26
+NIFTY,"options, futures",NSE,06-Jan-26
+SENSEX,"options, futures",BSE,08-Jan-26
+NIFTY,"options, futures",NSE,13-Jan-26
+CRUDEOIL,options,MCX,14-Jan-26
+CRUDEOILM,options,MCX,14-Jan-26
+SENSEX,"options, futures",BSE,15-Jan-26
+CRUDEOIL,futures,MCX,16-Jan-26
+CRUDEOILM,futures,MCX,16-Jan-26

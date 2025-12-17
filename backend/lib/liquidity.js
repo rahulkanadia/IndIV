@@ -14,5 +14,5 @@ export function checkIlliquidity({
     let expectedIVMove = 0.7*Math.abs(futNow-futPrev)/Math.sqrt(T)
     let ivExcess = Math.abs(ivNow-ivPrev) > 1.8*expectedIVMove
 
-    return {illiquid: volumeWeak && inExcess}
+    return {illiquid: volumeWeak && ivExcess}
 }
