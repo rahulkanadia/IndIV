@@ -1,5 +1,5 @@
 // api/iv.js
-import tv from "tradingview-scraper"
+import {getQuote} from "tradingview-scraper"
 
 import { ASSETS } from "../lib/assets.js"
 import { resolveExpiry } from "../lib/expiry.js"
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   let weeklyExp = resolveExpiry("W", now)
   let monthlyExp = resolveExpiry("M", now)
 
-  let fut = await tv.getQuote(cfg.futuresSymbol)
+  let fut = await getQuote(cfg.futuresSymbol)
   let futPrice = fut.price
   let futVolume = fut.volume ?? 0
 
@@ -36,8 +36,8 @@ export default async function handler(req, res) {
   async function compute(expiry, prevIV, prevFut) {
     let symbols = tvOptionSymbols(asset, expiry, strike)
 
-    let ce = await tv.getQuote(symbols.ce)
-    let pe = await tv.getQuote(symbols.pe)
+    let ce = await getQuote(symbols.ce)
+    let pe = await getQuote(symbols.pe)
 
     if (!ce.price || !pe.price) throw "Bad option prices"
 
