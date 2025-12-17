@@ -1,0 +1,8 @@
+{
+    "name": "IndIV",
+    "version": "1.0.0",
+    "type": "module",
+    "dependencies": {
+        "tradingview-scraper": "^1.0.4"
+    }
+}
