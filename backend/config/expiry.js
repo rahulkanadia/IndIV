@@ -39,14 +39,13 @@ function getLastDayOfWeekInMonth(year, month, dayIndex) {
   while (d.getDay() !== dayIndex || isHoliday(d)) {
     d.setDate(d.getDate() - 1)
   }
-  // Handle edge case: if "Last Thursday" falls in previous month due to holidays? 
-  // Unlikely, but logic holds.
+  // If "Last Thursday" falls in previous month due to holidays (rare)
+  if (d.getMonth() !== month) return null 
   return d
 }
 
 // --- Specific Resolvers ---
 
-// 1. INDICES (Weekly/Monthly)
 function resolveIndexExpiry(now, type) {
   const targetDay = type === "INDEX_THU" ? 4 : 2 // 4=Thu, 2=Tue
   
@@ -57,17 +56,13 @@ function resolveIndexExpiry(now, type) {
   let monthly = getLastDayOfWeekInMonth(now.getFullYear(), now.getMonth(), targetDay)
   
   // If monthly is in the past, get next month's
-  if (monthly < now) {
+  if (!monthly || monthly < now) {
       monthly = getLastDayOfWeekInMonth(now.getFullYear(), now.getMonth() + 1, targetDay)
   }
 
   return { weekly, monthly }
 }
 
-// 2. COMMODITIES (Monthly Only)
-// Logic approximates CSV 2 rules:
-// Metals: Futures = Last calendar day, Options = ~4 biz days prior
-// Energy: Futures = ~Last biz day, Options = ~2 biz days prior
 function resolveCommodityExpiry(now, type) {
   // Strategy: Find the End of Current Month
   let eom = getLastDayOfMonth(now.getFullYear(), now.getMonth())
@@ -90,11 +85,9 @@ function resolveCommodityExpiry(now, type) {
 
   if (type === "MCX_ENERGY") {
      // Rule: Options expire ~2-3 biz days before Futures
-     // (Matches Sample: Fut 26-Dec, Opt 23-Dec)
      optionsExp = addBusinessDays(futuresExp, -3) 
   } else if (type === "MCX_METAL") {
      // Rule: Options expire ~4-5 biz days before Futures
-     // (Matches Sample: Fut 31-Dec, Opt 23-Dec)
      optionsExp = addBusinessDays(futuresExp, -5)
   } else {
      // Bullion/Default
@@ -102,12 +95,8 @@ function resolveCommodityExpiry(now, type) {
   }
 
   return { weekly: optionsExp, monthly: futuresExp } 
-  // NOTE: For commodities, we treat 'weekly' slot as Options Expiry 
-  // and 'monthly' slot as Futures Expiry for the API display.
 }
 
-
-// --- Main Export ---
 export function resolveExpiry(assetConfig, now = new Date()) {
   if (assetConfig.type.startsWith("INDEX")) {
     return resolveIndexExpiry(now, assetConfig.type)
