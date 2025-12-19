@@ -28,9 +28,13 @@ export default async function handler(req, res) {
   async function compute(expiry) {
     const T = tradingTimeToExpiry(now, expiry)
     const atm = Math.round(F / cfg.strikeStep) * cfg.strikeStep
+
     const symbols = buildOptionSymbols(
-      cfg.optionPrefix, expiry, atm,
-      cfg.strikeStep, cfg.strikesEachSide
+      cfg.optionPrefix,
+      expiry,
+      atm,
+      cfg.strikeStep,
+      cfg.strikesEachSide
     )
 
     let rows = []
@@ -38,16 +42,25 @@ export default async function handler(req, res) {
     for (let s of symbols) {
       const c = await tv.getTicker(s.call)
       const p = await tv.getTicker(s.put)
-      await c.fetch(); await p.fetch()
+      await c.fetch()
+      await p.fetch()
 
-      const civ = solveIV({ price:c.last, F, K:s.strike, T, isCall:true })
-      const piv = solveIV({ price:p.last, F, K:s.strike, T, isCall:false })
+      const civ = solveIV({ price: c.last, F, K: s.strike, T, isCall: true })
+      const piv = solveIV({ price: p.last, F, K: s.strike, T, isCall: false })
       if (!civ || !piv) continue
 
       rows.push({
         strike: s.strike,
-        call: { price:c.last, iv:civ, greeks:greeks(F,s.strike,T,civ,true) },
-        put:  { price:p.last, iv:piv, greeks:greeks(F,s.strike,T,piv,false) }
+        call: {
+          price: c.last,
+          iv: civ,
+          greeks: greeks(F, s.strike, T, civ, true)
+        },
+        put: {
+          price: p.last,
+          iv: piv,
+          greeks: greeks(F, s.strike, T, piv, false)
+        }
       })
     }
 
@@ -62,10 +75,10 @@ export default async function handler(req, res) {
     )
 
     return {
-      expiry: expiry.toISOString().slice(0,10),
+      expiry: expiry.toISOString().slice(0, 10),
+      atmStrike: atm,
       indiv: Math.sqrt(variance),
       variance,
-      atmStrike: atm,
       coreIV: vegaWeightedAverage(rows, atm, cfg.strikeStep * 3),
       skew: computeSkew(rows, atm),
       curve: rows.map(r => ({
@@ -83,10 +96,14 @@ export default async function handler(req, res) {
 
   tv.cleanup()
 
-  res.json({
+  res.status(200).json({
     asset,
     timestamp: Date.now(),
     futures: F,
+    expiry: {
+      weekly: weekly.expiry,
+      monthly: monthly.expiry
+    },
     headline: {
       weekly: weekly.indiv,
       monthly: monthly.indiv
