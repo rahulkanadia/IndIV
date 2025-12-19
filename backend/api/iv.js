@@ -1,6 +1,6 @@
 import { TradingViewAPI } from "tradingview-scraper"
 import { ASSETS } from "../config/assets.js"
-import { resolveWeeklyExpiry, resolveMonthlyExpiry } from "../config/expiry.js"
+import { resolveExpiry } from "../config/expiry.js" // UPDATED IMPORT
 import { tradingTimeToExpiry } from "../lib/utils.js"
 import { buildOptionSymbols } from "../lib/optionChain.js"
 import { solveIV } from "../lib/ivSolver.js"
@@ -14,12 +14,15 @@ export default async function handler(req, res) {
   const tv = new TradingViewAPI()
 
   try {
-    const asset = "NIFTY"
-    const cfg = ASSETS[asset]
+    // 1. Get Asset from Query (default to NIFTY)
+    const assetName = (req.query.asset || "NIFTY").toUpperCase()
+    const cfg = ASSETS[assetName]
+
+    if (!cfg) throw new Error(`Asset ${assetName} not found in config`)
 
     await tv.setup()
 
-    // 1. Fetch Futures
+    // 2. Fetch Futures
     const fut = await tv.getTicker(cfg.futures)
     await fut.fetch()
     const F = fut.last
@@ -27,12 +30,17 @@ export default async function handler(req, res) {
     if (!F) throw new Error("Failed to fetch Futures price")
 
     const now = new Date()
-    const weeklyExp = resolveWeeklyExpiry(now)
-    const monthlyExp = resolveMonthlyExpiry(now)
+    
+    // 3. Resolve Expiry using new Logic
+    const { weekly: weeklyExp, monthly: monthlyExp } = resolveExpiry(cfg, now)
 
     // Computation Logic
     async function compute(expiry) {
       const T = tradingTimeToExpiry(now, expiry)
+      
+      // If T is negative or zero (expired today), return placeholders
+      if (T <= 0) return { error: "Expired", rows: [] }
+
       const atm = Math.round(F / cfg.strikeStep) * cfg.strikeStep
 
       const symbols = buildOptionSymbols(
@@ -45,7 +53,7 @@ export default async function handler(req, res) {
 
       let rows = []
 
-      // SEQUENTIAL LOOP (Rolled back as requested)
+      // SEQUENTIAL LOOP
       for (const s of symbols) {
         const c = await tv.getTicker(s.call)
         const p = await tv.getTicker(s.put)
@@ -75,25 +83,22 @@ export default async function handler(req, res) {
         })
       }
 
-      if (rows.length === 0) throw new Error("No option data retrieved")
+      if (rows.length === 0) return { error: "No Data", rows: [] }
 
       rows = applyVegaWeights(rows, atm)
 
       // Fallback if exact ATM row is missing
       let atmRow = rows.find(r => r.strike === atm)
       if (!atmRow) {
-         // Sort by distance to ATM and pick closest
          atmRow = rows.sort((a,b) => Math.abs(a.strike - atm) - Math.abs(b.strike - atm))[0]
       }
       
-      if (!atmRow) throw new Error("ATM data missing")
-
-      const variance = straddleVariance(
+      const variance = atmRow ? straddleVariance(
         atmRow.call.price,
         atmRow.put.price,
         F,
         T
-      )
+      ) : 0
 
       return {
         expiry: expiry.toISOString().slice(0, 10),
@@ -102,22 +107,16 @@ export default async function handler(req, res) {
         variance,
         coreIV: vegaWeightedAverage(rows, atm, cfg.strikeStep * 3),
         skew: computeSkew(rows, atm),
-        curve: rows.map(r => ({
-          strike: r.strike,
-          callIV: r.call.iv,
-          putIV: r.put.iv,
-          weight: r.weight
-        })),
         rows
       }
     }
 
-    // Execute Sequentially
+    // Execute
     const weekly = await compute(weeklyExp)
     const monthly = await compute(monthlyExp)
 
     res.status(200).json({
-      asset,
+      asset: assetName,
       timestamp: Date.now(),
       futures: F,
       expiry: {
@@ -139,7 +138,6 @@ export default async function handler(req, res) {
       message: err.message
     })
   } finally {
-    // Critical: Clean up browser/sockets to prevent server freezing
     if (tv) {
         try { await tv.cleanup() } catch(e) { console.error(e) }
     }
