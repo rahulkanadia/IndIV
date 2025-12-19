@@ -1,5 +1,5 @@
 {
-  "name": "indiv-backend",
+  "name": "indiv",
   "type": "module",
   "dependencies": {
     "tradingview-scraper": "1.0.4"
