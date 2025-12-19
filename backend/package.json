@@ -1,6 +1,9 @@
 {
   "name": "indiv",
   "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
   "dependencies": {
     "tradingview-scraper": "1.0.4"
   }
