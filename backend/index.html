@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>IndIV</title>
+  <style>
+    body { background:#0b0b0b; color:#eee; font-family:sans-serif }
+    table { border-collapse:collapse; margin-top:10px }
+    td,th { border:1px solid #333; padding:6px; text-align:right }
+  </style>
+</head>
+<body>
+<h2>IndIV — NIFTY</h2>
+<div id="app">Loading…</div>
+
+<script>
+fetch("/api/iv").then(r=>r.json()).then(j=>{
+  const w = j.weekly
+  const atm = w.rows.find(r=>r.strike===w.atmStrike)
+  document.getElementById("app").innerHTML = `
+    <b>Weekly IndIV:</b> ${(w.indiv*100).toFixed(2)}%<br>
+    <b>Monthly IndIV:</b> ${(j.monthly.indiv*100).toFixed(2)}%<br><br>
+
+    <b>ATM Prices:</b>
+    Call ${atm.call.price} |
+    Put ${atm.put.price}<br><br>
+
+    <table>
+      <tr>
+        <th>Γ</th><th>Vega</th><th>Θ</th><th>Δ</th>
+        <th>Strike</th>
+        <th>Δ</th><th>Θ</th><th>Vega</th><th>Γ</th>
+      </tr>
+      ${w.rows.map(r=>`
+        <tr>
+          <td>${r.call.greeks.gamma.toFixed(4)}</td>
+          <td>${r.call.greeks.vega.toFixed(2)}</td>
+          <td>${r.call.greeks.theta.toFixed(2)}</td>
+          <td>${r.call.greeks.delta.toFixed(2)}</td>
+          <td>${r.strike}</td>
+          <td>${r.put.greeks.delta.toFixed(2)}</td>
+          <td>${r.put.greeks.theta.toFixed(2)}</td>
+          <td>${r.put.greeks.vega.toFixed(2)}</td>
+          <td>${r.put.greeks.gamma.toFixed(4)}</td>
+        </tr>
+      `).join("")}
+    </table>
+  `
+})
+</script>
+</body>
+</html>
