@@ -1,51 +1,106 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>IndIV</title>
+  <title>IndIV — Volatility Monitor</title>
+  <meta charset="utf-8" />
   <style>
-    body { background:#0b0b0b; color:#eee; font-family:sans-serif }
-    table { border-collapse:collapse; margin-top:10px }
-    td,th { border:1px solid #333; padding:6px; text-align:right }
+    body {
+      background: #0b0b0b;
+      color: #eee;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      padding: 20px;
+    }
+    h2, h3 {
+      margin-bottom: 6px;
+    }
+    table {
+      border-collapse: collapse;
+      margin-top: 10px;
+      width: 100%;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 6px;
+      text-align: right;
+    }
+    th {
+      background: #111;
+    }
+    .row {
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
+
 <h2>IndIV — NIFTY</h2>
+
 <div id="app">Loading…</div>
 
 <script>
-fetch("/api/iv").then(r=>r.json()).then(j=>{
-  const w = j.weekly
-  const atm = w.rows.find(r=>r.strike===w.atmStrike)
-  document.getElementById("app").innerHTML = `
-    <b>Weekly IndIV:</b> ${(w.indiv*100).toFixed(2)}%<br>
-    <b>Monthly IndIV:</b> ${(j.monthly.indiv*100).toFixed(2)}%<br><br>
+fetch("/api/iv")
+  .then(r => r.json())
+  .then(j => {
+    if (!j.weekly || !j.weekly.rows || !j.headline) {
+      document.getElementById("app").innerText =
+        "Data incomplete — backend response mismatch"
+      return
+    }
 
-    <b>ATM Prices:</b>
-    Call ${atm.call.price} |
-    Put ${atm.put.price}<br><br>
+    const w = j.weekly
+    const atm = w.rows.find(r => r.strike === w.atmStrike)
 
-    <table>
+    let greeksRows = w.rows.map(r => `
       <tr>
-        <th>Γ</th><th>Vega</th><th>Θ</th><th>Δ</th>
-        <th>Strike</th>
-        <th>Δ</th><th>Θ</th><th>Vega</th><th>Γ</th>
+        <td>${r.call.greeks.gamma.toFixed(4)}</td>
+        <td>${r.call.greeks.vega.toFixed(2)}</td>
+        <td>${r.call.greeks.theta.toFixed(2)}</td>
+        <td>${r.call.greeks.delta.toFixed(2)}</td>
+        <td>${r.strike}</td>
+        <td>${r.put.greeks.delta.toFixed(2)}</td>
+        <td>${r.put.greeks.theta.toFixed(2)}</td>
+        <td>${r.put.greeks.vega.toFixed(2)}</td>
+        <td>${r.put.greeks.gamma.toFixed(4)}</td>
       </tr>
-      ${w.rows.map(r=>`
+    `).join("")
+
+    document.getElementById("app").innerHTML = `
+      <div class="row">
+        <b>Weekly IndIV:</b> ${(j.headline.weekly * 100).toFixed(2)}% |
+        <b>Monthly IndIV:</b> ${(j.headline.monthly * 100).toFixed(2)}%
+      </div>
+
+      <div class="row">
+        <b>Futures:</b> ${j.futures} <br>
+        <b>Weekly Expiry:</b> ${j.expiry.weekly} |
+        <b>Monthly Expiry:</b> ${j.expiry.monthly}
+      </div>
+
+      <div class="row">
+        <b>ATM Strike:</b> ${w.atmStrike} <br>
+        <b>Call:</b> ${atm.call.price} |
+        <b>Put:</b> ${atm.put.price} |
+        <b>Straddle:</b> ${(atm.call.price + atm.put.price).toFixed(2)}
+      </div>
+
+      <h3>Greeks (ATM ±10)</h3>
+      <table>
         <tr>
-          <td>${r.call.greeks.gamma.toFixed(4)}</td>
-          <td>${r.call.greeks.vega.toFixed(2)}</td>
-          <td>${r.call.greeks.theta.toFixed(2)}</td>
-          <td>${r.call.greeks.delta.toFixed(2)}</td>
-          <td>${r.strike}</td>
-          <td>${r.put.greeks.delta.toFixed(2)}</td>
-          <td>${r.put.greeks.theta.toFixed(2)}</td>
-          <td>${r.put.greeks.vega.toFixed(2)}</td>
-          <td>${r.put.greeks.gamma.toFixed(4)}</td>
+          <th>Γ</th><th>Vega</th><th>Θ</th><th>Δ</th>
+          <th>Strike</th>
+          <th>Δ</th><th>Θ</th><th>Vega</th><th>Γ</th>
         </tr>
-      `).join("")}
-    </table>
-  `
-})
+        ${greeksRows}
+      </table>
+    `
+  })
+  .catch(e => {
+    document.getElementById("app").innerText =
+      "Error loading data — check /api/iv"
+    console.error(e)
+  })
 </script>
+
 </body>
 </html>
