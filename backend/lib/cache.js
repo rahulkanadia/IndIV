@@ -1,1 +1,0 @@
-export const cache = globalThis.__indiv_cache || (globalThis.__indiv_cache = {})

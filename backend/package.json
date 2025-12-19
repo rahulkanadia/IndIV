@@ -1,8 +1,7 @@
 {
-    "name": "indiv",
-    "version": "1.0.0",
+    "name": "indiv-backend",
     "type": "module",
     "dependencies": {
-        "tradingview-scraper": "^1.0.4"
+        "tradingview-scraper": "1.0.4"
     }
 }
