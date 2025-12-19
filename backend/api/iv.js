@@ -19,6 +19,7 @@ export default async function handler(req, res) {
 
     await tv.setup()
 
+    // 1. Fetch Futures
     const fut = await tv.getTicker(cfg.futures)
     await fut.fetch()
     const F = fut.last
@@ -29,36 +30,7 @@ export default async function handler(req, res) {
     const weeklyExp = resolveWeeklyExpiry(now)
     const monthlyExp = resolveMonthlyExpiry(now)
 
-    // Helper to process a single strike (for parallel execution)
-    async function processStrike(s, expiry, T) {
-      const c = await tv.getTicker(s.call)
-      const p = await tv.getTicker(s.put)
-      
-      // Fetch both call and put in parallel for this strike
-      await Promise.all([c.fetch(), p.fetch()])
-
-      if (!c.last || !p.last) return null
-
-      const civ = solveIV({ price: c.last, F, K: s.strike, T, isCall: true })
-      const piv = solveIV({ price: p.last, F, K: s.strike, T, isCall: false })
-      
-      if (!civ || !piv) return null
-
-      return {
-        strike: s.strike,
-        call: {
-          price: c.last,
-          iv: civ,
-          greeks: greeks(F, s.strike, T, civ, true)
-        },
-        put: {
-          price: p.last,
-          iv: piv,
-          greeks: greeks(F, s.strike, T, piv, false)
-        }
-      }
-    }
-
+    // Computation Logic
     async function compute(expiry) {
       const T = tradingTimeToExpiry(now, expiry)
       const atm = Math.round(F / cfg.strikeStep) * cfg.strikeStep
@@ -71,27 +43,54 @@ export default async function handler(req, res) {
         cfg.strikesEachSide
       )
 
-      // PARALLEL EXECUTION: Fire all requests at once
-      const results = await Promise.all(
-        symbols.map(s => processStrike(s, expiry, T))
-      )
+      let rows = []
 
-      // Filter out failed/null results
-      let rows = results.filter(r => r !== null)
+      // SEQUENTIAL LOOP (Rolled back as requested)
+      for (const s of symbols) {
+        const c = await tv.getTicker(s.call)
+        const p = await tv.getTicker(s.put)
+        
+        await c.fetch()
+        await p.fetch()
+
+        if (!c.last || !p.last) continue
+
+        const civ = solveIV({ price: c.last, F, K: s.strike, T, isCall: true })
+        const piv = solveIV({ price: p.last, F, K: s.strike, T, isCall: false })
+        
+        if (!civ || !piv) continue
+
+        rows.push({
+          strike: s.strike,
+          call: {
+            price: c.last,
+            iv: civ,
+            greeks: greeks(F, s.strike, T, civ, true)
+          },
+          put: {
+            price: p.last,
+            iv: piv,
+            greeks: greeks(F, s.strike, T, piv, false)
+          }
+        })
+      }
 
       if (rows.length === 0) throw new Error("No option data retrieved")
 
       rows = applyVegaWeights(rows, atm)
 
-      const atmRow = rows.find(r => r.strike === atm)
-      // Fallback: if exact ATM is missing, try closest available
-      const bestAtmRow = atmRow || rows.sort((a,b) => Math.abs(a.strike - atm) - Math.abs(b.strike - atm))[0]
-
-      if (!bestAtmRow) throw new Error("ATM data missing and no fallback found")
+      // Fallback if exact ATM row is missing
+      let atmRow = rows.find(r => r.strike === atm)
+      if (!atmRow) {
+         // Sort by distance to ATM and pick closest
+         atmRow = rows.sort((a,b) => Math.abs(a.strike - atm) - Math.abs(b.strike - atm))[0]
+      }
+      
+      if (!atmRow) throw new Error("ATM data missing")
 
       const variance = straddleVariance(
-        bestAtmRow.call.price,
-        bestAtmRow.put.price,
+        atmRow.call.price,
+        atmRow.put.price,
         F,
         T
       )
@@ -113,9 +112,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // Run weekly and monthly computations in parallel if possible, 
-    // or sequential if you fear rate limits. 
-    // Sequential is safer for TradingView to avoid 403 blocks.
+    // Execute Sequentially
     const weekly = await compute(weeklyExp)
     const monthly = await compute(monthlyExp)
 
@@ -142,11 +139,9 @@ export default async function handler(req, res) {
       message: err.message
     })
   } finally {
-    // ALWAYS clean up, even if there is an error
+    // Critical: Clean up browser/sockets to prevent server freezing
     if (tv) {
-        // tv.cleanup() usually returns a promise, best to await it to ensure process doesn't hang
-        // Check documentation if cleanup is sync or async. Assuming async here:
-        await tv.cleanup().catch(e => console.error("Cleanup failed", e))
+        try { await tv.cleanup() } catch(e) { console.error(e) }
     }
   }
 }
