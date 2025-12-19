@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/iv.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
+}
