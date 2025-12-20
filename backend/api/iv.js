@@ -135,7 +135,9 @@ export default async function handler(req, res) {
     console.error("IV API ERROR:", err)
     res.status(500).json({
       error: "Internal error",
-      message: err.message
+      message: err.message, 
+      stack: err.stack, // Helpful for debugging
+      step: "Check this step",
     })
   } finally {
     if (tv) {
