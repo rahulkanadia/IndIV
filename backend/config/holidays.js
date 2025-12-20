@@ -1,4 +1,4 @@
-export const NSE_HOLIDAYS = [
+export const HOLIDAYS = [
     "2025-12-25",
     "2026-03-03",
     "2026-03-26",
