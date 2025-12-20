@@ -1,109 +1,75 @@
 export const ASSETS = {
   // --- INDICES ---
   NIFTY: {
-    futures: "NSE:NIFTY1!",  // Added NSE:
-    optionPrefix: "NSE:NIFTY", // Added NSE:
+    futuresSymbol: "NIFTY1!",
+    exchange: "NSE",
     strikeStep: 50,
-    strikesEachSide: 10,
-    type: "INDEX_TUE", 
-    exchange: "NSE"
+    options: true,
+    type: "INDEX_TUE" 
   },
   BANKNIFTY: {
-    futures: "NSE:BANKNIFTY1!",
-    optionPrefix: "NSE:BANKNIFTY",
+    futuresSymbol: "BANKNIFTY1!",
+    exchange: "NSE",
     strikeStep: 100,
-    strikesEachSide: 10,
-    type: "INDEX_TUE",
-    exchange: "NSE"
+    options: true,
+    type: "INDEX_TUE"
   },
   FINNIFTY: {
-    futures: "NSE:FINNIFTY1!",
-    optionPrefix: "NSE:FINNIFTY",
+    futuresSymbol: "FINNIFTY1!",
+    exchange: "NSE",
     strikeStep: 50,
-    strikesEachSide: 10,
-    type: "INDEX_TUE",
-    exchange: "NSE"
-  },
-  MIDCPNIFTY: {
-    futures: "NSE:MIDCPNIFTY1!",
-    optionPrefix: "NSE:MIDCPNIFTY",
-    strikeStep: 25,
-    strikesEachSide: 10,
-    type: "INDEX_TUE",
-    exchange: "NSE"
-  },
-  NIFTYNXT50: {
-    futures: "NSE:NIFTYNXT501!",
-    optionPrefix: "NSE:NIFTYNXT50",
-    strikeStep: 100,
-    strikesEachSide: 5,
-    type: "INDEX_TUE",
-    exchange: "NSE"
+    options: true,
+    type: "INDEX_TUE"
   },
   SENSEX: {
-    futures: "BSE:BSX1!", // Added BSE:
-    optionPrefix: "BSE:BSX",
+    futuresSymbol: "BSX1!",
+    exchange: "BSE",
     strikeStep: 100,
-    strikesEachSide: 10,
-    type: "INDEX_THU",
-    exchange: "BSE"
-  },
-  BANKEX: {
-    futures: "BSE:BKX1!",
-    optionPrefix: "BSE:BANKEX",
-    strikeStep: 100,
-    strikesEachSide: 10,
-    type: "INDEX_THU",
-    exchange: "BSE"
+    options: true,
+    type: "INDEX_THU"
   },
 
-  // --- COMMODITIES (MCX) ---
+  // --- COMMODITIES ---
   CRUDEOIL: {
-    futures: "MCX:CRUDEOIL1!", // Added MCX:
-    optionPrefix: "MCX:CRUDEOIL",
+    futuresSymbol: "CRUDEOIL1!",
+    exchange: "MCX",
     strikeStep: 50,
-    strikesEachSide: 8,
-    type: "MCX_ENERGY", 
-    exchange: "MCX"
+    options: true,
+    type: "MCX_ENERGY"
   },
   NATURALGAS: {
-    futures: "MCX:NATURALGAS1!",
-    optionPrefix: "MCX:NATURALGAS",
-    strikeStep: 5, 
-    strikesEachSide: 10,
-    type: "MCX_ENERGY",
-    exchange: "MCX"
+    futuresSymbol: "NATURALGAS1!",
+    exchange: "MCX",
+    strikeStep: 5,
+    options: true,
+    type: "MCX_ENERGY"
   },
   GOLD: {
-    futures: "MCX:GOLD1!",
-    optionPrefix: "MCX:GOLD",
+    futuresSymbol: "GOLD1!",
+    exchange: "MCX",
     strikeStep: 100,
-    strikesEachSide: 8,
-    type: "MCX_BULLION",
-    exchange: "MCX"
+    options: true,
+    type: "MCX_BULLION"
   },
   SILVER: {
-    futures: "MCX:SILVER1!",
-    optionPrefix: "MCX:SILVER",
-    strikeStep: 100, 
-    strikesEachSide: 8,
-    type: "MCX_BULLION",
-    exchange: "MCX"
+    futuresSymbol: "SILVER1!",
+    exchange: "MCX",
+    strikeStep: 100,
+    options: true,
+    type: "MCX_BULLION"
   },
   COPPER: {
-    futures: "MCX:COPPER1!",
-    optionPrefix: "MCX:COPPER",
-    strikeStep: 2.5, 
-    strikesEachSide: 6,
-    type: "MCX_METAL",
-    exchange: "MCX"
+    futuresSymbol: "COPPER1!",
+    exchange: "MCX",
+    strikeStep: 2.5,
+    options: true,
+    type: "MCX_METAL"
   },
   ZINC: {
-    futures: "MCX:ZINC1!",
-    optionPrefix: "MCX:ZINC",
-    strikeStep: 1, 
-    strikesEachSide: 6,
-    type: "MCX_METAL",
-    exchange: "MCX"
+    futuresSymbol: "ZINC1!",
+    exchange: "MCX",
+    strikeStep: 1,
+    options: true,
+    type: "MCX_METAL"
   }
 }
