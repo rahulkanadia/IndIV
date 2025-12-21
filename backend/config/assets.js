@@ -1,5 +1,5 @@
 export const ASSETS = {
-  // --- INDICES ---
+  // --- INDICES (NSE) ---
   NIFTY: {
     futuresSymbol: "NIFTY1!",
     exchange: "NSE",
@@ -21,6 +21,7 @@ export const ASSETS = {
     options: true,
     type: "INDEX_TUE"
   },
+  // --- INDICES (BSE) ---
   SENSEX: {
     futuresSymbol: "BSX1!",
     exchange: "BSE",
@@ -28,8 +29,7 @@ export const ASSETS = {
     options: true,
     type: "INDEX_THU"
   },
-
-  // --- COMMODITIES ---
+  // --- COMMODITIES (MCX) ---
   CRUDEOIL: {
     futuresSymbol: "CRUDEOIL1!",
     exchange: "MCX",
