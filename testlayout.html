@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V8</title>
+    <title>IndIV Monitor V9</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         /* --- THEME --- */
@@ -53,23 +53,17 @@
         /* --- THE 6-COLUMN GRID --- */
         .section-header { border-bottom: 2px solid #222; padding-bottom: 4px; margin-bottom: 6px; }
         .sec-title { font-size: 13px; font-weight: 800; color: #ddd; letter-spacing: 0.5px; }
-        .t-week { color: var(--orange); } .t-month { color: var(--orange); } /* User request: Monthly same color as weekly */
+        .t-week { color: var(--orange); } .t-month { color: var(--orange); } 
 
         .data-grid-6 { 
             display: grid; 
-            /* Col Widths: Price | IV | Spacer | StraddleP | StradleIV/RV | Rank */
             grid-template-columns: 2fr 2fr 0.2fr 2.5fr 2fr 1.5fr; 
-            grid-template-rows: 65px 65px; /* Fixed Height Rows */
+            grid-template-rows: 65px 65px; 
             gap: 6px; 
         }
 
         .d-box { background: var(--card); border: 1px solid var(--border); padding: 4px; text-align: center; display: flex; flex-direction: column; justify-content: center; position: relative; }
-        
-        /* The Vertical Merge Anchor */
-        .box-straddle-anchor { 
-            grid-column: 4; grid-row: 1 / span 2; 
-            background: #191919; border-color:#444; z-index: 2;
-        }
+        .box-straddle-anchor { grid-column: 4; grid-row: 1 / span 2; background: #191919; border-color:#444; z-index: 2; }
 
         .d-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; }
         .d-val { font-size: 1.1rem; font-weight: 600; color: #fff; }
@@ -77,10 +71,11 @@
         .iv-val { font-family: 'Courier New', monospace; font-weight: 700; font-size: 1.1rem; }
         .c-g { color: var(--green); } .c-r { color: var(--red); }
 
-        /* Horizontal Squares */
-        .rank-row { display: flex; gap: 2px; justify-content: center; margin-top: 4px; }
-        .rank-sq { width: 8px; height: 8px; background: #333; border-radius: 1px; }
-        .rank-val-text { font-size: 10px; font-weight: bold; color: #fff; margin-left: 4px; align-self: center; }
+        /* IVR/IVP Box Styling */
+        .d-box-rank { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+        .rank-header { font-size: 13px; font-weight: bold; color: #fff; line-height: 1; }
+        .rank-row { display: flex; gap: 2px; }
+        .rank-sq { width: 10px; height: 6px; background: #333; border-radius: 1px; }
         .r-low.on { background: #00E676; } .r-mid.on { background: #FFC107; } .r-high.on { background: #FF5252; }
 
         /* Structure Tabs */
@@ -97,32 +92,32 @@
         .right-panel { flex: 0 0 55%; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
 
         /* Split Header */
-        /* Alignment Fix: 50% split */
         .split-header { display: flex; height: 210px; border-bottom: 1px solid var(--border); }
         .split-half { flex: 0 0 50%; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .split-half:last-child { border-right: none; }
-        
         .panel-title { font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; padding: 8px 10px 0; display: block; }
         
         /* SD Table */
         .sd-container { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px; }
         .sd-header { font-size: 11px; color: var(--orange); margin-bottom: 8px; font-weight: bold; text-align: center; }
-        .sd-footer { font-size: 11px; color: var(--orange); margin-top: 8px; font-weight: bold; text-align: center; } /* BOLD + ORANGE */
+        .sd-footer { font-size: 11px; color: var(--orange); margin-top: 8px; font-weight: bold; text-align: center; } 
         .exp-table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 0 auto; }
         .exp-table th { text-align: center; padding: 4px; color: #666; font-weight: normal; border-bottom: 1px solid #333; background: #161616; font-size: 10px; }
         .exp-table td { padding: 5px; border-bottom: 1px solid #222; font-weight: bold; text-align: center; }
         .range-pill { background: #222; border: 1px solid #444; padding: 2px 6px; border-radius: 3px; font-family: monospace; color: var(--gold); }
 
-        /* Toolbar (With Tabs) */
+        /* Toolbar with Scroll */
         .table-toolbar { display: flex; height: 35px; border-bottom: 1px solid var(--border); background: #1a1a1a; }
-        /* Alignment Fix: Match Split Header 50% split */
-        .toolbar-half { flex: 0 0 50%; display: flex; align-items: center; justify-content: center; }
-        .toolbar-left { border-right: 1px solid var(--border); } /* This line will now align with split-header line */
-        
-        /* Toolbar Tabs */
-        .tool-tab { padding: 0 15px; height: 100%; display: flex; align-items: center; cursor: pointer; color: #666; font-size: 11px; font-weight: bold; border-bottom: 2px solid transparent; }
+        .toolbar-half { flex: 0 0 50%; display: flex; align-items: center; overflow: hidden; }
+        .toolbar-left { border-right: 1px solid var(--border); overflow-x: auto; white-space: nowrap; padding-left: 5px; } 
+        /* Hide scrollbar but keep functionality */
+        .toolbar-left::-webkit-scrollbar { height: 0px; background: transparent; }
+
+        .tool-tab { display: inline-block; padding: 0 10px; line-height: 35px; cursor: pointer; color: #666; font-size: 11px; font-weight: bold; border-bottom: 2px solid transparent; flex-shrink: 0; }
         .tool-tab.active { color: #fff; border-bottom-color: var(--blue); background: #222; }
         .tool-tab:hover { color: #fff; }
+
+        .toolbar-right { justify-content: center; }
 
         /* Heatmap Table */
         .table-wrapper { flex: 1; overflow-y: auto; background: var(--card); }
@@ -136,7 +131,7 @@
         .atm-row .strike-cell { color: var(--gold); border-left: 2px solid var(--gold); }
 
         /* Quote Footer */
-        .quote-ticker { height: 30px; background: #080808; border-top: 1px solid var(--border); color: #444; font-size: 11px; font-style: italic; display: flex; align-items: center; justify-content: center; }
+        .quote-ticker { height: 30px; background: #080808; border-top: 1px solid var(--border); color: #fff; font-weight: bold; font-size: 11px; font-style: italic; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; }
 
     </style>
 </head>
@@ -164,29 +159,35 @@
                 <div class="data-grid-6">
                     <div class="d-box"><span class="d-lbl">ATM CALL</span><div class="d-val c-g">145.20</div><div class="d-chg up">+12 (9%)</div></div>
                     <div class="d-box"><span class="d-lbl">ATM CALL IV</span><div class="iv-val c-g">12.4%</div><div class="d-chg up">+2%</div></div>
-                    <div></div> <div class="d-box box-straddle-anchor">
-                        <span class="d-lbl">STRADDLE</span><div class="d-val t-week" style="font-size:1.4rem">284.50</div><div class="d-chg down">-5 (-1%)</div>
-                    </div>
+                    <div></div> 
+                    
+                    <div class="d-box box-straddle-anchor"><span class="d-lbl">STRADDLE</span><div class="d-val t-week" style="font-size:1.4rem">284.50</div><div class="d-chg down">-5 (-1%)</div></div>
 
                     <div class="d-box" style="background:#191919"><span class="d-lbl">STRADDLE IV</span><div class="iv-val t-week">12.8%</div><div class="d-chg up">+0.5%</div></div>
-                    <div class="d-box"><span class="d-lbl">IVR</span>
-                        <div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><div class="rank-sq"></div><span class="rank-val-text">45</span></div>
+                    
+                    <div class="d-box d-box-rank">
+                        <span class="rank-header">IVR 45</span>
+                        <div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><div class="rank-sq"></div></div>
                     </div>
 
                     <div class="d-box"><span class="d-lbl">ATM PUT</span><div class="d-val c-r">139.30</div><div class="d-chg down">-18 (-11%)</div></div>
                     <div class="d-box"><span class="d-lbl">ATM PUT IV</span><div class="iv-val c-r">13.1%</div><div class="d-chg down">-1%</div></div>
-                    <div></div> <div class="d-box"><span class="d-lbl">RV (5D)</span><div class="iv-val" style="color:#42A5F5">10.5%</div><div class="d-chg" style="color:#888">-0.2%</div></div>
-                    <div class="d-box"><span class="d-lbl">IVP</span>
-                        <div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><span class="rank-val-text">60</span></div>
+                    <div></div>
+                    
+                    <div class="d-box"><span class="d-lbl">RV (5D)</span><div class="iv-val" style="color:#42A5F5">10.5%</div><div class="d-chg" style="color:#888">-0.2%</div></div>
+                    
+                    <div class="d-box d-box-rank">
+                         <span class="rank-header">IVP 60</span>
+                         <div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div></div>
                     </div>
                 </div>
             </div>
 
             <div class="chart-window">
                 <div class="chart-tabs">
-                    <div class="c-tab active" onclick="switchTab('skew', this)">Vol Skew</div>
+                    <div class="c-tab active" onclick="switchTab('skew', this)">Volatility Skew</div>
                     <div class="c-tab" onclick="switchTab('term', this)">Term Structure</div>
-                    <div class="c-tab" onclick="switchTab('surf', this)">Vol Surface</div>
+                    <div class="c-tab" onclick="switchTab('surf', this)">Volatility Surface</div>
                 </div>
                 <div id="surf-controls" class="surf-controls" style="display:none">
                      <label class="surf-toggle"><input type="radio" name="axis" checked> Moneyness</label>
@@ -207,13 +208,19 @@
                     <div></div>
                     <div class="d-box box-straddle-anchor"><span class="d-lbl">STRADDLE</span><div class="d-val t-month" style="font-size:1.4rem">595.00</div><div class="d-chg up">+2 (0.4%)</div></div>
                     <div class="d-box" style="background:#191919"><span class="d-lbl">IV</span><div class="iv-val t-month">14.5%</div><div class="d-chg up">+0.8%</div></div>
-                    <div class="d-box"><span class="d-lbl">IVR</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq"></div><div class="rank-sq"></div><div class="rank-sq"></div><div class="rank-sq"></div><span class="rank-val-text">52</span></div></div>
+                    <div class="d-box d-box-rank">
+                        <span class="rank-header">IVR 52</span>
+                        <div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><div class="rank-sq"></div></div>
+                    </div>
 
                     <div class="d-box"><span class="d-lbl">ATM PUT</span><div class="d-val c-r">284.50</div><div class="d-chg down">-12 (-4%)</div></div>
                     <div class="d-box"><span class="d-lbl">PUT IV</span><div class="iv-val c-r">14.8%</div><div class="d-chg down">-0.3%</div></div>
                     <div></div>
                     <div class="d-box"><span class="d-lbl">RV (20D)</span><div class="iv-val" style="color:#42A5F5">11.0%</div><div class="d-chg">-</div></div>
-                    <div class="d-box"><span class="d-lbl">IVP</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq"></div><div class="rank-sq"></div><div class="rank-sq"></div><div class="rank-sq"></div><span class="rank-val-text">65</span></div></div>
+                    <div class="d-box d-box-rank">
+                        <span class="rank-header">IVP 65</span>
+                        <div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><div class="rank-sq"></div></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -222,7 +229,7 @@
             
             <div class="split-header">
                 <div class="split-half">
-                    <span class="panel-title">INTRADAY IV vs RV</span>
+                    <span class="panel-title">INTRADAY Volatility vs RV</span>
                     <div id="chart-trend" style="width:100%; height:100%"></div>
                 </div>
                 <div class="split-half">
@@ -242,10 +249,15 @@
 
             <div class="table-toolbar">
                 <div class="toolbar-half toolbar-left">
-                    <div class="tool-tab active">26 DEC (Weekly)</div>
-                    <div class="tool-tab">29 JAN (Monthly)</div>
+                    <div class="tool-tab active">26 Dec 2025 (Weekly)</div>
+                    <div class="tool-tab">02 Jan 2026 (Weekly)</div>
+                    <div class="tool-tab">09 Jan 2026 (Weekly)</div>
+                    <div class="tool-tab">16 Jan 2026 (Weekly)</div>
+                    <div class="tool-tab">23 Jan 2026 (Weekly)</div>
+                    <div class="tool-tab">29 Jan 2026 (Monthly)</div>
+                    <div class="tool-tab">26 Feb 2026 (Monthly)</div>
                 </div>
-                <div class="toolbar-half">
+                <div class="toolbar-half toolbar-right">
                     <label style="color:#aaa; font-size:11px; display:flex; gap:6px; cursor:pointer">
                         <input type="checkbox" checked onchange="regenerateTable(this.checked)"> Major Strikes
                     </label>
@@ -268,7 +280,7 @@
 
 <script>
     const cfg = { displayModeBar: false, responsive: true };
-    const layoutBase = { paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{family:'Segoe UI', color:'#666', size:10}, margin:{t:10, b:30, l:30, r:30}, xaxis:{showgrid:false}, yaxis:{gridcolor:'#222'} };
+    const layoutBase = { paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{family:'Segoe UI', color:'#666', size:10}, margin:{t:10, b:30, l:35, r:30}, xaxis:{showgrid:false}, yaxis:{gridcolor:'#222'} };
 
     function switchTab(name, tabEl) {
         document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
@@ -279,34 +291,35 @@
         window.dispatchEvent(new Event('resize'));
     }
 
-    // 1. INTRADAY
+    // 1. INTRADAY (Fixed Axis Padding)
     Plotly.newPlot('chart-trend', [
-        { x: [1,2,3,4,5], y: [12.2, 12.4, 12.1, 12.5, 12.8], name: 'Wk IV', line: { color: '#FF9800', width: 1 }, type: 'scatter' }, // Thin
-        { x: [1,2,3,4,5], y: [14.1, 14.0, 14.2, 14.3, 14.4], name: 'Mo IV', line: { color: '#FF9800', width: 3 }, type: 'scatter' }, // Thick
+        { x: [1,2,3,4,5], y: [12.2, 12.4, 12.1, 12.5, 12.8], name: 'Wk IV', line: { color: '#FF9800', width: 1 }, type: 'scatter' },
+        { x: [1,2,3,4,5], y: [14.1, 14.0, 14.2, 14.3, 14.4], name: 'Mo IV', line: { color: '#FF9800', width: 3 }, type: 'scatter' },
         { x: [1,2,3,4,5], y: [10.5, 10.5, 10.5, 10.5, 10.5], name: 'Wk RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter' },
         { x: [1,2,3,4,5], y: [11.0, 11.0, 11.0, 11.0, 11.0], name: 'Mo RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter' }
-    ], { ...layoutBase, showlegend: false, xaxis:{visible:false} }, cfg);
+    ], { ...layoutBase, showlegend: false, xaxis:{visible:false, range:[0.8, 5.2]} }, cfg);
 
-    // 2. SKEW (Bars Behind)
+    // 2. SKEW (Bar First = Background)
     Plotly.newPlot('chart-skew', [
         { x: [25800,26000,26200,26400,26600], y: [0.5,0.5,0.4,-0.6,-0.7], name: 'Spread', type: 'bar', marker: { color: '#222' }, yaxis: 'y2' },
         { x: [25800,26000,26200,26400,26600], y: [13.5,12.6,12.4,12.8,13.8], name: 'Call IV', line: { color: '#00E676' }, type: 'scatter' },
         { x: [25800,26000,26200,26400,26600], y: [14.0,13.1,12.8,13.4,14.5], name: 'Put IV', line: { color: '#FF5252' }, type: 'scatter' },
     ], { 
-        ...layoutBase, legend: { orientation: 'h', y: -0.15 },
+        ...layoutBase, legend: { orientation: 'h', y: -0.2 },
         yaxis2: { overlaying: 'y', side: 'right', showgrid: false }
     }, cfg);
 
-    // 3. TERM
+    // 3. TERM (Fixed Data)
     Plotly.newPlot('chart-term', [
-        { x: ['DEC','JAN','FEB','MAR'], y: [12.8, 14.5, 15.2, 15.8], name: 'Term', line: { color: '#FF9800' } }
-    ], { ...layoutBase, showlegend: false }, cfg);
+        { x: ['DEC','JAN','FEB','MAR'], y: [12.8, 14.5, 15.2, 15.8], name: 'Weekly', line: { color: '#FF9800' } },
+        { x: ['DEC','JAN','FEB','MAR'], y: [14.5, 15.0, 15.5, 16.0], name: 'Monthly', line: { color: '#42A5F5' } }
+    ], { ...layoutBase, showlegend: true, legend: { orientation: 'h', y: -0.2 } }, cfg);
 
-    // 4. SURFACE (Mock 2D)
+    // 4. SURFACE (Fixed Margins)
     Plotly.newPlot('chart-surf', [
         { x: [-10, 0, 10], y: [13, 12.4, 13.5], name: 'Dec', line: { color: '#FF9800' } },
         { x: [-10, 0, 10], y: [14, 14.0, 15.0], name: 'Jan', line: { color: '#42A5F5' } }
-    ], { ...layoutBase, showlegend: true }, cfg);
+    ], { ...layoutBase, showlegend: true, margin:{l:35, r:20, t:10, b:25} }, cfg);
 
     // TABLE
     function regenerateTable(majorOnly) {
