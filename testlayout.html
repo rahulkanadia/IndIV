@@ -3,154 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor (Test Mode)</title>
+    <title>MOCK - IndIV Monitor</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --bg: #0b0b0b; --card: #161616; --text: #e0e0e0; --accent: #2196F3; --green: #4CAF50; --red: #F44336; --border: #333; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 20px; box-sizing: border-box; }
+        /* --- THEME VARIABLES --- */
+        :root { --bg: #0b0b0b; --card: #141414; --text: #e0e0e0; --accent: #2196F3; --green: #00E676; --red: #FF5252; --gold: #FFD700; --border: #2a2a2a; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 15px; box-sizing: border-box; }
         
-        /* Grid Layout */
-        .container { display: grid; grid-template-columns: 350px 1fr; gap: 20px; max-width: 100%; margin: 0 auto; }
-        @media(max-width: 1100px) { .container { grid-template-columns: 1fr; } } /* Stack on smaller screens */
+        /* --- HEADER --- */
+        .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        h1 { margin: 0; font-size: 1.1rem; font-weight: 500; letter-spacing: 0.5px; }
+        .mock-badge { background: #333; color: #aaa; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 10px; }
+        
+        .controls-right { display: flex; align-items: center; gap: 15px; font-size: 12px; }
+        .status-box { text-align: right; }
+        .status-indicator { display: inline-flex; align-items: center; gap: 5px; font-weight: bold; color: var(--green); }
+        .eta-text { color: #666; font-size: 11px; }
+        .readme-link { color: var(--accent); text-decoration: none; border: 1px solid var(--accent); padding: 4px 8px; border-radius: 4px; transition: 0.2s; }
+        .readme-link:hover { background: rgba(33, 150, 243, 0.1); }
 
-        h1 { margin: 0 0 20px; font-size: 1.2rem; font-weight: 500; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        h3 { margin: 0 0 10px; font-size: 0.85rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        select { background: #1a1a1a; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 13px; min-width: 120px; cursor: pointer; }
 
-        /* Controls */
-        .controls { display: flex; gap: 15px; margin-bottom: 20px; background: var(--card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); align-items: center; }
-        select { background: #222; color: #fff; border: 1px solid #444; padding: 6px 12px; border-radius: 4px; }
-        
-        /* Left Panel - Metrics */
-        .left-panel { display: flex; flex-direction: column; gap: 20px; }
-        
-        /* Metric Grids */
-        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .metric-box { background: var(--card); padding: 10px; border: 1px solid var(--border); border-radius: 4px; text-align: center; }
-        .metric-label { font-size: 11px; color: #888; display: block; margin-bottom: 4px; }
-        .metric-val { font-size: 15px; font-weight: bold; color: #fff; }
-        .metric-sub { font-size: 10px; color: #666; margin-top: 2px; }
+        /* --- MAIN LAYOUT GRID --- */
+        .container { display: grid; grid-template-columns: 380px 1fr; gap: 20px; max-width: 1600px; margin: 0 auto; }
+        @media(max-width: 1024px) { .container { grid-template-columns: 1fr; } } /* Mobile Stack */
 
-        .val-green { color: var(--green); }
-        .val-red { color: var(--red); }
-        .val-yellow { color: #ffeb3b; }
+        /* --- LEFT PANEL --- */
+        .left-panel { display: flex; flex-direction: column; gap: 15px; }
+        .section-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; border-bottom: 1px solid #222; }
 
-        /* Chart */
-        .chart-container { background: var(--card); padding: 10px; border: 1px solid var(--border); border-radius: 6px; height: 250px; }
+        .futures-box { background: var(--card); padding: 12px; border: 1px solid var(--border); text-align: center; border-radius: 4px; }
+        .futures-price { font-size: 1.5rem; font-weight: bold; color: #fff; }
+        .lbl { font-size: 10px; color: #666; display: block; margin-bottom: 2px; text-transform: uppercase; }
 
-        /* Right Panel - Table */
-        .right-panel { background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
-        .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 80vh; }
+        /* Straddle Blocks Grid */
+        .straddle-container { display: grid; grid-template-columns: 70px 1fr 1fr 1fr; gap: 8px; height: 90px; }
+        .expiry-box { background: #222; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px; text-align: center; }
+        .exp-day { font-size: 1.3rem; font-weight: bold; line-height: 1; }
+        .exp-month { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+
+        .data-box { background: var(--card); border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; text-align: center; border-radius: 4px; padding: 4px; }
+        .val { font-size: 15px; font-weight: 600; }
+        .iv-val { font-size: 12px; font-family: monospace; color: #888; }
         
-        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: right; white-space: nowrap; }
-        th, td { padding: 8px 10px; border-bottom: 1px solid #2a2a2a; }
-        th { background: #111; color: #888; font-weight: normal; position: sticky; top: 0; z-index: 10; }
+        /* Chart Containers */
+        .chart-wrapper { height: 180px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 10px; }
+        .skew-wrapper { height: 220px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 10px; }
+
+        /* --- RIGHT PANEL (TABLE) --- */
+        .right-panel { display: flex; flex-direction: column; height: 100%; }
+        .table-container { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: var(--card); height: 100%; max-height: 85vh; }
         
-        /* Sticky Strike Column */
-        .strike-col { background: #1a1a1a; color: #fff; font-weight: bold; text-align: center; position: sticky; left: 0; z-index: 20; border-right: 1px solid #333; border-left: 1px solid #333; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: right; white-space: nowrap; }
+        th, td { padding: 8px 5px; border-bottom: 1px solid #222; }
         
-        .greeks { color: #777; font-size: 11px; }
-        .atm-row { background: #252525; }
+        /* Sticky Headers & Columns */
+        th { background: #111; color: #777; font-weight: normal; position: sticky; top: 0; z-index: 5; }
+        .strike-col { text-align: center; background: #1a1a1a; color: #fff; font-weight: bold; border-left: 1px solid #333; border-right: 1px solid #333; position: sticky; left: 0; z-index: 10; width: 55px; }
+        
+        /* Interactive Toggle Header */
+        .toggle-th { background: #222; cursor: pointer; user-select: none; color: var(--accent); text-align: center; border: 1px solid #444; font-weight: bold; }
+        .toggle-th:hover { background: #333; color: #fff; }
+        
+        .atm-row td { background: #252525 !important; }
+        .iv-cell { font-family: monospace; font-weight: bold; }
+        .greeks-cell { color: #888; }
+        .c-green { color: var(--green); } .c-red { color: var(--red); } .c-gold { color: var(--gold); }
     </style>
 </head>
 <body>
 
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h1>IndIV Monitor <span style="font-size:12px; color:#666; font-weight:normal">(Dummy Data Mode)</span></h1>
-    </div>
+    <div class="header-row">
+        <h1>IndIV Monitor <span class="mock-badge">MOCK LAYOUT</span></h1>
+        
+        <div class="controls-right">
+             <select>
+                <option>NIFTY 50</option>
+                <option>BANK NIFTY</option>
+            </select>
 
-    <div class="controls">
-        <select><option>NIFTY 50</option></select>
-        <select><option>26 DEC 2025</option></select>
-        <button style="margin-left:auto; background:#333; color:#fff; border:none; padding:6px 12px; cursor:pointer;">Refresh</button>
+            <a href="mock_readme.html" target="_blank" class="readme-link">How to use?</a>
+
+            <div class="status-box">
+                <div class="status-indicator">✓ LIVE</div>
+                <div class="eta-text">Updated just now</div>
+            </div>
+        </div>
     </div>
 
     <div class="container">
         
         <div class="left-panel">
             
-            <div>
-                <h3>Price Snapshot</h3>
-                <div class="metrics-grid">
-                    <div class="metric-box">
-                        <span class="metric-label">Spot Price</span>
-                        <div class="metric-val">26,150.00</div>
-                    </div>
-                    <div class="metric-box">
-                        <span class="metric-label">Futures Price</span>
-                        <div class="metric-val" style="color:#fff">26,187.00</div>
-                        <div class="metric-sub">+37.00 Prem</div>
-                    </div>
-                    <div class="metric-box">
-                        <span class="metric-label">Expiry</span>
-                        <div class="metric-val">26 DEC</div>
-                        <div class="metric-sub">4 Days to Exp</div>
-                    </div>
+            <div class="futures-box">
+                <span class="lbl">FUTURES PRICE</span>
+                <div class="futures-price">26,185.50</div>
+            </div>
+
+            <div class="section-label">WEEKLY (26 DEC)</div>
+            <div class="straddle-container">
+                <div class="expiry-box">
+                    <span class="exp-day">26</span><span class="exp-month">DEC</span>
+                </div>
+                <div class="data-box">
+                    <span class="lbl">ATM CALL</span>
+                    <div class="val c-green">145.20</div>
+                    <div class="iv-val">12.4%</div>
+                </div>
+                <div class="data-box" style="border-color: #444; background:#1a1a1a">
+                    <span class="lbl">STRADDLE</span>
+                    <div class="val c-gold">284.50</div>
+                    <div class="iv-val">12.8%</div>
+                </div>
+                <div class="data-box">
+                    <span class="lbl">ATM PUT</span>
+                    <div class="val c-red">139.30</div>
+                    <div class="iv-val">13.1%</div>
                 </div>
             </div>
 
-            <div>
-                <h3>ATM Straddle</h3>
-                <div class="metrics-grid">
-                    <div class="metric-box">
-                        <span class="metric-label">ATM Call</span>
-                        <div class="metric-val val-green">145.50</div>
-                    </div>
-                    <div class="metric-box">
-                        <span class="metric-label">Straddle Price</span>
-                        <div class="metric-val val-yellow">285.00</div>
-                    </div>
-                    <div class="metric-box">
-                        <span class="metric-label">ATM Put</span>
-                        <div class="metric-val val-red">139.50</div>
-                    </div>
+            <div class="section-label">INTRADAY IV TREND</div>
+            <div class="chart-wrapper">
+                <canvas id="mockIntradayChart"></canvas>
+            </div>
+
+            <div class="section-label">MONTHLY (29 JAN)</div>
+            <div class="straddle-container">
+                <div class="expiry-box">
+                    <span class="exp-day">29</span><span class="exp-month">JAN</span>
+                </div>
+                <div class="data-box">
+                    <span class="lbl">ATM CALL</span>
+                    <div class="val c-green">310.50</div>
+                    <div class="iv-val">14.2%</div>
+                </div>
+                <div class="data-box" style="border-color: #444; background:#1a1a1a">
+                    <span class="lbl">STRADDLE</span>
+                    <div class="val c-gold">595.00</div>
+                    <div class="iv-val">14.5%</div>
+                </div>
+                <div class="data-box">
+                    <span class="lbl">ATM PUT</span>
+                    <div class="val c-red">284.50</div>
+                    <div class="iv-val">14.8%</div>
                 </div>
             </div>
 
-            <div>
-                <h3>Implied Volatility (IV)</h3>
-                <div class="metrics-grid">
-                    <div class="metric-box">
-                        <span class="metric-label">Call IV</span>
-                        <div class="metric-val val-green">12.4%</div>
-                    </div>
-                    <div class="metric-box">
-                        <span class="metric-label">Straddle IV</span>
-                        <div class="metric-val val-yellow">12.6%</div>
-                    </div>
-                    <div class="metric-box">
-                        <span class="metric-label">Put IV</span>
-                        <div class="metric-val val-red">12.8%</div>
-                    </div>
-                </div>
+            <div class="section-label">VOLATILITY SKEW</div>
+            <div class="skew-wrapper">
+                <canvas id="mockSkewChart"></canvas>
             </div>
 
-            <div>
-                <h3>Volatility Skew</h3>
-                <div class="chart-container">
-                    <canvas id="dummyChart"></canvas>
-                </div>
-            </div>
         </div>
 
         <div class="right-panel">
-            <div style="padding:10px; border-bottom:1px solid #333; background:#161616;">
-                <h3>Option Chain (Greeks)</h3>
-            </div>
-            <div class="table-scroll">
-                <table id="dummyTable">
+            <div class="table-container">
+                <table>
                     <thead>
                         <tr>
-                            <th colspan="4" style="text-align:center; color:var(--green); border-bottom:1px solid #333">CALLS</th>
-                            <th class="strike-col"></th>
-                            <th colspan="4" style="text-align:center; color:var(--red); border-bottom:1px solid #333">PUTS</th>
+                            <th colspan="5" style="text-align:center; color:var(--green); border-bottom:1px solid #333;">CALLS</th>
+                            <th class="toggle-th" id="toggleBtn" onclick="toggleMockData()">WEEKLY ⟳</th>
+                            <th colspan="5" style="text-align:center; color:var(--red); border-bottom:1px solid #333;">PUTS</th>
                         </tr>
                         <tr>
-                            <th>Gamma</th><th>Vega</th><th>Delta</th><th>IV%</th>
+                            <th>Gamma</th><th>Vega</th><th>Theta</th><th>Delta</th><th>IV%</th>
                             <th class="strike-col">Strike</th>
-                            <th>IV%</th><th>Delta</th><th>Vega</th><th>Gamma</th>
+                            <th>IV%</th><th>Delta</th><th>Theta</th><th>Vega</th><th>Gamma</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody"></tbody>
+                    <tbody id="mockTableBody">
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -158,74 +180,98 @@
     </div>
 
 <script>
-    // GENERATE DUMMY DATA
+    // --- MOCK DATA GENERATOR ---
     const atm = 26200;
-    const rows = [];
-    
-    for(let i=-10; i<=10; i++) {
-        let strike = atm + (i*50);
-        let isATM = strike === atm;
-        
-        // Mock Greeks Logic
-        let deltaC = 0.5 + (i * 0.02);
-        let deltaP = 0.5 - (i * 0.02);
-        let ivC = 12.5 - (i * 0.1) + (i*i*0.02); // Skew smile
-        let ivP = 12.8 + (i * 0.1) + (i*i*0.02); 
+    let currentMode = 'weekly';
 
-        rows.push({
-            strike: strike,
-            isATM: isATM,
-            call: { gamma: 0.0024, vega: 12.5, delta: deltaC.toFixed(2), iv: ivC.toFixed(1) },
-            put: { gamma: 0.0024, vega: 12.5, delta: (-deltaP).toFixed(2), iv: ivP.toFixed(1) }
+    function generateMockRows(mode) {
+        const rows = [];
+        const baseIV = mode === 'weekly' ? 12.5 : 14.5;
+        const vegaMult = mode === 'weekly' ? 8 : 15;
+        const thetaMult = mode === 'weekly' ? 12 : 6;
+
+        for(let i=-12; i<=12; i++) {
+            let strike = atm + (i*50);
+            // Mock Skew smile curve
+            let skewAdder = (i*i * 0.03); 
+            let ivC = baseIV - (i*0.1) + skewAdder;
+            let ivP = baseIV + (i*0.1) + skewAdder;
+            
+            // Mock Greeks
+            let delta = 0.5 + (i*0.03);
+            delta = Math.min(Math.max(delta, 0.01), 0.99); // Clamp between 0 and 1
+
+            rows.push({
+                strike: strike,
+                isATM: strike === atm,
+                c: { iv: ivC.toFixed(1), delta: delta.toFixed(2), theta: (thetaMult - Math.abs(i)).toFixed(1), vega: vegaMult.toFixed(1), gamma: (0.003 - Math.abs(i*0.0002)).toFixed(4) },
+                p: { iv: ivP.toFixed(1), delta: delta.toFixed(2), theta: (thetaMult - Math.abs(i)).toFixed(1), vega: vegaMult.toFixed(1), gamma: (0.003 - Math.abs(i*0.0002)).toFixed(4) }
+            });
+        }
+        return rows;
+    }
+
+    // --- RENDER FUNCTIONS ---
+    function renderTable(mode) {
+        const rows = generateMockRows(mode);
+        document.getElementById("mockTableBody").innerHTML = rows.map(r => `
+            <tr class="${r.isATM ? 'atm-row' : ''}">
+                <td class="greeks-cell">${r.c.gamma}</td>
+                <td class="greeks-cell">${r.c.vega}</td>
+                <td class="greeks-cell">${r.c.theta}</td>
+                <td class="c-green">${r.c.delta}</td>
+                <td class="iv-cell c-green">${r.c.iv}</td>
+                <td class="strike-col">${r.strike}</td>
+                <td class="iv-cell c-red">${r.p.iv}</td>
+                <td class="c-red">${r.p.delta}</td>
+                <td class="greeks-cell">${r.p.theta}</td>
+                <td class="greeks-cell">${r.p.vega}</td>
+                <td class="greeks-cell">${r.p.gamma}</td>
+            </tr>
+        `).join("");
+        
+        document.getElementById("toggleBtn").innerText = `${mode.toUpperCase()} ⟳`;
+        renderSkewChart(rows); // Update chart with new data
+    }
+
+    function toggleMockData() {
+        currentMode = currentMode === 'weekly' ? 'monthly' : 'weekly';
+        renderTable(currentMode);
+    }
+
+    // --- MOCK CHARTS ---
+    let skewChartVar;
+    function renderSkewChart(rows) {
+        const ctx = document.getElementById('mockSkewChart').getContext('2d');
+        if(skewChartVar) skewChartVar.destroy();
+        skewChartVar = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: rows.map(r=>r.strike),
+                datasets: [
+                    {label:'Call IV', data:rows.map(r=>r.c.iv), borderColor:'#00E676', borderWidth:2, pointRadius:0, tension:0.4},
+                    {label:'Put IV', data:rows.map(r=>r.p.iv), borderColor:'#FF5252', borderWidth:2, pointRadius:0, tension:0.4}
+                ]
+            },
+            options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#222'}}} }
         });
     }
 
-    // RENDER TABLE
-    document.getElementById("tableBody").innerHTML = rows.map(r => `
-        <tr class="${r.isATM ? 'atm-row' : ''}">
-            <td class="greeks">${r.call.gamma}</td>
-            <td class="greeks">${r.call.vega}</td>
-            <td class="greeks" style="color:${r.call.delta>0.5?'var(--green)':'#888'}">${r.call.delta}</td>
-            <td style="color:var(--green)">${r.call.iv}%</td>
-            
-            <td class="strike-col">${r.strike}</td>
-            
-            <td style="color:var(--red)">${r.put.iv}%</td>
-            <td class="greeks" style="color:${Math.abs(r.put.delta)>0.5?'var(--red)':'#888'}">${r.put.delta}</td>
-            <td class="greeks">${r.put.vega}</td>
-            <td class="greeks">${r.put.gamma}</td>
-        </tr>
-    `).join("");
-
-    // RENDER CHART
-    new Chart(document.getElementById('dummyChart'), {
+    // Intraday is static mock for now
+    new Chart(document.getElementById('mockIntradayChart'), {
         type: 'line',
         data: {
-            labels: rows.map(r => r.strike),
-            datasets: [{
-                label: 'Call IV',
-                data: rows.map(r => r.call.iv),
-                borderColor: '#4CAF50',
-                tension: 0.4,
-                pointRadius: 0
-            }, {
-                label: 'Put IV',
-                data: rows.map(r => r.put.iv),
-                borderColor: '#F44336',
-                tension: 0.4,
-                pointRadius: 0
-            }]
+            labels: ["9:15", "10:00", "11:00", "12:00", "13:00", "14:00", "Now"],
+            datasets: [
+                {label:'Weekly IV', data:[12.2, 12.4, 12.1, 12.5, 12.8, 12.6, 12.8], borderColor:'#00E676', borderWidth:2},
+                {label:'Monthly IV', data:[14.1, 14.0, 14.2, 14.3, 14.4, 14.5, 14.5], borderColor:'#2196F3', borderWidth:2}
+            ]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { grid: { color: '#222' }, ticks: { color: '#666', maxTicksLimit: 6 } },
-                y: { grid: { color: '#222' }, ticks: { color: '#666' } }
-            }
-        }
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#888', boxWidth:12}}}, scales:{x:{display:false}, y:{grid:{color:'#222'}}} }
     });
+
+    // Initial Render
+    renderTable(currentMode);
 </script>
 </body>
 </html>
