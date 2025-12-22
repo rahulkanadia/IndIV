@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V12</title>
+    <title>IndIV Monitor V13</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         /* --- THEME --- */
@@ -87,13 +87,11 @@
         .split-half { flex: 0 0 50%; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .split-half:last-child { border-right: none; }
         
-        /* IMPROVED TITLE + LEGENDS */
+        /* TITLE + LEGENDS */
         .panel-title { 
             font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; 
             padding: 8px 10px 0; display: flex; align-items: center; justify-content: space-between;
         }
-        
-        /* New Legend Styles */
         .legend-row { display: flex; gap: 15px; font-weight: normal; text-transform: none; }
         .leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
         
@@ -277,21 +275,27 @@
     // 1. INTRADAY
     const wkIV = [12.2, 12.4, 12.1, 12.5, 12.8];
     const moIV = [14.1, 14.0, 14.2, 14.3, 14.4];
+    const wkRV = [10.5,10.5,10.5,10.5,10.5];
+    const moRV = [11.0,11.0,11.0,11.0,11.0];
     const time = [1,2,3,4,5];
-    const allVals = [...wkIV, ...moIV, 10.5, 11.0];
+    
+    // Axis Calculation (Min - 1, Max + 1)
+    const allVals = [...wkIV, ...moIV, ...wkRV, ...moRV];
     const minV = Math.min(...allVals);
     const maxV = Math.max(...allVals);
-    const pad = (maxV - minV) * 0.1;
     
+    // Helper to generate text array with only last value
+    const lastValText = (arr) => arr.map((v, i) => i === arr.length - 1 ? v.toFixed(1) : null);
+
     Plotly.newPlot('chart-trend', [
-        { x: time, y: wkIV, name: 'Wk IV', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text:[null,null,null,null,'12.8'], textposition:'middle right' },
-        { x: time, y: moIV, name: 'Mo IV', line: { color: '#FF9800', width: 3 }, type: 'scatter', mode:'lines+markers+text', text:[null,null,null,null,'14.4'], textposition:'middle right' },
-        { x: time, y: [10.5,10.5,10.5,10.5,10.5], name: 'Wk RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter' },
-        { x: time, y: [11.0,11.0,11.0,11.0,11.0], name: 'Mo RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter' }
+        { x: time, y: wkIV, name: 'Wk IV', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkIV), textposition:'middle right' },
+        { x: time, y: moIV, name: 'Mo IV', line: { color: '#FF9800', width: 3 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(moIV), textposition:'middle right' },
+        { x: time, y: wkRV, name: 'Wk RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkRV), textposition:'middle right' },
+        { x: time, y: moRV, name: 'Mo RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(moRV), textposition:'middle right' }
     ], { 
         ...layoutBase, showlegend: false, 
-        xaxis:{visible:false, range:[0.8, 5.8]}, 
-        yaxis:{gridcolor:'#222', range:[minV-pad, maxV+pad]} 
+        xaxis:{visible:false, range:[0.8, 6.0]}, // Extra space for text
+        yaxis:{gridcolor:'#222', range:[minV - 1.0, maxV + 1.0]} // FIXED: +/- 1.0 Unit
     }, cfg);
 
     // 2. SKEW
