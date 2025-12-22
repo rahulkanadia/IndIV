@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V16</title>
+    <title>IndIV Monitor V17</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         /* --- THEME --- */
@@ -98,8 +98,8 @@
         .surf-controls { display: flex; gap: 10px; padding: 4px 10px; background: #181818; border-bottom: 1px solid #333; }
         .surf-toggle { font-size: 10px; color: #aaa; cursor: pointer; display: flex; align-items: center; gap: 4px; }
         
-        /* FIXED HEIGHT FOR ALL CHARTS */
-        .chart-content { flex: 1; position: relative; min-height: 200px; padding: 0; }
+        /* FIXED HEIGHT FOR ALL LEFT CHARTS */
+        .chart-content { position: relative; height: 220px; padding: 0; }
         .chart-div { position: absolute; top:0; left:0; width: 100%; height: 100%; display: none; } 
         .chart-div.visible { display: block; }
 
@@ -128,7 +128,7 @@
         .exp-table td { padding: 5px; border-bottom: 1px solid #222; font-weight: bold; text-align: center; }
         .range-pill { background: #222; border: 1px solid #444; padding: 2px 6px; border-radius: 3px; font-family: monospace; color: var(--gold); }
 
-        /* --- TOOLBAR (ALIGNED) --- */
+        /* --- TOOLBAR --- */
         .table-toolbar { 
             display: flex; height: 45px; border-bottom: 1px solid var(--border); background: #1a1a1a; 
             align-items: center; padding: 0 10px; gap: 15px;
@@ -143,11 +143,9 @@
 
         .toolbar-toggle-wrapper { 
             flex-shrink: 0; display: flex; align-items: center; 
-            height: 100%; /* Vertical Fill */
-            border-left: 1px solid #333; padding-left: 15px; 
+            height: 100%; border-left: 1px solid #333; padding-left: 15px; 
         }
 
-        /* Buttons: Default State (Unselected) */
         .tool-tab { 
             background: #252525; color: #888; 
             border: 1px solid #333; border-radius: 4px; 
@@ -156,7 +154,6 @@
         }
         .tool-tab:hover { background: #333; color: #bbb; }
 
-        /* Buttons: Active State (Blue Border, White Text) */
         .tool-tab.active { 
             background: #2b2b2b; color: #fff; 
             border-color: var(--blue); 
@@ -301,25 +298,16 @@
     </div>
 
 <script>
-    // CONFIG: LOCK ZOOM & INTERACTION
-    const cfg = { 
-        displayModeBar: false, 
-        responsive: true,
-        scrollZoom: false,
-        doubleClick: false,
-        showTips: false,
-        staticPlot: false // Allow tooltips but prevent zoom
-    };
-
-    // LAYOUT BASE: LOCK AXES
+    const cfg = { displayModeBar: false, responsive: true, scrollZoom: false, doubleClick: false, showTips: false, staticPlot: false };
+    
+    // LAYOUT BASE (LOCKED INTERACTION)
     const layoutBase = { 
-        paper_bgcolor:'rgba(0,0,0,0)', 
-        plot_bgcolor:'rgba(0,0,0,0)', 
+        paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', 
         font:{family:'Segoe UI', color:'#666', size:10}, 
         margin:{t:10, b:30, l:35, r:30}, 
-        xaxis:{ showgrid:false, fixedrange: true }, // Locked
-        yaxis:{ gridcolor:'#222', fixedrange: true }, // Locked
-        dragmode: false // Prevent dragging
+        xaxis:{ showgrid:false, fixedrange: true }, 
+        yaxis:{ gridcolor:'#222', fixedrange: true },
+        dragmode: false
     };
 
     function selectExpiry(el) {
@@ -336,14 +324,22 @@
         window.dispatchEvent(new Event('resize'));
     }
 
-    function getSmartRange(dataArrays) {
+    // --- SMART RANGE CALCULATION ---
+    function getSmartRange(dataArrays, absoluteMode = false) {
         let all = [];
         dataArrays.forEach(arr => all.push(...arr));
         const minV = Math.min(...all);
         const maxV = Math.max(...all);
-        const pad = (maxV - minV) * 0.1; 
-        const finalPad = pad === 0 ? 1.0 : pad;
-        return [minV - finalPad, maxV + finalPad];
+        
+        if (absoluteMode) {
+             // Intraday Mode: +/- 1.0 unit
+             return [minV - 1.0, maxV + 1.0];
+        } else {
+             // General Mode: 10% padding
+             const pad = (maxV - minV) * 0.1;
+             const finalPad = pad === 0 ? 1.0 : pad;
+             return [minV - finalPad, maxV + finalPad];
+        }
     }
 
     const lastValText = (arr) => arr.map((v, i) => i === arr.length - 1 ? v.toFixed(1) : null);
@@ -354,7 +350,8 @@
     const wkRV = [10.5,10.5,10.5,10.5,10.5];
     const moRV = [11.0,11.0,11.0,11.0,11.0];
     const time = [1,2,3,4,5];
-    const range1 = getSmartRange([wkIV, moIV, wkRV, moRV]);
+    // Use Absolute Mode for Intraday
+    const range1 = getSmartRange([wkIV, moIV, wkRV, moRV], true); 
 
     Plotly.newPlot('chart-trend', [
         { x: time, y: wkIV, name: 'Wk IV', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkIV), textposition:'middle right' },
@@ -366,7 +363,7 @@
         yaxis:{gridcolor:'#222', range: range1, fixedrange:true} 
     }, cfg);
 
-    // 2. SKEW
+    // 2. SKEW (Smart Range 10%)
     const cIV = [13.5,12.6,12.4,12.8,13.8];
     const pIV = [14.0,13.1,12.8,13.4,14.5];
     const range2 = getSmartRange([cIV, pIV]);
@@ -381,7 +378,7 @@
         yaxis2: { overlaying: 'y', side: 'right', showgrid: false, fixedrange:true }
     }, cfg);
 
-    // 3. TERM
+    // 3. TERM (Smart Range 10%)
     const termWk = [12.8, 14.5, 15.2, 15.8];
     const termMo = [14.5, 15.0, 15.5, 16.0];
     const range3 = getSmartRange([termWk, termMo]);
@@ -394,7 +391,7 @@
         yaxis: { gridcolor:'#222', range: range3, fixedrange:true }
     }, cfg);
 
-    // 4. SURFACE
+    // 4. SURFACE (Smart Range 10%)
     const surfDec = [13, 12.4, 13.5];
     const surfJan = [14, 14.0, 15.0];
     const range4 = getSmartRange([surfDec, surfJan]);
@@ -407,7 +404,6 @@
         yaxis: { gridcolor:'#222', range: range4, fixedrange:true }
     }, cfg);
 
-    // TABLE MOCK
     function regenerateTable(majorOnly) {
         const atm = 26200;
         const tbody = document.getElementById("tableBody");
