@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndIV Monitor (Test Mode)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --bg: #0b0b0b; --card: #161616; --text: #e0e0e0; --accent: #2196F3; --green: #4CAF50; --red: #F44336; --border: #333; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 20px; box-sizing: border-box; }
+        
+        /* Grid Layout */
+        .container { display: grid; grid-template-columns: 350px 1fr; gap: 20px; max-width: 100%; margin: 0 auto; }
+        @media(max-width: 1100px) { .container { grid-template-columns: 1fr; } } /* Stack on smaller screens */
+
+        h1 { margin: 0 0 20px; font-size: 1.2rem; font-weight: 500; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        h3 { margin: 0 0 10px; font-size: 0.85rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Controls */
+        .controls { display: flex; gap: 15px; margin-bottom: 20px; background: var(--card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); align-items: center; }
+        select { background: #222; color: #fff; border: 1px solid #444; padding: 6px 12px; border-radius: 4px; }
+        
+        /* Left Panel - Metrics */
+        .left-panel { display: flex; flex-direction: column; gap: 20px; }
+        
+        /* Metric Grids */
+        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .metric-box { background: var(--card); padding: 10px; border: 1px solid var(--border); border-radius: 4px; text-align: center; }
+        .metric-label { font-size: 11px; color: #888; display: block; margin-bottom: 4px; }
+        .metric-val { font-size: 15px; font-weight: bold; color: #fff; }
+        .metric-sub { font-size: 10px; color: #666; margin-top: 2px; }
+
+        .val-green { color: var(--green); }
+        .val-red { color: var(--red); }
+        .val-yellow { color: #ffeb3b; }
+
+        /* Chart */
+        .chart-container { background: var(--card); padding: 10px; border: 1px solid var(--border); border-radius: 6px; height: 250px; }
+
+        /* Right Panel - Table */
+        .right-panel { background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
+        .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 80vh; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: right; white-space: nowrap; }
+        th, td { padding: 8px 10px; border-bottom: 1px solid #2a2a2a; }
+        th { background: #111; color: #888; font-weight: normal; position: sticky; top: 0; z-index: 10; }
+        
+        /* Sticky Strike Column */
+        .strike-col { background: #1a1a1a; color: #fff; font-weight: bold; text-align: center; position: sticky; left: 0; z-index: 20; border-right: 1px solid #333; border-left: 1px solid #333; }
+        
+        .greeks { color: #777; font-size: 11px; }
+        .atm-row { background: #252525; }
+    </style>
+</head>
+<body>
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h1>IndIV Monitor <span style="font-size:12px; color:#666; font-weight:normal">(Dummy Data Mode)</span></h1>
+    </div>
+
+    <div class="controls">
+        <select><option>NIFTY 50</option></select>
+        <select><option>26 DEC 2025</option></select>
+        <button style="margin-left:auto; background:#333; color:#fff; border:none; padding:6px 12px; cursor:pointer;">Refresh</button>
+    </div>
+
+    <div class="container">
+        
+        <div class="left-panel">
+            
+            <div>
+                <h3>Price Snapshot</h3>
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <span class="metric-label">Spot Price</span>
+                        <div class="metric-val">26,150.00</div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Futures Price</span>
+                        <div class="metric-val" style="color:#fff">26,187.00</div>
+                        <div class="metric-sub">+37.00 Prem</div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Expiry</span>
+                        <div class="metric-val">26 DEC</div>
+                        <div class="metric-sub">4 Days to Exp</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3>ATM Straddle</h3>
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <span class="metric-label">ATM Call</span>
+                        <div class="metric-val val-green">145.50</div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Straddle Price</span>
+                        <div class="metric-val val-yellow">285.00</div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">ATM Put</span>
+                        <div class="metric-val val-red">139.50</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3>Implied Volatility (IV)</h3>
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <span class="metric-label">Call IV</span>
+                        <div class="metric-val val-green">12.4%</div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Straddle IV</span>
+                        <div class="metric-val val-yellow">12.6%</div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Put IV</span>
+                        <div class="metric-val val-red">12.8%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3>Volatility Skew</h3>
+                <div class="chart-container">
+                    <canvas id="dummyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div style="padding:10px; border-bottom:1px solid #333; background:#161616;">
+                <h3>Option Chain (Greeks)</h3>
+            </div>
+            <div class="table-scroll">
+                <table id="dummyTable">
+                    <thead>
+                        <tr>
+                            <th colspan="4" style="text-align:center; color:var(--green); border-bottom:1px solid #333">CALLS</th>
+                            <th class="strike-col"></th>
+                            <th colspan="4" style="text-align:center; color:var(--red); border-bottom:1px solid #333">PUTS</th>
+                        </tr>
+                        <tr>
+                            <th>Gamma</th><th>Vega</th><th>Delta</th><th>IV%</th>
+                            <th class="strike-col">Strike</th>
+                            <th>IV%</th><th>Delta</th><th>Vega</th><th>Gamma</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    // GENERATE DUMMY DATA
+    const atm = 26200;
+    const rows = [];
+    
+    for(let i=-10; i<=10; i++) {
+        let strike = atm + (i*50);
+        let isATM = strike === atm;
+        
+        // Mock Greeks Logic
+        let deltaC = 0.5 + (i * 0.02);
+        let deltaP = 0.5 - (i * 0.02);
+        let ivC = 12.5 - (i * 0.1) + (i*i*0.02); // Skew smile
+        let ivP = 12.8 + (i * 0.1) + (i*i*0.02); 
+
+        rows.push({
+            strike: strike,
+            isATM: isATM,
+            call: { gamma: 0.0024, vega: 12.5, delta: deltaC.toFixed(2), iv: ivC.toFixed(1) },
+            put: { gamma: 0.0024, vega: 12.5, delta: (-deltaP).toFixed(2), iv: ivP.toFixed(1) }
+        });
+    }
+
+    // RENDER TABLE
+    document.getElementById("tableBody").innerHTML = rows.map(r => `
+        <tr class="${r.isATM ? 'atm-row' : ''}">
+            <td class="greeks">${r.call.gamma}</td>
+            <td class="greeks">${r.call.vega}</td>
+            <td class="greeks" style="color:${r.call.delta>0.5?'var(--green)':'#888'}">${r.call.delta}</td>
+            <td style="color:var(--green)">${r.call.iv}%</td>
+            
+            <td class="strike-col">${r.strike}</td>
+            
+            <td style="color:var(--red)">${r.put.iv}%</td>
+            <td class="greeks" style="color:${Math.abs(r.put.delta)>0.5?'var(--red)':'#888'}">${r.put.delta}</td>
+            <td class="greeks">${r.put.vega}</td>
+            <td class="greeks">${r.put.gamma}</td>
+        </tr>
+    `).join("");
+
+    // RENDER CHART
+    new Chart(document.getElementById('dummyChart'), {
+        type: 'line',
+        data: {
+            labels: rows.map(r => r.strike),
+            datasets: [{
+                label: 'Call IV',
+                data: rows.map(r => r.call.iv),
+                borderColor: '#4CAF50',
+                tension: 0.4,
+                pointRadius: 0
+            }, {
+                label: 'Put IV',
+                data: rows.map(r => r.put.iv),
+                borderColor: '#F44336',
+                tension: 0.4,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: '#222' }, ticks: { color: '#666', maxTicksLimit: 6 } },
+                y: { grid: { color: '#222' }, ticks: { color: '#666' } }
+            }
+        }
+    });
+</script>
+</body>
+</html>
