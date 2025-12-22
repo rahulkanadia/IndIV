@@ -5,116 +5,151 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IndIV Monitor</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <style>
-        :root { --bg: #0b0b0b; --card: #161616; --text: #e0e0e0; --accent: #2196F3; --green: #4CAF50; --red: #F44336; --border: #333; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 20px; box-sizing: border-box; }
+        :root { --bg: #0b0b0b; --card: #141414; --text: #e0e0e0; --accent: #2196F3; --green: #00E676; --red: #FF5252; --border: #2a2a2a; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 15px; box-sizing: border-box; }
         
-        /* Layout Grid */
-        .container { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; max-width: 1600px; margin: 0 auto; }
-        @media(max-width: 1200px) { .container { grid-template-columns: 1fr; } }
-
-        /* Typography */
-        h1 { margin: 0 0 20px 0; font-size: 1.5rem; color: #fff; font-weight: 500; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        h3 { margin: 15px 0 10px; font-size: 1rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* Controls Row */
-        .controls { display: flex; gap: 15px; margin-bottom: 20px; background: var(--card); padding: 15px; border-radius: 6px; border: 1px solid var(--border); align-items: center; }
-        select { background: #222; color: #fff; border: 1px solid #444; padding: 8px 12px; border-radius: 4px; font-size: 14px; min-width: 150px; }
-        button { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-left: auto; }
-        button:hover { opacity: 0.9; }
-
-        /* Data Cards (Metrics) */
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .metric-box { background: var(--card); padding: 12px; border: 1px solid var(--border); border-radius: 4px; text-align: center; }
-        .metric-label { font-size: 12px; color: #888; margin-bottom: 5px; display: block; }
-        .metric-val { font-size: 16px; font-weight: bold; color: #fff; }
-        .metric-sub { font-size: 11px; color: #666; margin-top: 4px; }
-        .val-green { color: var(--green); } .val-red { color: var(--red); }
-
-        /* Charts Section */
-        .chart-container { background: var(--card); padding: 15px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 20px; height: 300px; }
-
-        /* Option Chain Table */
-        .table-container { overflow-x: auto; background: var(--card); border: 1px solid var(--border); border-radius: 6px; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: right; white-space: nowrap; }
-        th, td { padding: 8px 6px; border-bottom: 1px solid #2a2a2a; }
-        th { background: #111; color: #888; font-weight: normal; position: sticky; top: 0; }
+        /* --- HEADER & CONTROLS --- */
+        .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        h1 { margin: 0; font-size: 1.1rem; font-weight: 500; letter-spacing: 0.5px; }
         
-        /* Table Colors */
-        .strike-col { background: #222; color: #fff; font-weight: bold; text-align: center; position: sticky; left: 0; z-index: 2; border-right: 1px solid #333; border-left: 1px solid #333;}
-        .call-group { border-right: 1px solid #333; }
-        .greeks { color: #aaa; }
-        .iv-cell { font-family: monospace; letter-spacing: -0.5px; }
+        .controls-right { display: flex; align-items: center; gap: 15px; font-size: 12px; }
+        .status-box { text-align: right; }
+        .status-indicator { display: inline-flex; align-items: center; gap: 5px; font-weight: bold; }
+        .eta-text { color: #666; font-size: 11px; }
+        .readme-link { color: var(--accent); text-decoration: none; border: 1px solid var(--accent); padding: 4px 8px; border-radius: 4px; transition: 0.2s; }
+        .readme-link:hover { background: rgba(33, 150, 243, 0.1); }
+
+        select { background: #1a1a1a; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 13px; min-width: 120px; }
+
+        /* --- MAIN LAYOUT --- */
+        .container { display: grid; grid-template-columns: 40% 60%; gap: 20px; max-width: 1800px; margin: 0 auto; }
+        @media(max-width: 1000px) { .container { grid-template-columns: 1fr; } } /* Mobile Stack */
+
+        /* --- LEFT PANEL (SNAPSHOTS) --- */
+        .left-panel { display: flex; flex-direction: column; gap: 20px; }
         
-        /* Utility */
-        .loading { color: #888; text-align: center; padding: 50px; }
-        .error { color: var(--red); text-align: center; padding: 20px; }
+        .futures-box { background: var(--card); padding: 10px; border: 1px solid var(--border); text-align: center; border-radius: 4px; margin-bottom: 10px; }
+        .futures-price { font-size: 1.4rem; font-weight: bold; color: #fff; }
+
+        /* ATM STRADDLE BLOCKS */
+        .straddle-container { display: grid; grid-template-columns: 80px 1fr 1fr 1fr; gap: 8px; align-items: start; }
+        
+        /* Expiry Box (Double Height) */
+        .expiry-box { grid-row: span 2; background: #222; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; border-radius: 4px; padding: 5px; text-align: center; }
+        .exp-day { font-size: 1.2rem; font-weight: bold; line-height: 1; }
+        .exp-month { font-size: 0.8rem; color: #888; text-transform: uppercase; }
+
+        /* Price/IV Boxes */
+        .data-box { background: var(--card); border: 1px solid var(--border); padding: 8px; text-align: center; border-radius: 4px; }
+        .lbl { font-size: 10px; color: #666; display: block; margin-bottom: 2px; text-transform: uppercase; }
+        .val { font-size: 14px; font-weight: 600; }
+        .iv-val { font-size: 13px; font-family: monospace; letter-spacing: -0.5px; }
+
+        /* Colors */
+        .c-green { color: var(--green); }
+        .c-red { color: var(--red); }
+        .c-gold { color: #FFD700; }
+
+        /* Intraday Chart Section */
+        .intraday-chart-wrapper { height: 180px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 10px; position: relative; }
+
+        /* Skew Chart */
+        .skew-chart-wrapper { height: 220px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 10px; }
+        
+        /* Section Dividers */
+        .section-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin: 15px 0 5px; border-bottom: 1px solid #222; padding-bottom: 2px; }
+
+        /* --- RIGHT PANEL (TABLE) --- */
+        .right-panel { display: flex; flex-direction: column; }
+        .table-container { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: var(--card); }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: right; white-space: nowrap; }
+        th, td { padding: 6px 4px; border-bottom: 1px solid #222; }
+        
+        /* Headers */
+        th { background: #111; color: #777; font-weight: normal; position: sticky; top: 0; z-index: 5; }
+        .toggle-th { background: #1a1a1a; cursor: pointer; user-select: none; color: #fff; text-align: center; border: 1px solid #444; }
+        .toggle-th:hover { background: #333; }
+        
+        /* Columns */
+        .strike-col { text-align: center; background: #181818; color: #fff; font-weight: bold; border-left: 1px solid #333; border-right: 1px solid #333; position: sticky; left: 0; z-index: 10; width: 50px; }
+        .atm-row td { background: #1f1f1f; }
+        
+        /* Data Cells */
+        .iv-cell { font-family: monospace; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h1>Implied Volatility Monitor for Indian Markets</h1>
-
-    <div class="controls">
-        <div>
-            <label style="font-size:12px; color:#888; display:block; margin-bottom:4px;">ASSET</label>
-            <select id="assetSelect" onchange="renderDashboard()">
+    <div class="header-row">
+        <h1>IndIV Monitor</h1>
+        
+        <div class="controls-right">
+             <select id="assetSelect" onchange="render()">
                 <option value="NIFTY">NIFTY 50</option>
                 <option value="BANKNIFTY">BANK NIFTY</option>
                 <option value="CRUDEOIL">CRUDE OIL</option>
                 <option value="GOLD">GOLD</option>
             </select>
-        </div>
-        <div id="expiryControls">
+
+            <a href="readme.html" target="_blank" class="readme-link">How do I use this?</a>
+
+            <div class="status-box">
+                <div class="status-indicator" id="statusIcon">
+                    <span style="color:#666">...</span>
+                </div>
+                <div class="eta-text" id="etaText">Waiting...</div>
             </div>
-        <button onclick="loadData()">Refresh Data</button>
+        </div>
     </div>
 
     <div class="container">
         
         <div class="left-panel">
             
-            <h3>Price Data</h3>
-            <div class="metrics-grid" id="priceRow">
-                </div>
-
-            <h3>ATM Snapshot</h3>
-            <div class="metrics-grid" id="atmRow">
-                </div>
-
-            <h3>Volatility (IV)</h3>
-            <div class="metrics-grid" id="ivRow">
-                </div>
-
-            <h3>Volatility Skew</h3>
-            <div class="chart-container">
-                <canvas id="ivChart"></canvas>
+            <div class="futures-box">
+                <span class="lbl">FUTURES PRICE</span>
+                <div class="futures-price" id="futPrice">Loading...</div>
             </div>
-            
-            <h3>Slope & Surface</h3>
-            <div class="metrics-grid" id="slopeRow">
-               <div class="metric-box"><span class="metric-label">Not Calculated</span></div>
+
+            <div class="section-label">WEEKLY EXPIRY</div>
+            <div class="straddle-container" id="weeklyBlock">
+                </div>
+
+            <div class="section-label">INTRADAY IV TREND (WEEKLY vs MONTHLY)</div>
+            <div class="intraday-chart-wrapper">
+                <canvas id="intradayChart"></canvas>
+            </div>
+
+            <div class="section-label">MONTHLY EXPIRY</div>
+            <div class="straddle-container" id="monthlyBlock">
+                </div>
+
+            <div class="section-label">VOLATILITY SKEW</div>
+            <div class="skew-chart-wrapper">
+                <canvas id="skewChart"></canvas>
             </div>
 
         </div>
 
         <div class="right-panel">
-            <h3>Option Chain (Greeks & IV)</h3>
             <div class="table-container">
-                <table id="chainTable">
+                <table id="greeksTable">
                     <thead>
                         <tr>
-                            <th colspan="5" class="call-group" style="text-align:center; color:var(--green)">CALLS</th>
-                            <th class="strike-col">Strike</th>
-                            <th colspan="5" style="text-align:center; color:var(--red)">PUTS</th>
+                            <th colspan="5" style="text-align:center; color:var(--green); border-bottom:1px solid #333;">CALLS</th>
+                            <th class="toggle-th" onclick="toggleTableMode()" id="toggleBtn">WEEKLY ⟳</th>
+                            <th colspan="5" style="text-align:center; color:var(--red); border-bottom:1px solid #333;">PUTS</th>
                         </tr>
                         <tr>
                             <th>Gamma</th><th>Vega</th><th>Theta</th><th>Delta</th><th>IV%</th>
-                            <th class="strike-col">K</th>
+                            <th class="strike-col">Strike</th>
                             <th>IV%</th><th>Delta</th><th>Theta</th><th>Vega</th><th>Gamma</th>
                         </tr>
                     </thead>
-                    <tbody id="chainBody"></tbody>
+                    <tbody id="tableBody"></tbody>
                 </table>
             </div>
         </div>
@@ -123,162 +158,203 @@
 
 <script>
 let globalData = {};
-let ivChartInstance = null;
+let tableMode = 'weekly'; // 'weekly' or 'monthly'
+let charts = {}; // Store chart instances
 
 // 1. Load Data
 async function loadData() {
     try {
-        const res = await fetch(`./indiv_data.json?t=${Date.now()}`);
-        if(!res.ok) throw new Error("Fetching data failed");
-        globalData = await res.json();
-        renderDashboard();
+        const r = await fetch(`./indiv_data.json?t=${Date.now()}`);
+        if(!r.ok) throw new Error("File not found");
+        
+        globalData = await r.json();
+        updateStatus(true, globalData[Object.keys(globalData)[0]].timestamp);
+        render();
     } catch (e) {
         console.error(e);
-        alert("Data not found. Check if Worker ran successfully.");
+        updateStatus(false);
     }
 }
 
-// 2. Render Main Dashboard
-function renderDashboard() {
+// 2. Status Update
+function updateStatus(success, ts) {
+    const icon = document.getElementById("statusIcon");
+    const eta = document.getElementById("etaText");
+    
+    if(success) {
+        const date = new Date(ts);
+        const next = new Date(ts + 20*60*1000); // +20 mins
+        icon.innerHTML = `<span style="color:var(--green)">✓</span> UPDATED`;
+        eta.innerText = `Next: ${next.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+    } else {
+        icon.innerHTML = `<span style="color:var(--red)">✕</span> FAILED`;
+        eta.innerText = "Check Worker";
+    }
+}
+
+// 3. Render Dashboard
+function render() {
     const asset = document.getElementById("assetSelect").value;
     const data = globalData[asset];
     
-    if(!data || !data.weekly) {
-        document.getElementById("priceRow").innerHTML = `<div class="error">No data for ${asset}</div>`;
+    if(!data) return;
+
+    // A. Futures
+    document.getElementById("futPrice").innerText = data.futures;
+
+    // B. Render Blocks (Helper Function)
+    renderStraddleBlock("weeklyBlock", data.weekly);
+    renderStraddleBlock("monthlyBlock", data.monthly);
+
+    // C. Render Table
+    renderTable(data);
+
+    // D. Render Charts
+    renderIntradayChart(data); // Currently just a placeholder line
+    renderSkewChart(data);
+}
+
+function renderStraddleBlock(elementId, w) {
+    const el = document.getElementById(elementId);
+    if(!w) {
+        el.innerHTML = `<div style="grid-column:span 4; color:#666; text-align:center; padding:20px;">No Data</div>`;
         return;
     }
 
-    const w = data.weekly;
     const atmRow = w.rows.find(r => r.strike === w.atmStrike) || w.rows[0];
-    const straddlePrice = atmRow.call.price + atmRow.put.price;
-    const straddleIV = (atmRow.call.iv + atmRow.put.iv) / 2;
-
-    // --- A. Metrics Injection ---
+    const straddlePrice = (atmRow.call.price + atmRow.put.price).toFixed(2);
     
-    // Row 1: Prices
-    document.getElementById("priceRow").innerHTML = `
-        <div class="metric-box">
-            <span class="metric-label">Futures Price</span>
-            <div class="metric-val">${data.futures}</div>
+    // Parse Date for Box
+    const d = new Date(w.expiry);
+    const day = d.getDate();
+    const mon = d.toLocaleString('default', { month: 'short' });
+
+    el.innerHTML = `
+        <div class="expiry-box">
+            <span class="exp-day">${day}</span>
+            <span class="exp-month">${mon}</span>
         </div>
-        <div class="metric-box">
-            <span class="metric-label">Expiry Date</span>
-            <div class="metric-val" style="font-size:14px">${w.expiry}</div>
+        
+        <div class="data-box">
+            <span class="lbl">ATM CALL</span>
+            <div class="val c-green">${atmRow.call.price}</div>
+            <div class="iv-val">${(atmRow.call.iv*100).toFixed(1)}%</div>
+        </div>
+
+        <div class="data-box" style="border-color:#444">
+            <span class="lbl">STRADDLE</span>
+            <div class="val c-gold">${straddlePrice}</div>
+            <div class="iv-val">${w.indiv ? (w.indiv*100).toFixed(1) : "-"}%</div>
+        </div>
+
+        <div class="data-box">
+            <span class="lbl">ATM PUT</span>
+            <div class="val c-red">${atmRow.put.price}</div>
+            <div class="iv-val">${(atmRow.put.iv*100).toFixed(1)}%</div>
         </div>
     `;
+}
 
-    // Row 2: ATM Prices
-    document.getElementById("atmRow").innerHTML = `
-        <div class="metric-box">
-            <span class="metric-label">ATM Call (C)</span>
-            <div class="metric-val val-green">${atmRow.call.price}</div>
-            <div class="metric-sub">${w.atmStrike} CE</div>
-        </div>
-        <div class="metric-box">
-            <span class="metric-label">ATM Straddle</span>
-            <div class="metric-val" style="color:#ffeb3b">${straddlePrice.toFixed(1)}</div>
-        </div>
-        <div class="metric-box">
-            <span class="metric-label">ATM Put (P)</span>
-            <div class="metric-val val-red">${atmRow.put.price}</div>
-            <div class="metric-sub">${w.atmStrike} PE</div>
-        </div>
-    `;
+// 4. Table Logic
+function toggleTableMode() {
+    tableMode = (tableMode === 'weekly') ? 'monthly' : 'weekly';
+    document.getElementById("toggleBtn").innerText = `${tableMode.toUpperCase()} ⟳`;
+    render(); // Re-render table with new mode
+}
 
-    // Row 3: IVs
-    document.getElementById("ivRow").innerHTML = `
-        <div class="metric-box">
-            <span class="metric-label">Call IV</span>
-            <div class="metric-val">${(atmRow.call.iv * 100).toFixed(1)}%</div>
-        </div>
-        <div class="metric-box">
-            <span class="metric-label">Straddle IV</span>
-            <div class="metric-val" style="color:#ffeb3b">${(straddleIV * 100).toFixed(1)}%</div>
-        </div>
-        <div class="metric-box">
-            <span class="metric-label">Put IV</span>
-            <div class="metric-val">${(atmRow.put.iv * 100).toFixed(1)}%</div>
-        </div>
-    `;
+function renderTable(data) {
+    const w = data[tableMode];
+    const tbody = document.getElementById("tableBody");
+    
+    if(!w) {
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:20px;">No ${tableMode} data available</td></tr>`;
+        return;
+    }
 
-    // --- B. Option Chain Table (Right Side) ---
-    const tbody = document.getElementById("chainBody");
     tbody.innerHTML = w.rows.map(r => {
         const isATM = r.strike === w.atmStrike;
-        const bg = isATM ? "background: #222;" : "";
-        const cG = r.call.greeks || {};
-        const pG = r.put.greeks || {};
-        
+        const c = r.call; 
+        const p = r.put;
+        const cg = c.greeks || {}; 
+        const pg = p.greeks || {};
+
         return `
-        <tr style="${bg}">
-            <td class="greeks">${(cG.gamma||0).toFixed(4)}</td>
-            <td class="greeks">${(cG.vega||0).toFixed(2)}</td>
-            <td class="greeks">${(cG.theta||0).toFixed(1)}</td>
-            <td class="greeks">${(cG.delta||0).toFixed(2)}</td>
-            <td class="iv-cell" style="color:var(--green)">${(r.call.iv*100).toFixed(1)}</td>
+        <tr class="${isATM ? 'atm-row' : ''}">
+            <td style="color:#666">${(cg.gamma||0).toFixed(4)}</td>
+            <td style="color:#888">${(cg.vega||0).toFixed(1)}</td>
+            <td style="color:#888">${(cg.theta||0).toFixed(1)}</td>
+            <td style="color:var(--green)">${Math.abs(cg.delta||0).toFixed(2)}</td>
+            <td class="iv-cell" style="color:var(--green)">${(c.iv*100).toFixed(1)}</td>
             
             <td class="strike-col">${r.strike}</td>
             
-            <td class="iv-cell" style="color:var(--red)">${(r.put.iv*100).toFixed(1)}</td>
-            <td class="greeks">${(pG.delta||0).toFixed(2)}</td>
-            <td class="greeks">${(pG.theta||0).toFixed(1)}</td>
-            <td class="greeks">${(pG.vega||0).toFixed(2)}</td>
-            <td class="greeks">${(pG.gamma||0).toFixed(4)}</td>
+            <td class="iv-cell" style="color:var(--red)">${(p.iv*100).toFixed(1)}</td>
+            <td style="color:var(--red)">${Math.abs(pg.delta||0).toFixed(2)}</td>
+            <td style="color:#888">${(pg.theta||0).toFixed(1)}</td>
+            <td style="color:#888">${(pg.vega||0).toFixed(1)}</td>
+            <td style="color:#666">${(pg.gamma||0).toFixed(4)}</td>
         </tr>`;
     }).join("");
-
-    // --- C. Chart Rendering ---
-    renderChart(w.rows);
 }
 
-function renderChart(rows) {
-    const ctx = document.getElementById('ivChart').getContext('2d');
+// 5. Charts
+function renderIntradayChart(data) {
+    const ctx = document.getElementById('intradayChart').getContext('2d');
+    if(charts.intraday) charts.intraday.destroy();
+
+    // NOTE: Since we don't have historical DB yet, we plot single points or a flat line
+    // Future upgrade: Connect this to history array
     
-    // Prepare Data
-    const labels = rows.map(r => r.strike);
-    const callIVs = rows.map(r => r.call.iv * 100);
-    const putIVs = rows.map(r => r.put.iv * 100);
+    const wIV = data.weekly ? (data.weekly.indiv * 100) : 0;
+    const mIV = data.monthly ? (data.monthly.indiv * 100) : 0;
 
-    if (ivChartInstance) ivChartInstance.destroy();
-
-    ivChartInstance = new Chart(ctx, {
+    charts.intraday = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labels,
+            // Mocking a time axis for visual layout
+            labels: ["Open", "10:00", "11:00", "12:00", "13:00", "Now"], 
             datasets: [
-                {
-                    label: 'Call IV',
-                    data: callIVs,
-                    borderColor: '#4CAF50',
-                    tension: 0.3,
-                    pointRadius: 2
-                },
-                {
-                    label: 'Put IV',
-                    data: putIVs,
-                    borderColor: '#F44336',
-                    tension: 0.3,
-                    pointRadius: 2
-                }
+                { label: 'Weekly IV', data: [wIV, wIV, wIV, wIV, wIV, wIV], borderColor: '#00E676', borderWidth: 1, pointRadius: 0 },
+                { label: 'Monthly IV', data: [mIV, mIV, mIV, mIV, mIV, mIV], borderColor: '#2196F3', borderWidth: 1, pointRadius: 0 }
             ]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            },
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: true, labels: { color:'#888', boxWidth:10 } } },
+            scales: { x: { display: false }, y: { grid: { color: '#222' } } }
+        }
+    });
+}
+
+function renderSkewChart(data) {
+    const ctx = document.getElementById('skewChart').getContext('2d');
+    if(charts.skew) charts.skew.destroy();
+    
+    const w = data[tableMode];
+    if(!w) return;
+
+    charts.skew = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: w.rows.map(r => r.strike),
+            datasets: [
+                { label: 'Call IV', data: w.rows.map(r=>r.call.iv*100), borderColor: '#00E676', tension: 0.4, pointRadius: 0, borderWidth:1 },
+                { label: 'Put IV', data: w.rows.map(r=>r.put.iv*100), borderColor: '#FF5252', tension: 0.4, pointRadius: 0, borderWidth:1 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
             scales: {
-                y: { grid: { color: '#222' } },
-                x: { grid: { color: '#222' } }
+                x: { grid: { color: '#222' }, ticks: { display: false } },
+                y: { grid: { color: '#222' } }
             }
         }
     });
 }
 
-// Initial Load
+// Init
 loadData();
 </script>
-
 </body>
 </html>
