@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndIV - User Guide</title>
+    <style>
+        body { background: #0b0b0b; color: #fff; font-family: sans-serif; padding: 40px; text-align: center; }
+        .container { max-width: 1000px; margin: 0 auto; position: relative; border: 1px solid #333; padding: 20px; border-radius: 8px; background: #111; }
+        
+        h1 { color: #2196F3; margin-bottom: 30px; }
+        
+        /* The Visual Mockup */
+        .mockup { display: grid; grid-template-columns: 40% 60%; gap: 10px; opacity: 0.6; pointer-events: none; text-align: left; font-size: 10px; }
+        .box { border: 1px dashed #555; padding: 10px; height: 100px; display: flex; align-items: center; justify-content: center; }
+        
+        /* Annotation Overlays */
+        .annotation { position: absolute; background: rgba(33, 150, 243, 0.9); padding: 10px; border-radius: 6px; font-size: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 180px; text-align: left; }
+        
+        .arrow-left::before { content: "◀"; position: absolute; left: -15px; top: 10px; color: #2196F3; }
+        .arrow-right::after { content: "▶"; position: absolute; right: -15px; top: 10px; color: #2196F3; }
+
+        strong { color: #fff; display: block; margin-bottom: 4px; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <h1>How to interpret this Dashboard</h1>
+    
+    <div class="container">
+        
+        <div class="annotation arrow-right" style="top: 80px; left: -20px;">
+            <strong>1. Live Status</strong>
+            Green check means data is fresh (updated < 20 mins ago).
+        </div>
+
+        <div class="annotation arrow-right" style="top: 180px; left: 50px;">
+            <strong>2. ATM Straddle Blocks</strong>
+            Shows the cost of the At-The-Money Straddle (Call + Put). 
+            <br><br>
+            Top row = Prices.<br>
+            Bottom row = Implied Volatility.
+        </div>
+
+        <div class="annotation arrow-left" style="top: 150px; right: 50px;">
+            <strong>3. Greeks Table</strong>
+            Detailed Option Chain.
+            <br>
+            <b>Gamma/Vega:</b> Risk Metrics.<br>
+            <b>Delta:</b> Directional bias (Absolute value).<br>
+            <b>Use Toggle:</b> Switch between Weekly & Monthly chains.
+        </div>
+
+        <div class="annotation arrow-right" style="top: 400px; left: 50px;">
+            <strong>4. Intraday Chart</strong>
+            Tracks how IV changes during the day.
+            <br>
+            Green = Weekly IV<br>
+            Blue = Monthly IV
+        </div>
+
+        <div class="mockup">
+            <div style="grid-column: span 2; border: 1px solid #444; height: 40px; margin-bottom: 10px;">Header & Controls</div>
+            
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <div class="box">Futures Price</div>
+                <div class="box" style="height:150px; background:#222;">ATM Straddle (Weekly)</div>
+                <div class="box">Intraday Chart</div>
+                <div class="box" style="height:150px;">ATM Straddle (Monthly)</div>
+            </div>
+            
+            <div class="box" style="height: 500px; background:#161616;">
+                Option Chain / Greeks Table
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
