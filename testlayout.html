@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V5</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>IndIV Monitor V7 (Final Mock)</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         /* --- THEME --- */
         :root { 
             --bg: #0b0b0b; --card: #121212; --text: #e0e0e0; --border: #252525; 
-            --green: #00E676; --red: #FF5252; --orange: #FF9800; 
-            --blue: #42A5F5; /* LIGHTER BLUE */
+            --green: #00E676; --red: #FF5252; --orange: #FF9800; --blue: #42A5F5; 
             --gold: #FFD700; --muted: #666;
-            
-            /* Heatmap Colors (Transparent Overlays) */
             --heat-low: rgba(255, 255, 255, 0.02);
             --heat-med: rgba(255, 255, 255, 0.08);
             --heat-high: rgba(255, 255, 255, 0.15);
@@ -63,61 +60,100 @@
             font-weight: bold; cursor: pointer; text-align: center; width: 90%;
         }
 
-        /* 2. Data Sections */
+        /* 2. COMPLEX GRID FOR DATA SECTIONS (12-Col) */
         .section-header { border-bottom: 2px solid #222; padding-bottom: 4px; margin-bottom: 6px; }
         .sec-title { font-size: 13px; font-weight: 800; color: #ddd; letter-spacing: 0.5px; }
-        .data-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-        .d-box { 
-            background: var(--card); border: 1px solid var(--border); padding: 8px; 
-            text-align: center; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; position: relative;
+        
+        .complex-grid { 
+            display: grid; 
+            /* Columns: Call(3) | Put(3) | Spacer(0.5) | Straddle(3) | IVR/IVP(2.5) */
+            grid-template-columns: 3fr 3fr 0.5fr 3fr 2.5fr; 
+            grid-template-rows: 1fr 1fr;
+            gap: 6px; 
         }
+        
+        .col-call { grid-column: span 1; }
+        .col-put { grid-column: span 1; }
+        .col-spacer { grid-column: span 1; grid-row: span 2; }
+        
+        /* Straddle Price spans 2 columns wide in Top Row, but needs to sit above Straddle IV */
+        /* Adjustment: Use exact placement */
+        
+        /* Revised 6-Block Grid Logic for precise alignment */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 3fr 3fr 0.2fr 4fr 1.5fr 1.5fr; /* 6 Logical Columns */
+            gap: 6px;
+        }
+
+        .d-box { 
+            background: var(--card); border: 1px solid var(--border); padding: 6px; 
+            text-align: center; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; position: relative; min-height: 60px;
+        }
+        
+        /* Straddle Price spans middle area */
+        .box-straddle-price { 
+            grid-column: 4 / span 3; /* Spans Straddle + RV + IVP columns */
+            grid-row: 1;
+            background: #191919; border-color:#444;
+        }
+
         .d-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
         .d-val { font-size: 1.1rem; font-weight: 600; color: #fff; }
         .d-chg { font-size: 0.75rem; margin-top: 2px; }
         .iv-val { font-family: 'Courier New', monospace; font-weight: 700; font-size: 1.2rem; }
-        .ivr-badge { 
-            position: absolute; top: 2px; right: 2px; font-size: 8px; 
-            background: #222; padding: 1px 3px; border-radius: 2px; color: #888; border: 1px solid #333;
-        }
+
+        /* IVR/IVP BARS + VALUE */
+        .rank-wrapper { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; }
+        .rank-stack { display: flex; flex-direction: column-reverse; gap: 2px; }
+        .rank-sq { width: 10px; height: 4px; background: #333; border-radius: 1px; }
+        .rank-val-text { font-size: 12px; font-weight: bold; color: #fff; }
+        
+        /* Rank Colors */
+        .r-low.on { background: #00E676; } .r-mid.on { background: #FFC107; } .r-high.on { background: #FF5252; }
 
         /* Colors */
         .t-week { color: var(--orange); } .t-month { color: var(--blue); }
 
-        /* 3. Structure Tabs (Moved Here) */
+        /* 3. Structure Tabs */
         .chart-window { background: var(--card); border: 1px solid var(--border); border-radius: 4px; display: flex; flex-direction: column; flex: 1; min-height: 250px; }
-        .chart-tabs { display: flex; border-bottom: 1px solid var(--border); background: #181818; }
+        .chart-tabs { display: flex; border-bottom: 1px solid var(--border); background: #181818; align-items: center; }
         .c-tab { 
             flex: 1; text-align: center; padding: 8px; font-size: 11px; cursor: pointer; 
             color: #888; border-right: 1px solid var(--border); transition: 0.2s; font-weight: 600;
         }
         .c-tab:hover { color: #fff; background: #222; }
         .c-tab.active { color: #fff; background: var(--card); border-bottom: 2px solid var(--green); }
-        .chart-content { flex: 1; position: relative; padding: 10px; }
-        .chart-canvas { width: 100%; height: 100%; display: none; } 
-        .chart-canvas.visible { display: block; }
+        .surf-controls { display: flex; gap: 10px; padding: 0 10px; }
+        .surf-toggle { font-size: 10px; color: #aaa; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .chart-content { flex: 1; position: relative; padding: 5px; } /* Less padding for Plotly */
+        .chart-div { width: 100%; height: 100%; display: none; } 
+        .chart-div.visible { display: block; }
 
 
         /* ================= RIGHT PANEL (55%) ================= */
         .right-panel { flex: 0 0 55%; display: flex; flex-direction: column; gap: 0; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
 
-        /* 1. Split Header (Chart + Expected Move) */
-        .split-header { display: flex; height: 180px; border-bottom: 1px solid var(--border); }
-        .split-half { flex: 1; position: relative; padding: 10px; border-right: 1px solid var(--border); }
-        .split-half:last-child { border-right: none; padding: 0; }
+        /* 1. Split Header */
+        .split-header { display: flex; height: 200px; border-bottom: 1px solid var(--border); }
+        .split-half { flex: 1; position: relative; padding: 5px; border-right: 1px solid var(--border); overflow: hidden; }
+        .split-half:last-child { border-right: none; padding: 0; display: flex; flex-direction: column; }
         
-        .panel-title { font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .panel-title { font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; padding: 5px 10px 0; display: block; z-index: 10; position: relative; }
         
-        /* Expected Move Table */
-        .exp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        .exp-table th { text-align: left; padding: 8px 15px; color: #666; font-weight: normal; border-bottom: 1px solid #333; background: #161616; }
-        .exp-table td { padding: 8px 15px; border-bottom: 1px solid #222; }
-        .range-pill { background: #222; border: 1px solid #444; padding: 2px 6px; border-radius: 3px; font-family: monospace; color: var(--gold); }
+        /* SD Table Centered */
+        .sd-container { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px 20px; text-align: center; }
+        .sd-header { font-size: 11px; color: var(--orange); margin-bottom: 8px; font-weight: bold; }
+        .sd-footer { font-size: 11px; color: var(--blue); margin-top: 8px; }
+        .exp-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 0 auto; }
+        .exp-table th { text-align: center; padding: 4px; color: #666; font-weight: normal; border-bottom: 1px solid #333; background: #161616; font-size: 10px; }
+        .exp-table td { padding: 6px; border-bottom: 1px solid #222; font-weight: bold; }
+        .range-pill { background: #222; border: 1px solid #444; padding: 2px 6px; border-radius: 3px; font-family: monospace; color: var(--gold); font-size: 11px; }
 
         /* 2. Toolbar */
         .table-toolbar { display: flex; height: 35px; border-bottom: 1px solid var(--border); background: #1a1a1a; }
         .toolbar-half { flex: 1; display: flex; align-items: center; justify-content: center; }
         .toolbar-left { border-right: 1px solid var(--border); }
-        
         select { background: #222; color: #fff; border: 1px solid #444; padding: 3px 8px; border-radius: 3px; font-size: 11px; cursor: pointer; }
 
         /* 3. Heatmap Table */
@@ -134,14 +170,11 @@
         td { padding: 5px 2px; border-bottom: 1px solid #222; text-align: center; vertical-align: middle; }
         
         .strike-cell { background: #181818; color: #fff; font-weight: bold; border-left: 1px solid #333; border-right: 1px solid #333; position: sticky; left: 0; z-index: 5; }
-        
-        /* HEATMAP CLASSES */
         .heat-low { background: var(--heat-low); }
         .heat-med { background: var(--heat-med); color: #fff; }
         .heat-high { background: var(--heat-high); color: #fff; font-weight: 500; }
         .atm-row td { border-top: 1px solid #555; border-bottom: 1px solid #555; background: #2a2a2a; }
         .atm-row .strike-cell { color: var(--gold); border-left: 2px solid var(--gold); }
-
         .c-g { color: var(--green); } .c-r { color: var(--red); }
         
         @media(max-width: 1000px) {
@@ -149,7 +182,7 @@
             .left-panel, .right-panel { flex: none; width: 100%; overflow: visible; }
             .table-wrapper { height: 500px; }
             .split-header { flex-direction: column; height: auto; }
-            .split-half { height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
+            .split-half { height: 250px; border-right: none; border-bottom: 1px solid var(--border); }
         }
 
     </style>
@@ -195,34 +228,36 @@
                 <div class="section-header">
                     <span class="sec-title t-week">WEEKLY (26 DEC 2025)</span>
                 </div>
-                <div class="data-grid">
-                    <div class="d-box">
-                        <span class="d-lbl">ATM CALL</span>
-                        <div class="d-val c-g">145.20</div>
-                        <div class="d-chg up">+12.5 (9.4%)</div>
+                
+                <div class="grid-layout">
+                    <div class="d-box"><span class="d-lbl">ATM CALL</span><div class="d-val c-g">145.20</div><div class="d-chg up">+12.5 (9.4%)</div></div>
+                    <div class="d-box"><span class="d-lbl">ATM PUT</span><div class="d-val c-r">139.30</div><div class="d-chg down">-18.0 (-11.4%)</div></div>
+                    <div style="grid-column: span 1"></div> <div class="d-box box-straddle-price">
+                         <span class="d-lbl">STRADDLE PRICE</span><div class="d-val t-week" style="font-size:1.4rem">284.50</div><div class="d-chg down">-5.5 (-1.9%)</div>
                     </div>
-                    <div class="d-box" style="background:#191919; border-color:#444">
-                        <span class="d-lbl">STRADDLE</span>
-                        <div class="d-val t-week">284.50</div>
-                        <div class="d-chg down">-5.5 (-1.9%)</div>
+
+                    <div class="d-box"><span class="d-lbl">CALL IV</span><div class="iv-val c-g">12.4%</div><div class="d-chg up">+2.1%</div></div>
+                    <div class="d-box"><span class="d-lbl">PUT IV</span><div class="iv-val c-r">13.1%</div><div class="d-chg down">-1.2%</div></div>
+                    <div style="grid-column: span 1"></div> <div class="d-box" style="background:#191919; border-color:#444">
+                        <span class="d-lbl">STRADDLE IV</span><div class="iv-val t-week">12.8%</div><div class="d-chg up">+0.5%</div>
                     </div>
+                    
                     <div class="d-box">
-                        <span class="d-lbl">ATM PUT</span>
-                        <div class="d-val c-r">139.30</div>
-                        <div class="d-chg down">-18.0 (-11.4%)</div>
+                         <span class="d-lbl">RV (5D)</span><div class="iv-val t-week">10.5%</div><div class="d-chg" style="color:#888">-0.2%</div>
                     </div>
 
                     <div class="d-box">
-                        <span class="d-lbl">CALL IV</span><div class="ivr-badge">R:45</div>
-                        <div class="iv-val c-g">12.4%</div><div class="d-chg up">+2.1%</div>
-                    </div>
-                    <div class="d-box" style="background:#191919; border-color:#444">
-                        <span class="d-lbl">STRADDLE IV</span><div class="ivr-badge">R:52</div>
-                        <div class="iv-val t-week">12.8%</div><div class="d-chg up">+0.5%</div>
-                    </div>
-                    <div class="d-box">
-                        <span class="d-lbl">PUT IV</span><div class="ivr-badge">R:60</div>
-                        <div class="iv-val c-r">13.1%</div><div class="d-chg down">-1.2%</div>
+                        <span class="d-lbl">IVR</span>
+                        <div class="rank-wrapper">
+                            <div class="rank-stack">
+                                <div class="rank-sq r-high"></div>
+                                <div class="rank-sq r-high"></div>
+                                <div class="rank-sq r-mid on"></div>
+                                <div class="rank-sq r-mid on"></div>
+                                <div class="rank-sq r-low on"></div>
+                            </div>
+                            <span class="rank-val-text">45</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -233,10 +268,16 @@
                     <div class="c-tab" onclick="switchTab('term', this)">Term Structure</div>
                     <div class="c-tab" onclick="switchTab('surf', this)">Vol Surface</div>
                 </div>
+                
+                <div id="surf-controls" class="surf-controls" style="display:none; background:#181818; border-bottom:1px solid #333; padding:4px;">
+                     <label class="surf-toggle"><input type="radio" name="axis" checked> Moneyness</label>
+                     <label class="surf-toggle"><input type="radio" name="axis"> Delta</label>
+                </div>
+
                 <div class="chart-content">
-                    <div id="chart-skew" class="chart-canvas visible"><canvas id="cvsSkew"></canvas></div>
-                    <div id="chart-term" class="chart-canvas"><canvas id="cvsTerm"></canvas></div>
-                    <div id="chart-surf" class="chart-canvas"><canvas id="cvsSurf"></canvas></div>
+                    <div id="chart-skew" class="chart-div visible"></div>
+                    <div id="chart-term" class="chart-div"></div>
+                    <div id="chart-surf" class="chart-div"></div>
                 </div>
             </div>
 
@@ -244,14 +285,32 @@
                 <div class="section-header">
                     <span class="sec-title t-month">MONTHLY (29 JAN 2026)</span>
                 </div>
-                <div class="data-grid">
-                    <div class="d-box"><span class="d-lbl">ATM CALL</span><div class="d-val c-g">310.50</div><div class="d-chg up">+15.2 (5%)</div></div>
-                    <div class="d-box" style="background:#191919; border-color:#444"><span class="d-lbl">STRADDLE</span><div class="d-val t-month">595.00</div><div class="d-chg up">+2.5 (0.4%)</div></div>
-                    <div class="d-box"><span class="d-lbl">ATM PUT</span><div class="d-val c-r">284.50</div><div class="d-chg down">-12.7 (-4%)</div></div>
-                    
-                    <div class="d-box"><span class="d-lbl">CALL IV</span><div class="iv-val c-g">14.2%</div><div class="d-chg up">+1.1%</div></div>
-                    <div class="d-box" style="background:#191919; border-color:#444"><span class="d-lbl">STRADDLE IV</span><div class="iv-val t-month">14.5%</div><div class="d-chg up">+0.8%</div></div>
-                    <div class="d-box"><span class="d-lbl">PUT IV</span><div class="iv-val c-r">14.8%</div><div class="d-chg down">-0.3%</div></div>
+                <div class="grid-layout">
+                    <div class="d-box"><span class="d-lbl">ATM CALL</span><div class="d-val c-g">310.50</div></div>
+                    <div class="d-box"><span class="d-lbl">ATM PUT</span><div class="d-val c-r">284.50</div></div>
+                    <div style="grid-column: span 1"></div>
+                    <div class="d-box box-straddle-price">
+                         <span class="d-lbl">STRADDLE</span><div class="d-val t-month" style="font-size:1.4rem">595.00</div>
+                    </div>
+
+                    <div class="d-box"><span class="d-lbl">CALL IV</span><div class="iv-val c-g">14.2%</div></div>
+                    <div class="d-box"><span class="d-lbl">PUT IV</span><div class="iv-val c-r">14.8%</div></div>
+                    <div style="grid-column: span 1"></div>
+                    <div class="d-box" style="background:#191919; border-color:#444"><span class="d-lbl">IV</span><div class="iv-val t-month">14.5%</div></div>
+                    <div class="d-box"><span class="d-lbl">RV (20D)</span><div class="iv-val t-month">11.0%</div></div>
+                    <div class="d-box">
+                         <span class="d-lbl">IVP</span>
+                         <div class="rank-wrapper">
+                            <div class="rank-stack">
+                                <div class="rank-sq r-high"></div>
+                                <div class="rank-sq r-high"></div>
+                                <div class="rank-sq r-mid on"></div>
+                                <div class="rank-sq r-mid on"></div>
+                                <div class="rank-sq r-low on"></div>
+                            </div>
+                            <span class="rank-val-text">60</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -261,35 +320,22 @@
             
             <div class="split-header">
                 <div class="split-half">
-                    <span class="panel-title">INTRADAY IV TREND</span>
-                    <canvas id="cvsTrend"></canvas>
+                    <span class="panel-title">INTRADAY IV vs RV</span>
+                    <div id="chart-trend" style="width:100%; height:100%"></div>
                 </div>
                 <div class="split-half">
-                    <span class="panel-title" style="padding:10px 15px 0;">EXPECTED MOVE (WEEKLY)</span>
-                    <table class="exp-table">
-                        <thead>
-                            <tr>
-                                <th>Range</th>
-                                <th>Lower Strike</th>
-                                <th>Upper Strike</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="color:#aaa">1 SD (68%)</td>
-                                <td><span class="range-pill" style="color:#FF5252">25,900</span></td>
-                                <td><span class="range-pill" style="color:#00E676">26,450</span></td>
-                            </tr>
-                            <tr>
-                                <td style="color:#aaa">2 SD (95%)</td>
-                                <td><span class="range-pill" style="color:#FF5252">25,600</span></td>
-                                <td><span class="range-pill" style="color:#00E676">26,750</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div style="padding:15px; font-size:11px; color:#666; line-height:1.4">
-                        Based on current IV (12.8%).<br>
-                        Market implies a ±275 point move this week.
+                    <div class="sd-container">
+                        <div class="sd-header">Weekly: Based on IV 12.8% ±275 pts</div>
+                        <table class="exp-table">
+                            <thead>
+                                <tr><th>Range</th><th>Lower</th><th>Upper</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td style="color:#aaa">1 SD (68%)</td><td style="color:#FF5252">25,900</td><td style="color:#00E676">26,450</td></tr>
+                                <tr><td style="color:#aaa">2 SD (95%)</td><td style="color:#FF5252">25,600</td><td style="color:#00E676">26,750</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="sd-footer">Monthly: Based on IV 14.2% ±580 pts</div>
                     </div>
                 </div>
             </div>
@@ -310,11 +356,7 @@
 
             <div class="table-wrapper">
                 <table>
-                    <colgroup>
-                        <col class="greeks" span="5">
-                        <col class="strike">
-                        <col class="greeks" span="5">
-                    </colgroup>
+                    <colgroup><col class="greeks" span="5"><col class="strike"><col class="greeks" span="5"></colgroup>
                     <thead>
                         <tr>
                             <th>GAMMA</th><th>VEGA</th><th>THETA</th><th>DELTA</th><th>IV%</th>
@@ -325,104 +367,90 @@
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
-
         </div>
 
     </div>
 
 <script>
-    // --- TABS ---
+    // --- HELPER: COMMON CONFIG ---
+    const commonLayout = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { family: 'Segoe UI', color: '#666', size: 10 },
+        margin: { t: 20, b: 20, l: 30, r: 30 },
+        xaxis: { showgrid: false, zeroline: false },
+        yaxis: { gridcolor: '#222', showgrid: true }
+    };
+
     function switchTab(name, tabEl) {
         document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
         tabEl.classList.add('active');
-        document.querySelectorAll('.chart-canvas').forEach(c => c.classList.remove('visible'));
+        document.querySelectorAll('.chart-div').forEach(c => c.classList.remove('visible'));
         document.getElementById('chart-' + name).classList.add('visible');
+        document.getElementById('surf-controls').style.display = (name === 'surf') ? 'flex' : 'none';
+        
+        // Resize Plotly when showing hidden tab
+        window.dispatchEvent(new Event('resize'));
     }
 
-    // --- CHART: SKEW (COMBO) ---
-    new Chart(document.getElementById('cvsSkew'), {
-        type: 'line',
-        data: {
-            labels: [25800, 25900, 26000, 26100, 26200, 26300, 26400, 26500, 26600],
-            datasets: [
-                { type:'line', label:'Call IV', data:[13.5, 13.0, 12.6, 12.4, 12.4, 12.5, 12.8, 13.2, 13.8], borderColor:'#00E676', borderWidth:1.5, pointRadius:0, tension:0.4, yAxisID: 'y' },
-                { type:'line', label:'Put IV', data:[14.0, 13.5, 13.1, 12.8, 12.8, 13.0, 13.4, 13.9, 14.5], borderColor:'#FF5252', borderWidth:1.5, pointRadius:0, tension:0.4, yAxisID: 'y' },
-                { type:'bar', label:'Spread', data:[0.5, 0.5, 0.5, 0.4, 0.4, -0.5, -0.6, -0.7, -0.7], backgroundColor:'rgba(255, 255, 255, 0.1)', yAxisID: 'y1' }
-            ]
-        },
-        options: { 
-            responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, 
-            scales:{
-                x:{display:false}, 
-                y:{grid:{color:'#222'}, ticks:{font:{size:9}, color:'#666'}},
-                y1: {position:'right', grid:{display:false}, display:false}
-            } 
-        }
-    });
+    // --- CHART 1: INTRADAY TREND (IV vs RV) ---
+    Plotly.newPlot('chart-trend', [
+        // IV Lines (Solid)
+        { x: [1,2,3,4,5], y: [12.2, 12.4, 12.1, 12.5, 12.8], name: 'Wk IV', line: { color: '#FF9800', width: 2 }, type: 'scatter' },
+        { x: [1,2,3,4,5], y: [14.1, 14.0, 14.2, 14.3, 14.4], name: 'Mo IV', line: { color: '#42A5F5', width: 3 }, type: 'scatter' },
+        // RV Lines (Dotted/Dashed)
+        { x: [1,2,3,4,5], y: [10.5, 10.5, 10.5, 10.5, 10.5], name: 'Wk RV', line: { color: '#FF9800', width: 1, dash: 'dot' }, type: 'scatter' },
+        { x: [1,2,3,4,5], y: [11.0, 11.0, 11.0, 11.0, 11.0], name: 'Mo RV', line: { color: '#42A5F5', width: 1, dash: 'dash' }, type: 'scatter' }
+    ], { ...commonLayout, showlegend: false }, { displayModeBar: false });
 
-    // --- CHART: TERM STRUCTURE ---
-    new Chart(document.getElementById('cvsTerm'), {
-        type: 'line',
-        data: {
-            labels: ["26 DEC", "29 JAN", "26 FEB", "26 MAR"],
-            datasets: [{label:'IV Term', data:[12.8, 14.5, 15.2, 15.8], borderColor:'#42A5F5', borderWidth:2, tension:0.2}]
-        },
-        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{grid:{color:'#222'}}} }
-    });
-    
-    // --- CHART: SURFACE (MOCK) ---
-    new Chart(document.getElementById('cvsSurf'), {
-        type: 'line', data: { labels:[1,2,3], datasets:[{data:[1,2,1]}] }, options: {plugins:{title:{display:true, text:"3D Surface Placeholder"}}}
-    });
+    // --- CHART 2: SKEW (WITH SPREAD BAR) ---
+    Plotly.newPlot('chart-skew', [
+        { x: [25800,26000,26200,26400,26600], y: [13.5,12.6,12.4,12.8,13.8], name: 'Call IV', line: { color: '#00E676' }, type: 'scatter' },
+        { x: [25800,26000,26200,26400,26600], y: [14.0,13.1,12.8,13.4,14.5], name: 'Put IV', line: { color: '#FF5252' }, type: 'scatter' },
+        // Spread on Secondary Axis
+        { x: [25800,26000,26200,26400,26600], y: [0.5,0.5,0.4,-0.6,-0.7], name: 'Spread', type: 'bar', marker: { color: '#333' }, yaxis: 'y2' }
+    ], { 
+        ...commonLayout, 
+        legend: { orientation: 'h', y: -0.2, font:{size:10} },
+        yaxis2: { overlaying: 'y', side: 'right', showgrid: false }
+    }, { displayModeBar: false });
 
-    // --- CHART: INTRADAY ---
-    new Chart(document.getElementById('cvsTrend'), {
-        type: 'line',
-        data: {
-            labels: ["9:15", "10:00", "11:00", "12:00", "13:00", "14:00", "Now"],
-            datasets: [
-                {label:'Week', data:[12.2, 12.4, 12.1, 12.5, 12.8, 12.6, 12.8], borderColor:'#FF9800', borderWidth:2, pointRadius:0},
-                {label:'Mnth', data:[14.1, 14.0, 14.2, 14.3, 14.4, 14.5, 14.5], borderColor:'#42A5F5', borderWidth:2, pointRadius:0}
-            ]
-        },
-        options: { 
-            responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top', align:'end', labels:{color:'#888', boxWidth:8, font:{size:10}}}}, 
-            scales:{x:{display:false}, y:{grid:{color:'#222'}, ticks:{font:{size:9}, color:'#666'}}} 
-        }
-    });
+    // --- CHART 3: TERM STRUCTURE ---
+    Plotly.newPlot('chart-term', [
+        { x: ['DEC','JAN','FEB','MAR'], y: [12.8, 14.5, 15.2, 15.8], name: 'Weekly', line: { color: '#FF9800' } },
+        { x: ['DEC','JAN','FEB','MAR'], y: [14.5, 15.0, 15.5, 16.0], name: 'Monthly', line: { color: '#42A5F5' } }
+    ], { ...commonLayout, showlegend: false }, { displayModeBar: false });
+
+    // --- CHART 4: SURFACE (3D MOCK) ---
+    // Note: Plotly 3D requires more complex data, mocking a 2D projection here for stability
+    Plotly.newPlot('chart-surf', [
+        { x: [-10, -5, 0, 5, 10], y: [13.5, 12.6, 12.4, 12.8, 13.8], name: 'Dec', line: { color: '#FF9800' } },
+        { x: [-10, -5, 0, 5, 10], y: [14.5, 14.1, 14.0, 14.3, 15.0], name: 'Jan', line: { color: '#42A5F5' } }
+    ], { ...commonLayout, showlegend: true, legend: { orientation: 'h', y: 1.1 } }, { displayModeBar: false });
 
 
     // --- HEATMAP TABLE ---
     function regenerateTable(majorOnly) {
         const atm = 26200;
         const tbody = document.getElementById("tableBody");
-        const rows = [];
         
-        // 1. Generate FULL list first
         let allStrikes = [];
         for(let i=-25; i<=25; i++) {
             let k = atm + (i*50);
             if(majorOnly && k % 100 !== 0) continue;
             allStrikes.push(k);
         }
-
-        // 2. Find ATM Index in the filtered list
         let atmIndex = allStrikes.findIndex(k => k === atm);
-        
-        // 3. Slice 10 above and 10 below
         let start = Math.max(0, atmIndex - 10);
         let end = Math.min(allStrikes.length, atmIndex + 11);
         let visibleStrikes = allStrikes.slice(start, end);
 
         tbody.innerHTML = visibleStrikes.map(strike => {
             let isATM = strike === atm;
-            
-            // Mock Values for Heatmap
             let dist = Math.abs(strike - atm);
             let gamma = isATM ? 0.0035 : (0.0035 - (dist*0.000005));
             let vega = 15 - (dist*0.01);
             
-            // Heatmap logic: Return class based on value
             const getHeat = (val, type) => {
                 if(type === 'gamma') return val > 0.003 ? 'heat-high' : (val > 0.002 ? 'heat-med' : '');
                 if(type === 'vega') return val > 14 ? 'heat-high' : (val > 10 ? 'heat-med' : '');
@@ -448,7 +476,6 @@
             `
         }).join("");
     }
-
     regenerateTable(true);
 </script>
 </body>
