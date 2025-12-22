@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V14 (Responsive)</title>
+    <title>IndIV Monitor V15</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         /* --- THEME --- */
@@ -21,7 +21,6 @@
             background: var(--bg); color: var(--text); 
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0; padding: 10px; 
-            /* FIXED: Remove fixed height for mobile, keep for desktop */
             min-height: 100vh; display: flex; flex-direction: column;
         }
 
@@ -29,44 +28,24 @@
         .header-row { display: flex; align-items: center; justify-content: space-between; padding: 0 10px 10px; border-bottom: 1px solid var(--border); height: 50px; flex-shrink: 0; }
         h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; color: #fff; }
         .sub-title { font-size: 0.9rem; font-weight: 400; color: #888; margin-left: 10px; }
-        
-        /* Hide subtitle on small screens */
         @media (max-width: 600px) { .sub-title { display: none; } }
-
         .controls-right { display: flex; align-items: center; gap: 20px; font-size: 12px; }
         .help-btn { color: #fff; text-decoration: none; border: 1px solid #fff; padding: 5px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s; background: rgba(255,255,255,0.1); }
         .help-btn:hover { background: #fff; color: #000; }
         .status-badge { background: #1a1a1a; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; color: var(--green); font-weight: bold; font-size: 11px; }
 
-        /* --- MAIN CONTAINER --- */
+        /* --- FLUID CONTAINER --- */
         .container { 
             display: flex; gap: 15px; flex: 1; margin-top: 15px; 
-            /* Desktop Default: Row */
-            flex-direction: row; overflow: hidden;
+            flex-wrap: wrap; /* Key to fluid layout */
+            overflow: visible; /* Allow scrolling if wrapped */
         }
 
-        /* --- RESPONSIVE BREAKPOINT (Laptop/Tablet < 1200px) --- */
-        @media (max-width: 1200px) {
-            body { overflow-y: auto; height: auto; } /* Enable Window Scroll */
-            .container { 
-                flex-direction: column; /* Stack Vertically */
-                overflow: visible; 
-            }
-            .left-panel, .right-panel { 
-                flex: none !important; width: 100%; 
-                margin-bottom: 20px;
-                overflow: visible !important;
-            }
-            /* Adjust Chart Height when stacked */
-            .chart-window { min-height: 350px; }
-            .split-header { height: 300px; }
-            /* Allow table to have fixed height in stacked mode */
-            .table-wrapper { height: 500px; } 
-        }
+        /* PANELS: Flex Basis allows them to shrink/grow but wrap if < 500px */
+        .left-panel { flex: 1 1 450px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+        .right-panel { flex: 1 1 550px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; min-width: 0; }
 
-        /* ================= LEFT PANEL ================= */
-        .left-panel { flex: 0 0 45%; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding-right: 5px; }
-
+        /* --- LEFT PANEL STYLES --- */
         .price-strip { 
             display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center;
             background: var(--card); border: 1px solid var(--border); padding: 10px; border-radius: 4px; 
@@ -82,36 +61,22 @@
         .sec-title { font-size: 13px; font-weight: 800; color: #ddd; letter-spacing: 0.5px; }
         .t-week { color: var(--orange); } .t-month { color: var(--orange); } 
 
-        /* --- RESPONSIVE GRID SYSTEM (CSS GRID AREAS) --- */
+        /* GRID AREAS */
         .data-grid-6 { 
             display: grid; gap: 6px;
-            /* DEFAULT (Desktop): 6 Columns */
             grid-template-columns: 2fr 2fr 0.2fr 2.5fr 2fr 1.5fr; 
             grid-template-rows: 65px 65px; 
-            grid-template-areas: 
-                "c_p   c_iv  sp    std_p std_iv rnk1"
-                "p_p   p_iv  sp    std_p rv     rnk2";
+            grid-template-areas: "c_p c_iv sp std_p std_iv rnk1" "p_p p_iv sp std_p rv rnk2";
         }
-
-        /* MOBILE (< 600px): Re-arrange to 3 Columns */
+        /* Mobile Reflow */
         @media (max-width: 600px) {
             .data-grid-6 {
-                grid-template-columns: 1fr 1fr 1fr;
-                grid-template-rows: auto;
-                grid-template-areas:
-                    "std_p std_p std_p"  /* Straddle Full Width Top */
-                    "c_p   p_p   rnk1"
-                    "c_iv  p_iv  rnk2"
-                    "std_iv rv   .";
+                grid-template-columns: 1fr 1fr 1fr; grid-template-rows: auto;
+                grid-template-areas: "std_p std_p std_p" "c_p p_p rnk1" "c_iv p_iv rnk2" "std_iv rv .";
             }
-            .box-straddle-anchor .d-val { font-size: 1.8rem; } /* Bigger on mobile */
         }
-
-        /* Map Areas to Classes */
-        .area-cp { grid-area: c_p; }   .area-civ { grid-area: c_iv; }
-        .area-pp { grid-area: p_p; }   .area-piv { grid-area: p_iv; }
-        .area-sp { grid-area: sp; }    .area-stdp { grid-area: std_p; }
-        .area-stdiv { grid-area: std_iv; } .area-rv { grid-area: rv; }
+        .area-cp { grid-area: c_p; } .area-civ { grid-area: c_iv; } .area-pp { grid-area: p_p; } .area-piv { grid-area: p_iv; }
+        .area-sp { grid-area: sp; } .area-stdp { grid-area: std_p; } .area-stdiv { grid-area: std_iv; } .area-rv { grid-area: rv; }
         .area-rnk1 { grid-area: rnk1; } .area-rnk2 { grid-area: rnk2; }
 
         .d-box { background: var(--card); border: 1px solid var(--border); padding: 4px; text-align: center; display: flex; flex-direction: column; justify-content: center; position: relative; }
@@ -137,18 +102,9 @@
         .surf-toggle { font-size: 10px; color: #aaa; cursor: pointer; display: flex; align-items: center; gap: 4px; }
         .chart-div { width: 100%; height: 100%; display: none; } .chart-div.visible { display: block; }
 
-        /* ================= RIGHT PANEL ================= */
-        .right-panel { flex: 0 0 55%; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-
-        /* Split Header */
-        .split-header { display: flex; height: 210px; border-bottom: 1px solid var(--border); }
-        
-        @media (max-width: 800px) {
-            .split-header { height: auto; flex-direction: column; }
-            .split-half { width: 100%; height: 250px; border-right: none; border-bottom: 1px solid var(--border); }
-        }
-
-        .split-half { flex: 0 0 50%; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        /* --- RIGHT PANEL STYLES --- */
+        .split-header { display: flex; min-height: 210px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+        .split-half { flex: 1 1 300px; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
         .split-half:last-child { border-right: none; }
         
         .panel-title { 
@@ -172,23 +128,32 @@
         .exp-table td { padding: 5px; border-bottom: 1px solid #222; font-weight: bold; text-align: center; }
         .range-pill { background: #222; border: 1px solid #444; padding: 2px 6px; border-radius: 3px; font-family: monospace; color: var(--gold); }
 
-        /* TOOLBAR */
-        .table-toolbar { display: flex; height: 45px; border-bottom: 1px solid var(--border); background: #1a1a1a; align-items: center; padding: 0 10px; position: relative; }
-        .toolbar-expiries { display: flex; gap: 8px; align-items: center; overflow-x: auto; white-space: nowrap; scrollbar-width: none; margin-right: 120px; }
+        /* --- TOOLBAR --- */
+        .table-toolbar { 
+            display: flex; height: 45px; border-bottom: 1px solid var(--border); background: #1a1a1a; 
+            align-items: center; padding: 0 10px; 
+            flex-wrap: nowrap; /* Keep expiries in one line */
+            gap: 10px;
+        }
+        
+        .toolbar-expiries { 
+            flex: 1; display: flex; gap: 8px; align-items: center; 
+            overflow-x: auto; white-space: nowrap; scrollbar-width: none; 
+            padding-right: 10px;
+        }
         .toolbar-expiries::-webkit-scrollbar { display: none; } 
-        .toolbar-toggle-wrapper { position: absolute; right: 8%; display: flex; align-items: center; }
+
+        .toolbar-toggle-wrapper { 
+            flex-shrink: 0; display: flex; align-items: center; 
+            border-left: 1px solid #333; padding-left: 15px; 
+            height: 100%; /* Vertical Center Fix */
+        }
+
         .tool-tab { background: #252525; color: #888; border: 1px solid #333; border-radius: 4px; padding: 5px 10px; font-size: 11px; font-weight: bold; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
         .tool-tab:hover { background: #333; color: #fff; }
         .tool-tab.active { background: #333; color: #fff; border-color: var(--blue); }
 
-        /* MOBILE TOOLBAR OVERRIDES */
-        @media (max-width: 600px) {
-            .table-toolbar { flex-direction: column; height: auto; align-items: flex-start; padding: 10px; gap: 10px; }
-            .toolbar-expiries { width: 100%; margin-right: 0; }
-            .toolbar-toggle-wrapper { position: static; width: 100%; justify-content: flex-start; }
-        }
-
-        .table-wrapper { flex: 1; overflow-y: auto; background: var(--card); }
+        .table-wrapper { flex: 1; overflow-y: auto; background: var(--card); min-height: 400px; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: right; table-layout: fixed; }
         th { position: sticky; top: 0; background: #111; color: #666; padding: 8px 2px; font-weight: normal; font-size: 9px; z-index: 10; border-bottom: 1px solid #333; text-align: center; }
         col.greeks { width: 9%; } col.strike { width: 10%; }
@@ -271,7 +236,7 @@
             <div class="split-header">
                 <div class="split-half">
                     <span class="panel-title">
-                        INTRADAY Volatility vs RV
+                        IV & RV
                         <div class="legend-row">
                             <div class="leg-item"><div class="line-box l-thin"></div>Wk</div>
                             <div class="leg-item"><div class="line-box l-thick"></div>Mo</div>
@@ -298,12 +263,12 @@
 
             <div class="table-toolbar">
                 <div class="toolbar-expiries">
-                    <div class="tool-tab active">26 Dec (Wk)</div>
-                    <div class="tool-tab">02 Jan (Wk)</div>
-                    <div class="tool-tab">09 Jan (Wk)</div>
-                    <div class="tool-tab">16 Jan (Wk)</div>
-                    <div class="tool-tab">23 Jan (Wk)</div>
-                    <div class="tool-tab">30 Jan (Mo)</div>
+                    <div class="tool-tab active" onclick="selectExpiry(this)">26 Dec (Wk)</div>
+                    <div class="tool-tab" onclick="selectExpiry(this)">02 Jan (Wk)</div>
+                    <div class="tool-tab" onclick="selectExpiry(this)">09 Jan (Wk)</div>
+                    <div class="tool-tab" onclick="selectExpiry(this)">16 Jan (Wk)</div>
+                    <div class="tool-tab" onclick="selectExpiry(this)">23 Jan (Wk)</div>
+                    <div class="tool-tab" onclick="selectExpiry(this)">30 Jan (Mo)</div>
                 </div>
                 <div class="toolbar-toggle-wrapper">
                     <label style="color:#aaa; font-size:11px; display:flex; gap:6px; cursor:pointer">
@@ -329,6 +294,12 @@
     const cfg = { displayModeBar: false, responsive: true };
     const layoutBase = { paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{family:'Segoe UI', color:'#666', size:10}, margin:{t:10, b:30, l:35, r:30}, xaxis:{showgrid:false}, yaxis:{gridcolor:'#222'} };
 
+    // BUTTON SELECT
+    function selectExpiry(el) {
+        document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+    }
+
     function switchTab(name, tabEl) {
         document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
         tabEl.classList.add('active');
@@ -338,20 +309,27 @@
         window.dispatchEvent(new Event('resize'));
     }
 
+    // --- SMART RANGE CALCULATION ---
+    function getSmartRange(dataArrays) {
+        let all = [];
+        dataArrays.forEach(arr => all.push(...arr));
+        const minV = Math.min(...all);
+        const maxV = Math.max(...all);
+        const pad = (maxV - minV) * 0.1; 
+        // Ensure pad isn't zero if flat line
+        const finalPad = pad === 0 ? 1.0 : pad;
+        return [minV - finalPad, maxV + finalPad];
+    }
+
+    const lastValText = (arr) => arr.map((v, i) => i === arr.length - 1 ? v.toFixed(1) : null);
+
     // 1. INTRADAY
     const wkIV = [12.2, 12.4, 12.1, 12.5, 12.8];
     const moIV = [14.1, 14.0, 14.2, 14.3, 14.4];
     const wkRV = [10.5,10.5,10.5,10.5,10.5];
     const moRV = [11.0,11.0,11.0,11.0,11.0];
     const time = [1,2,3,4,5];
-    
-    // Axis Calculation (Min - 1, Max + 1)
-    const allVals = [...wkIV, ...moIV, ...wkRV, ...moRV];
-    const minV = Math.min(...allVals);
-    const maxV = Math.max(...allVals);
-    
-    // Helper to generate text array with only last value
-    const lastValText = (arr) => arr.map((v, i) => i === arr.length - 1 ? v.toFixed(1) : null);
+    const range1 = getSmartRange([wkIV, moIV, wkRV, moRV]);
 
     Plotly.newPlot('chart-trend', [
         { x: time, y: wkIV, name: 'Wk IV', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkIV), textposition:'middle right' },
@@ -359,34 +337,51 @@
         { x: time, y: wkRV, name: 'Wk RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkRV), textposition:'middle right' },
         { x: time, y: moRV, name: 'Mo RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(moRV), textposition:'middle right' }
     ], { 
-        ...layoutBase, showlegend: false, 
-        xaxis:{visible:false, range:[0.8, 6.0]}, // Extra space for text
-        yaxis:{gridcolor:'#222', range:[minV - 1.0, maxV + 1.0]} // FIXED: +/- 1.0 Unit
+        ...layoutBase, showlegend: false, xaxis:{visible:false, range:[0.8, 6.0]}, 
+        yaxis:{gridcolor:'#222', range: range1} 
     }, cfg);
 
-    // 2. SKEW
+    // 2. SKEW (Smart Range applied to IV axis only, Bar is fixed)
+    const cIV = [13.5,12.6,12.4,12.8,13.8];
+    const pIV = [14.0,13.1,12.8,13.4,14.5];
+    const range2 = getSmartRange([cIV, pIV]);
+    
     Plotly.newPlot('chart-skew', [
         { x: [25800,26000,26200,26400,26600], y: [0.5,0.5,0.4,-0.6,-0.7], name: 'Spread', type: 'bar', marker: { color: '#222' }, yaxis: 'y2' },
-        { x: [25800,26000,26200,26400,26600], y: [13.5,12.6,12.4,12.8,13.8], name: 'Call IV', line: { color: '#00E676' }, type: 'scatter' },
-        { x: [25800,26000,26200,26400,26600], y: [14.0,13.1,12.8,13.4,14.5], name: 'Put IV', line: { color: '#FF5252' }, type: 'scatter' },
+        { x: [25800,26000,26200,26400,26600], y: cIV, name: 'Call IV', line: { color: '#00E676' }, type: 'scatter' },
+        { x: [25800,26000,26200,26400,26600], y: pIV, name: 'Put IV', line: { color: '#FF5252' }, type: 'scatter' },
     ], { 
         ...layoutBase, legend: { orientation: 'h', y: -0.2 },
+        yaxis: { gridcolor:'#222', range: range2 },
         yaxis2: { overlaying: 'y', side: 'right', showgrid: false }
     }, cfg);
 
-    // 3. TERM
+    // 3. TERM (Smart Range)
+    const termWk = [12.8, 14.5, 15.2, 15.8];
+    const termMo = [14.5, 15.0, 15.5, 16.0];
+    const range3 = getSmartRange([termWk, termMo]);
+
     Plotly.newPlot('chart-term', [
-        { x: ['DEC','JAN','FEB','MAR'], y: [12.8, 14.5, 15.2, 15.8], name: 'Weekly', line: { color: '#FF9800' } },
-        { x: ['DEC','JAN','FEB','MAR'], y: [14.5, 15.0, 15.5, 16.0], name: 'Monthly', line: { color: '#42A5F5' } }
-    ], { ...layoutBase, showlegend: true, legend: { orientation: 'h', y: -0.2 } }, cfg);
+        { x: ['DEC','JAN','FEB','MAR'], y: termWk, name: 'Weekly', line: { color: '#FF9800' } },
+        { x: ['DEC','JAN','FEB','MAR'], y: termMo, name: 'Monthly', line: { color: '#42A5F5' } }
+    ], { 
+        ...layoutBase, showlegend: true, legend: { orientation: 'h', y: -0.2 },
+        yaxis: { gridcolor:'#222', range: range3 }
+    }, cfg);
 
-    // 4. SURFACE
+    // 4. SURFACE (Smart Range)
+    const surfDec = [13, 12.4, 13.5];
+    const surfJan = [14, 14.0, 15.0];
+    const range4 = getSmartRange([surfDec, surfJan]);
+
     Plotly.newPlot('chart-surf', [
-        { x: [-10, 0, 10], y: [13, 12.4, 13.5], name: 'Dec', line: { color: '#FF9800' } },
-        { x: [-10, 0, 10], y: [14, 14.0, 15.0], name: 'Jan', line: { color: '#42A5F5' } }
-    ], { ...layoutBase, showlegend: true, margin:{l:35, r:20, t:10, b:25} }, cfg);
+        { x: [-10, 0, 10], y: surfDec, name: 'Dec', line: { color: '#FF9800' } },
+        { x: [-10, 0, 10], y: surfJan, name: 'Jan', line: { color: '#42A5F5' } }
+    ], { 
+        ...layoutBase, showlegend: true, margin:{l:35, r:20, t:10, b:25},
+        yaxis: { gridcolor:'#222', range: range4 }
+    }, cfg);
 
-    // TABLE
     function regenerateTable(majorOnly) {
         const atm = 26200;
         const tbody = document.getElementById("tableBody");
