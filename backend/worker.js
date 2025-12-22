@@ -13,10 +13,10 @@ import { applyVegaWeights } from "./lib/weights.js"
 
 const tv = new TradingViewAPI()
 
-// Helper: Aggressive Retry for Commodities
+// Helper: Very Patient Fetcher for GitHub Actions
 async function getPrice(tickerObj) {
-    // Try 6 times with increasing delays
-    for (let i = 0; i < 6; i++) {
+    // Try 8 times (approx 30 seconds total max wait)
+    for (let i = 0; i < 8; i++) {
         try {
             const data = await tickerObj.fetch()
             if (data && (data.lp || data.last_price || data.close_price)) {
@@ -24,8 +24,8 @@ async function getPrice(tickerObj) {
             }
         } catch (e) {}
         
-        // Wait 2.5 seconds (GitHub Actions is slow, give it time)
-        await new Promise(r => setTimeout(r, 2500))
+        // Wait 4 seconds between tries (High latency tolerance)
+        await new Promise(r => setTimeout(r, 4000))
     }
     return null
 }
@@ -57,10 +57,22 @@ async function processAsset(assetName) {
       console.log(`   ⏳ Expiry: ${expiry.toISOString().slice(0,10)}`)
 
       const atm = Math.round(F / cfg.strikeStep) * cfg.strikeStep
+      
+      // Safety check: Ensure strikesEachSide exists
+      if (!cfg.strikesEachSide || !cfg.optionPrefix) {
+          console.log(`   🛑 CONFIG ERROR: Missing 'strikesEachSide' or 'optionPrefix' for ${assetName}`)
+          return null
+      }
+
       const symbols = buildOptionSymbols(cfg.optionPrefix, expiry, atm, cfg.strikeStep, cfg.strikesEachSide)
 
-      // DEBUG: Print the first symbol we are trying, so we can verify format
-      console.log(`   🔎 Checking Symbol format: ${cfg.exchange}:${symbols[0].call}`)
+      // DEBUG: Verify symbol construction
+      if (symbols.length > 0) {
+        console.log(`   🔎 Trying First Symbol: ${cfg.exchange}:${symbols[0].call}`)
+      } else {
+        console.log(`   🛑 ERROR: No symbols generated. Check config.`)
+        return null
+      }
 
       let rows = []
       
@@ -116,7 +128,7 @@ async function processAsset(assetName) {
     }
 
   } catch (e) {
-    console.error(`   🛑 CRASH ${assetName}:`, e.message)
+    console.error(`   🛑 CRASH ${assetName}:`, e.message, e.stack)
     return null
   }
 }
@@ -126,7 +138,7 @@ async function run() {
   await tv.setup()
   
   const results = {}
-  // Focusing on the main assets
+  // Reduced target list to debug faster (optional)
   const targets = ["NIFTY", "BANKNIFTY", "CRUDEOIL", "GOLD"]
 
   for (const t of targets) {
