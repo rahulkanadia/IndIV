@@ -2,48 +2,48 @@ export const ASSETS = {
   // --- INDICES (NSE) ---
   NIFTY: {
     futuresSymbol: "NIFTY1!",
-    optionPrefix: "NIFTY",     // RESTORED
+    optionPrefix: "NIFTY",
     exchange: "NSE",
     strikeStep: 50,
-    strikesEachSide: 10,       // RESTORED
+    strikesEachSide: 10,
     options: true,
     type: "INDEX_TUE" 
   },
   BANKNIFTY: {
     futuresSymbol: "BANKNIFTY1!",
-    optionPrefix: "BANKNIFTY", // RESTORED
+    optionPrefix: "BANKNIFTY",
     exchange: "NSE",
     strikeStep: 100,
-    strikesEachSide: 10,       // RESTORED
+    strikesEachSide: 10,
     options: true,
     type: "INDEX_TUE"
   },
   FINNIFTY: {
     futuresSymbol: "FINNIFTY1!",
-    optionPrefix: "FINNIFTY",  // RESTORED
+    optionPrefix: "FINNIFTY",
     exchange: "NSE",
     strikeStep: 50,
-    strikesEachSide: 10,       // RESTORED
+    strikesEachSide: 10,
     options: true,
     type: "INDEX_TUE"
   },
   // --- INDICES (BSE) ---
   SENSEX: {
     futuresSymbol: "BSX1!",
-    optionPrefix: "BSX",       // RESTORED
+    optionPrefix: "BSX",
     exchange: "BSE",
     strikeStep: 100,
-    strikesEachSide: 10,       // RESTORED
+    strikesEachSide: 10,
     options: true,
     type: "INDEX_THU"
   },
   // --- COMMODITIES (MCX) ---
   CRUDEOIL: {
     futuresSymbol: "CRUDEOIL1!",
-    optionPrefix: "CRUDEOIL",  // RESTORED
+    optionPrefix: "CRUDEOIL",
     exchange: "MCX",
     strikeStep: 50,
-    strikesEachSide: 8,        // RESTORED
+    strikesEachSide: 8,
     options: true,
     type: "MCX_ENERGY"
   },
