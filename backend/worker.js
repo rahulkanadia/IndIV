@@ -13,36 +13,44 @@ import { applyVegaWeights } from "./lib/weights.js"
 
 const tv = new TradingViewAPI()
 
+// Helper: Tries to fetch price 3 times. Essential for MCX which is slow to start.
+async function getPrice(tickerObj) {
+    for (let i = 0; i < 4; i++) {
+        const data = await tickerObj.fetch()
+        // Check for 'lp' (Last Price) OR 'ask'/'bid' if lp is missing
+        if (data && (data.lp || data.last_price || data.close_price)) {
+            return data.lp || data.last_price || data.close_price
+        }
+        // Wait 1 second before retrying
+        await new Promise(r => setTimeout(r, 1000))
+    }
+    return null
+}
+
 async function processAsset(assetName) {
   const cfg = ASSETS[assetName]
   console.log(`\n🟦 Starting ${assetName}...`)
 
-  // Construct Symbol
   const futuresTicker = `${cfg.exchange}:${cfg.futuresSymbol}`
-  console.log(`   Asking TradingView for: ${futuresTicker}`)
   
   try {
     const futTicker = await tv.getTicker(futuresTicker)
-    const futData = await futTicker.fetch()
+    const F = await getPrice(futTicker)
     
-    // DEBUG LOG: See what we actually got back
-    if (!futData || !futData.last) {
-      console.log(`   ❌ FAILED to get price for ${futuresTicker}`)
-      console.log(`   🔍 Raw Response:`, JSON.stringify(futData || "null"))
+    if (!F) {
+      console.log(`   ❌ FAILED to get price for ${futuresTicker} (Timed out)`)
       return null
     }
 
-    const F = futData.last
     console.log(`   ✅ Futures Price: ${F}`)
 
     const now = new Date()
     const { weekly: weeklyExp, monthly: monthlyExp } = resolveExpiry(cfg, now)
 
-    // Compute Helper
     async function compute(expiry) {
       const T = tradingTimeToExpiry(now, expiry)
       if (T <= 0) {
-        console.log(`   ⚠️ Expiry ${expiry.toISOString()} is in the past or today. Skipping.`)
+        console.log(`   ⚠️ Expiry ${expiry.toISOString()} is passed. Skipping.`)
         return null
       }
 
@@ -53,24 +61,24 @@ async function processAsset(assetName) {
 
       let rows = []
       
-      // Batch processing to be gentle
       for (const s of symbols) {
          const cTicker = await tv.getTicker(`${cfg.exchange}:${s.call}`)
          const pTicker = await tv.getTicker(`${cfg.exchange}:${s.put}`)
          
-         const cData = await cTicker.fetch()
-         const pData = await pTicker.fetch()
+         // Fetch pair (Retries are built into getPrice, but we use strict check here)
+         const cPrice = await getPrice(cTicker)
+         const pPrice = await getPrice(pTicker)
 
-         if (!cData.last || !pData.last) continue
+         if (!cPrice || !pPrice) continue
 
-         const civ = solveIV({ price: cData.last, F, K: s.strike, T, isCall: true })
-         const piv = solveIV({ price: pData.last, F, K: s.strike, T, isCall: false })
+         const civ = solveIV({ price: cPrice, F, K: s.strike, T, isCall: true })
+         const piv = solveIV({ price: pPrice, F, K: s.strike, T, isCall: false })
          if (!civ || !piv) continue
 
          rows.push({
             strike: s.strike,
-            call: { price: cData.last, iv: civ },
-            put: { price: pData.last, iv: piv }
+            call: { price: cPrice, iv: civ },
+            put: { price: pPrice, iv: piv }
          })
       }
 
@@ -79,7 +87,6 @@ async function processAsset(assetName) {
         return null
       }
       
-      // Calculate Variance IV
       rows = applyVegaWeights(rows, atm)
       let atmRow = rows.find(r => r.strike === atm) || rows[0]
       const variance = straddleVariance(atmRow.call.price, atmRow.put.price, F, T)
@@ -117,6 +124,8 @@ async function run() {
   await tv.setup()
   
   const results = {}
+  // NIFTY and BANKNIFTY are proven working. 
+  // CRUDE/GOLD should now work thanks to the Retry loop.
   const targets = ["NIFTY", "BANKNIFTY", "CRUDEOIL", "GOLD"]
 
   for (const t of targets) {
@@ -124,11 +133,15 @@ async function run() {
     if (res) results[t] = res
   }
 
-  // Debug: Print final object keys
-  console.log("\n📦 Final Data Keys:", Object.keys(results))
+  const keys = Object.keys(results)
+  console.log("\n📦 Final Data Keys:", keys)
 
-  fs.writeFileSync("indiv_data.json", JSON.stringify(results, null, 2))
-  console.log("💾 Saved to indiv_data.json")
+  if (keys.length > 0) {
+      fs.writeFileSync("indiv_data.json", JSON.stringify(results, null, 2))
+      console.log("💾 Saved to indiv_data.json")
+  } else {
+      console.log("⚠️ No data collected. File not saved.")
+  }
 
   tv.cleanup()
   process.exit(0)
