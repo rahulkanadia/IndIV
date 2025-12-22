@@ -3,340 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V2</title>
+    <title>IndIV Monitor V3</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* --- THEME & FONTS --- */
+        /* --- THEME --- */
         :root { 
-            --bg: #0b0b0b; --card: #141414; --text: #e0e0e0; --border: #2a2a2a; 
-            --green: #00E676; --red: #FF5252; 
-            /* NEW THEME COLORS */
-            --weekly: #FF9800; /* Orange */
-            --monthly: #2196F3; /* Blue */
+            --bg: #0b0b0b; --card: #121212; --text: #e0e0e0; --border: #252525; 
+            --green: #00E676; --red: #FF5252; --orange: #FF9800; --blue: #2979FF; --gold: #FFD700;
+            --muted: #666;
         }
         
         * { box-sizing: border-box; }
         body { 
             background: var(--bg); color: var(--text); 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; /* Unified Font */
-            margin: 0; padding: 15px; height: 100vh; display: flex; flex-direction: column;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 10px; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
 
         /* --- HEADER --- */
-        .header-row { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; height: 50px; }
+        .header-row { display: flex; align-items: center; justify-content: space-between; padding: 0 10px 10px; border-bottom: 1px solid var(--border); height: 50px; flex-shrink: 0; }
         h1 { margin: 0; font-size: 1.2rem; font-weight: 600; letter-spacing: 0.5px; color: #fff; }
+        .controls-right { display: flex; align-items: center; gap: 20px; font-size: 12px; }
+        .status-badge { background: #1a1a1a; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; color: var(--green); font-weight: bold; font-size: 11px; }
+
+        /* --- MAIN CONTAINER --- */
+        .container { display: flex; gap: 15px; flex: 1; margin-top: 15px; overflow: hidden; }
+
+        /* ================= LEFT PANEL (45%) ================= */
+        .left-panel { flex: 0 0 45%; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding-right: 5px; }
+
+        /* 1. Price Header */
+        .price-strip { 
+            display: flex; justify-content: space-between; background: var(--card); border: 1px solid var(--border); padding: 10px 20px; border-radius: 4px; 
+        }
+        .price-group { text-align: center; }
+        .p-label { font-size: 10px; color: var(--muted); display: block; margin-bottom: 2px; letter-spacing: 1px; }
+        .p-val { font-size: 1.3rem; font-weight: 700; color: #fff; }
+        .p-change { font-size: 0.85rem; font-weight: 500; }
+        .up { color: var(--green); } .down { color: var(--red); }
+
+        /* 2. Data Sections (Weekly/Monthly) */
+        .section-header { 
+            display: flex; justify-content: space-between; align-items: baseline; 
+            border-bottom: 2px solid #222; padding-bottom: 4px; margin-bottom: 6px; 
+        }
+        .sec-title { font-size: 13px; font-weight: 800; color: #ddd; }
+        .sec-date { font-size: 12px; color: var(--muted); font-weight: 400; }
+
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+        .d-box { 
+            background: var(--card); border: 1px solid var(--border); padding: 8px; 
+            text-align: center; border-radius: 4px; display: flex; flex-direction: column; justify-content: center;
+        }
+        .d-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
+        .d-val { font-size: 1.1rem; font-weight: 600; color: #fff; }
+        .d-chg { font-size: 0.75rem; margin-top: 2px; }
         
-        /* Asset Dropdown (Moved to Title Area) */
-        .asset-select { 
-            background: #222; color: #fff; border: 1px solid #444; 
-            padding: 6px 12px; border-radius: 4px; font-size: 14px; 
-            font-weight: bold; cursor: pointer; font-family: inherit;
+        .iv-val { font-family: 'Courier New', monospace; font-weight: 700; font-size: 1.2rem; }
+
+        /* Colors for Sections */
+        .t-week { color: var(--orange); } .t-month { color: var(--blue); }
+
+        /* 3. Tabbed Chart Container */
+        .chart-window { background: var(--card); border: 1px solid var(--border); border-radius: 4px; display: flex; flex-direction: column; height: 220px; }
+        .chart-tabs { display: flex; border-bottom: 1px solid var(--border); background: #181818; }
+        .c-tab { 
+            flex: 1; text-align: center; padding: 6px; font-size: 11px; cursor: pointer; 
+            color: #888; border-right: 1px solid var(--border); transition: 0.2s; 
         }
-
-        /* Right Header Controls */
-        .controls-right { margin-left: auto; display: flex; align-items: center; gap: 20px; font-size: 13px; }
-        .status-box { text-align: right; line-height: 1.2; }
-        .status-ok { color: var(--green); font-weight: bold; }
-        .readme-link { color: #888; text-decoration: none; border: 1px solid #444; padding: 4px 10px; border-radius: 4px; font-size: 12px; }
-
-        /* --- MAIN LAYOUT --- */
-        .container { 
-            display: flex; gap: 20px; flex: 1; overflow: hidden; /* Prevent body scroll */
-        }
-
-        /* --- LEFT PANEL (55% Width) --- */
-        .left-panel { flex: 1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-right: 5px; }
-
-        /* Spot/Futures Box */
-        .price-header-box { 
-            display: flex; justify-content: space-around; align-items: center;
-            background: var(--card); border: 1px solid var(--border); 
-            padding: 12px; border-radius: 6px; 
-        }
-        .price-item { text-align: center; }
-        .price-label { font-size: 11px; color: #666; display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px; }
-        .price-val { font-size: 1.4rem; font-weight: 700; color: #fff; }
-        .price-diff { font-size: 0.9rem; color: var(--green); margin-left: 8px; }
-
-        /* SECTION TITLES */
-        .section-title { 
-            font-size: 14px; font-weight: 700; color: #fff; 
-            margin: 10px 0 5px 0; display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid #222; padding-bottom: 5px;
-        }
-        .section-date { color: #888; font-weight: 400; font-size: 12px; }
-
-        /* 3x2 DATA GRID */
-        .data-grid-3x2 { 
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; 
-        }
-        .data-box { 
-            background: var(--card); border: 1px solid var(--border); 
-            padding: 10px; text-align: center; border-radius: 4px; 
-            display: flex; flex-direction: column; justify-content: center;
-        }
-        .lbl { font-size: 10px; color: #666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .val-lg { font-size: 1.2rem; font-weight: 600; } /* Price */
-        .val-xl { font-size: 1.4rem; font-weight: 700; font-family: 'Courier New', monospace; } /* IV */
-
-        /* Colors */
-        .c-weekly { color: var(--weekly); }
-        .c-monthly { color: var(--monthly); }
-        .c-green { color: var(--green); }
-        .c-red { color: var(--red); }
-
-        /* Chart Wrapper */
-        .chart-box { height: 180px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 10px; position: relative; }
-
-        /* --- RIGHT PANEL (45% Width) --- */
-        .right-panel { 
-            width: 45%; min-width: 500px; 
-            display: flex; flex-direction: column; 
-            background: var(--card); border: 1px solid var(--border); border-radius: 6px;
-        }
-
-        /* Table Controls */
-        .table-controls { 
-            padding: 10px; border-bottom: 1px solid var(--border); 
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .expiry-select { 
-            background: #222; color: #fff; border: 1px solid #444; padding: 4px; font-family: inherit; font-size: 12px; 
-        }
-        .step-toggle { font-size: 12px; color: #aaa; display: flex; align-items: center; gap: 6px; cursor: pointer; }
-
-        /* The Table */
-        .table-scroll { flex: 1; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: right; }
-        th { position: sticky; top: 0; background: #111; color: #666; padding: 8px 4px; font-weight: normal; font-size: 10px; z-index: 10; border-bottom: 1px solid #333; }
-        td { padding: 6px 4px; border-bottom: 1px solid #222; }
+        .c-tab:hover { color: #fff; background: #222; }
+        .c-tab.active { color: #fff; background: var(--card); border-bottom: 2px solid var(--green); font-weight: bold; }
         
-        /* Uniform Columns: 5 Greeks + Strike + 5 Greeks = 11 Cols */
-        th, td { width: 8.5%; } 
-        .strike-col { width: 15%; text-align: center; background: #1a1a1a; color: #fff; font-weight: bold; position: sticky; left: 0; z-index: 5; border-right: 1px solid #333; border-left: 1px solid #333; }
+        .chart-content { flex: 1; position: relative; padding: 10px; }
+        .chart-canvas { width: 100%; height: 100%; display: none; } /* Hidden by default */
+        .chart-canvas.visible { display: block; }
+
+
+        /* ================= RIGHT PANEL (55%) ================= */
+        .right-panel { flex: 0 0 55%; display: flex; flex-direction: column; gap: 0; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+
+        /* 1. Skew Chart (Top) */
+        .skew-container { height: 160px; padding: 10px; border-bottom: 1px solid var(--border); background: #161616; }
+
+        /* 2. Toolbar (Middle) */
+        .table-toolbar { 
+            display: flex; height: 40px; border-bottom: 1px solid var(--border); background: #1a1a1a;
+        }
+        .toolbar-half { flex: 1; display: flex; align-items: center; justify-content: center; }
+        .toolbar-left { border-right: 1px solid var(--border); }
         
-        .atm-row td { background: #222; }
-        .iv-cell { font-family: monospace; font-weight: bold; }
+        select { background: #222; color: #fff; border: 1px solid #444; padding: 4px 8px; border-radius: 3px; font-size: 11px; cursor: pointer; }
+        .toggle-lbl { font-size: 11px; color: #aaa; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+        /* 3. Table (Bottom) */
+        .table-wrapper { flex: 1; overflow-y: auto; background: var(--card); }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: right; table-layout: fixed; }
+        
+        /* Headers */
+        th { 
+            position: sticky; top: 0; background: #111; color: #666; 
+            padding: 8px 2px; font-weight: normal; font-size: 9px; 
+            z-index: 10; border-bottom: 1px solid #333; text-align: center; 
+        }
+
+        /* Column Widths (Fixed) */
+        /* 11 Columns total. Strike = 10%. Others = 9%. */
+        col.greeks { width: 9%; }
+        col.strike { width: 10%; }
+
+        td { padding: 4px 2px; border-bottom: 1px solid #222; text-align: center; vertical-align: middle; }
+        
+        /* Sticky Strike */
+        .strike-cell { background: #181818; color: #fff; font-weight: bold; border-left: 1px solid #333; border-right: 1px solid #333; position: sticky; left: 0; z-index: 5; }
+        
+        /* Colors & Fonts */
+        .c-g { color: var(--green); } .c-r { color: var(--red); }
+        .atm-row td { background: #222; border-top: 1px solid #444; border-bottom: 1px solid #444; }
+        
+        /* Mobile Stack */
+        @media(max-width: 1000px) {
+            .container { flex-direction: column; overflow-y: auto; }
+            .left-panel, .right-panel { flex: none; width: 100%; overflow: visible; }
+            .table-wrapper { height: 500px; } /* Fixed height on mobile */
+        }
 
     </style>
 </head>
 <body>
 
     <div class="header-row">
-        <h1>IndIV Monitor</h1>
-        
-        <select class="asset-select">
-            <option>NIFTY 50</option>
-            <option>BANK NIFTY</option>
-            <option>CRUDE OIL</option>
-            <option>GOLD</option>
-        </select>
-
+        <h1>IndIV Monitor <span style="font-size:0.8rem; color:#666; font-weight:normal">V3</span></h1>
         <div class="controls-right">
-            <a href="#" class="readme-link">How to use?</a>
-            <div class="status-box">
-                <div class="status-ok">● LIVE</div>
-                <div style="color:#666; font-size:11px">Updated: 14:35:00</div>
-            </div>
+            <a href="#" style="color:#888; text-decoration:none;">How to use?</a>
+            <div class="status-badge">● LIVE DATA</div>
         </div>
     </div>
 
     <div class="container">
-        
+
         <div class="left-panel">
             
-            <div class="price-header-box">
-                <div class="price-item">
-                    <span class="price-label">SPOT PRICE</span>
-                    <span class="price-val">26,150.00</span>
+            <div class="price-strip">
+                <div class="price-group">
+                    <span class="p-label">SPOT PRICE</span>
+                    <span class="p-val">26,150.00</span>
+                    <div class="p-change up">+45.20 (0.17%)</div>
                 </div>
-                <div style="width:1px; height:30px; background:#333"></div> <div class="price-item">
-                    <span class="price-label">FUTURES PRICE</span>
-                    <span class="price-val">26,187.00 <span class="price-diff">(+37)</span></span>
-                </div>
-            </div>
-
-            <div class="section-title">
-                WEEKLY <span class="section-date">26 DEC 2025</span>
-            </div>
-            
-            <div class="data-grid-3x2">
-                <div class="data-box">
-                    <span class="lbl">ATM CALL</span>
-                    <div class="val-lg c-green">145.20</div>
-                </div>
-                <div class="data-box" style="border-color: #444; background:#1a1a1a">
-                    <span class="lbl">STRADDLE</span>
-                    <div class="val-lg c-weekly">284.50</div>
-                </div>
-                <div class="data-box">
-                    <span class="lbl">ATM PUT</span>
-                    <div class="val-lg c-red">139.30</div>
-                </div>
-
-                <div class="data-box">
-                    <span class="lbl">CALL IV</span>
-                    <div class="val-xl c-green">12.4%</div>
-                </div>
-                <div class="data-box" style="border-color: #444; background:#1a1a1a">
-                    <span class="lbl">STRADDLE IV</span>
-                    <div class="val-xl c-weekly">12.8%</div>
-                </div>
-                <div class="data-box">
-                    <span class="lbl">PUT IV</span>
-                    <div class="val-xl c-red">13.1%</div>
+                <div style="width:1px; background:#333;"></div>
+                <div class="price-group">
+                    <span class="p-label">FUTURES PRICE</span>
+                    <span class="p-val">26,187.00</span>
+                    <div class="p-change up">+37.00 (0.14%)</div>
                 </div>
             </div>
 
-            <div class="chart-box">
-                <canvas id="mockIntradayChart"></canvas>
-            </div>
+            <div>
+                <div class="section-header">
+                    <span class="sec-title t-week">WEEKLY</span>
+                    <span class="sec-date">26 DEC 2025</span>
+                </div>
+                <div class="data-grid">
+                    <div class="d-box"><span class="d-lbl">ATM CALL</span><div class="d-val c-g">145.20</div><div class="d-chg up">+12.5</div></div>
+                    <div class="d-box" style="background:#191919; border-color:#444"><span class="d-lbl">STRADDLE</span><div class="d-val t-week">284.50</div><div class="d-chg down">-5.5</div></div>
+                    <div class="d-box"><span class="d-lbl">ATM PUT</span><div class="d-val c-r">139.30</div><div class="d-chg down">-18.0</div></div>
 
-            <div class="section-title" style="margin-top:15px;">
-                MONTHLY <span class="section-date">29 JAN 2026</span>
-            </div>
-            
-            <div class="data-grid-3x2">
-                <div class="data-box">
-                    <span class="lbl">ATM CALL</span>
-                    <div class="val-lg c-green">310.50</div>
-                </div>
-                <div class="data-box" style="border-color: #444; background:#1a1a1a">
-                    <span class="lbl">STRADDLE</span>
-                    <div class="val-lg c-monthly">595.00</div>
-                </div>
-                <div class="data-box">
-                    <span class="lbl">ATM PUT</span>
-                    <div class="val-lg c-red">284.50</div>
-                </div>
-
-                <div class="data-box">
-                    <span class="lbl">CALL IV</span>
-                    <div class="val-xl c-green">14.2%</div>
-                </div>
-                <div class="data-box" style="border-color: #444; background:#1a1a1a">
-                    <span class="lbl">STRADDLE IV</span>
-                    <div class="val-xl c-monthly">14.5%</div>
-                </div>
-                <div class="data-box">
-                    <span class="lbl">PUT IV</span>
-                    <div class="val-xl c-red">14.8%</div>
+                    <div class="d-box"><span class="d-lbl">CALL IV</span><div class="iv-val c-g">12.4%</div><div class="d-chg up">+2.1%</div></div>
+                    <div class="d-box" style="background:#191919; border-color:#444"><span class="d-lbl">STRADDLE IV</span><div class="iv-val t-week">12.8%</div><div class="d-chg up">+0.5%</div></div>
+                    <div class="d-box"><span class="d-lbl">PUT IV</span><div class="iv-val c-r">13.1%</div><div class="d-chg down">-1.2%</div></div>
                 </div>
             </div>
 
-            <div class="chart-box" style="margin-top:10px;">
-                <canvas id="mockSkewChart"></canvas>
+            <div class="chart-window">
+                <div class="chart-tabs">
+                    <div class="c-tab active" onclick="switchTab('trend', this)">IV Trend</div>
+                    <div class="c-tab" onclick="switchTab('surface', this)">Vol Surface</div>
+                </div>
+                <div class="chart-content">
+                    <div id="chart-trend" class="chart-canvas visible"><canvas id="cvsTrend"></canvas></div>
+                    <div id="chart-surface" class="chart-canvas"><canvas id="cvsSurface"></canvas></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-header">
+                    <span class="sec-title t-month">MONTHLY</span>
+                    <span class="sec-date">29 JAN 2026</span>
+                </div>
+                <div class="data-grid">
+                    <div class="d-box"><span class="d-lbl">ATM CALL</span><div class="d-val c-g">310.50</div><div class="d-chg up">+15.2</div></div>
+                    <div class="d-box" style="background:#191919; border-color:#444"><span class="d-lbl">STRADDLE</span><div class="d-val t-month">595.00</div><div class="d-chg up">+2.5</div></div>
+                    <div class="d-box"><span class="d-lbl">ATM PUT</span><div class="d-val c-r">284.50</div><div class="d-chg down">-12.7</div></div>
+
+                    <div class="d-box"><span class="d-lbl">CALL IV</span><div class="iv-val c-g">14.2%</div><div class="d-chg up">+1.1%</div></div>
+                    <div class="d-box" style="background:#191919; border-color:#444"><span class="d-lbl">STRADDLE IV</span><div class="iv-val t-month">14.5%</div><div class="d-chg up">+0.8%</div></div>
+                    <div class="d-box"><span class="d-lbl">PUT IV</span><div class="iv-val c-r">14.8%</div><div class="d-chg down">-0.3%</div></div>
+                </div>
             </div>
 
         </div>
 
         <div class="right-panel">
             
-            <div class="table-controls">
-                <select class="expiry-select" id="tableExpiry" onchange="regenerateTable()">
-                    <option value="weekly">Weekly (26 Dec)</option>
-                    <option value="monthly">Monthly (29 Jan)</option>
-                    <option value="near">Near Month (Feb)</option>
-                </select>
-
-                <label class="step-toggle">
-                    <input type="checkbox" id="stepToggle" onchange="regenerateTable()"> 
-                    Major Strikes Only
-                </label>
+            <div class="skew-container">
+                <canvas id="cvsSkew"></canvas>
             </div>
 
-            <div class="table-scroll">
+            <div class="table-toolbar">
+                <div class="toolbar-half toolbar-left">
+                    <select>
+                        <option>NIFTY - 26 DEC (Weekly)</option>
+                        <option>NIFTY - 29 JAN (Monthly)</option>
+                        <option>BANKNIFTY - 26 DEC</option>
+                    </select>
+                </div>
+                <div class="toolbar-half">
+                    <label class="toggle-lbl">
+                        <input type="checkbox" checked onchange="regenerateTable(this.checked)"> Major Strikes
+                    </label>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
                 <table>
+                    <colgroup>
+                        <col class="greeks" span="5">
+                        <col class="strike">
+                        <col class="greeks" span="5">
+                    </colgroup>
                     <thead>
                         <tr>
-                            <th colspan="5" style="text-align:center; color:var(--green); border-bottom:1px solid #333;">CALLS</th>
-                            <th class="strike-col">K</th>
-                            <th colspan="5" style="text-align:center; color:var(--red); border-bottom:1px solid #333;">PUTS</th>
-                        </tr>
-                        <tr>
-                            <th>Gam</th><th>Veg</th><th>The</th><th>Del</th><th>IV%</th>
-                            <th class="strike-col"></th>
-                            <th>IV%</th><th>Del</th><th>The</th><th>Veg</th><th>Gam</th>
+                            <th>GAMMA</th><th>VEGA</th><th>THETA</th><th>DELTA</th><th>IV%</th>
+                            <th>K</th>
+                            <th>IV%</th><th>DELTA</th><th>THETA</th><th>VEGA</th><th>GAMMA</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody">
-                        </tbody>
+                    <tbody id="tableBody"></tbody>
                 </table>
             </div>
+
         </div>
 
     </div>
 
 <script>
-    // --- MOCK LOGIC ---
-    
-    // 1. Chart
-    new Chart(document.getElementById('mockIntradayChart'), {
+    // --- TABS LOGIC ---
+    function switchTab(name, tabEl) {
+        document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
+        tabEl.classList.add('active');
+        document.querySelectorAll('.chart-canvas').forEach(c => c.classList.remove('visible'));
+        document.getElementById('chart-' + name).classList.add('visible');
+    }
+
+    // --- CHART GENERATORS ---
+    // 1. Skew (Smile)
+    new Chart(document.getElementById('cvsSkew'), {
+        type: 'line',
+        data: {
+            labels: [25800, 25900, 26000, 26100, 26200, 26300, 26400, 26500, 26600],
+            datasets: [
+                {label:'Call', data:[13.5, 13.0, 12.6, 12.4, 12.4, 12.5, 12.8, 13.2, 13.8], borderColor:'#00E676', borderWidth:1.5, pointRadius:0, tension:0.4},
+                {label:'Put', data:[14.0, 13.5, 13.1, 12.8, 12.8, 13.0, 13.4, 13.9, 14.5], borderColor:'#FF5252', borderWidth:1.5, pointRadius:0, tension:0.4}
+            ]
+        },
+        options: { 
+            responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, 
+            scales:{x:{display:false}, y:{grid:{color:'#222'}, ticks:{font:{size:9}, color:'#666'}}} 
+        }
+    });
+
+    // 2. Trend (Intraday)
+    new Chart(document.getElementById('cvsTrend'), {
         type: 'line',
         data: {
             labels: ["9:15", "10:00", "11:00", "12:00", "13:00", "14:00", "Now"],
             datasets: [
-                {label:'Weekly IV', data:[12.2, 12.4, 12.1, 12.5, 12.8, 12.6, 12.8], borderColor:'#FF9800', borderWidth:2, pointRadius:0},
-                {label:'Monthly IV', data:[14.1, 14.0, 14.2, 14.3, 14.4, 14.5, 14.5], borderColor:'#2196F3', borderWidth:2, pointRadius:0}
+                {label:'Weekly', data:[12.2, 12.4, 12.1, 12.5, 12.8, 12.6, 12.8], borderColor:'#FF9800', borderWidth:2, pointRadius:0},
+                {label:'Monthly', data:[14.1, 14.0, 14.2, 14.3, 14.4, 14.5, 14.5], borderColor:'#2979FF', borderWidth:2, pointRadius:0}
             ]
         },
-        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top', align:'end', labels:{color:'#888', boxWidth:12}}}, scales:{x:{display:false}, y:{grid:{color:'#222'}}} }
+        options: { 
+            responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top', align:'end', labels:{color:'#888', boxWidth:8, font:{size:10}}}}, 
+            scales:{x:{display:false}, y:{grid:{color:'#222'}, ticks:{font:{size:9}, color:'#666'}}} 
+        }
     });
 
-    // 2. Skew Chart (Placeholder)
-    new Chart(document.getElementById('mockSkewChart'), {
+    // 3. Surface (Mock Term Structure)
+    new Chart(document.getElementById('cvsSurface'), {
         type: 'line',
         data: {
-            labels: [25800, 25900, 26000, 26100, 26200, 26300, 26400],
+            labels: [25800, 26000, 26200, 26400, 26600],
             datasets: [
-                {label:'Call', data:[13, 12.8, 12.6, 12.5, 12.4, 12.3, 12.2], borderColor:'#00E676', borderWidth:1},
-                {label:'Put', data:[13.5, 13.2, 13.0, 12.9, 12.8, 12.9, 13.1], borderColor:'#FF5252', borderWidth:1}
+                {label:'Exp 1 (Dec)', data:[13.5, 12.6, 12.4, 12.8, 13.8], borderColor:'#FF9800', borderWidth:1, tension:0.4},
+                {label:'Exp 2 (Jan)', data:[14.5, 14.1, 14.0, 14.3, 15.0], borderColor:'#2979FF', borderWidth:1, tension:0.4},
+                {label:'Exp 3 (Feb)', data:[15.5, 15.2, 15.1, 15.4, 16.2], borderColor:'#9C27B0', borderWidth:1, tension:0.4}
             ]
         },
-        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#222'}}} }
+        options: { 
+            responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top', align:'end', labels:{color:'#888', boxWidth:8, font:{size:10}}}}, 
+            scales:{x:{display:true, grid:{display:false}, ticks:{font:{size:9}, color:'#666'}}, y:{grid:{color:'#222'}, ticks:{font:{size:9}, color:'#666'}}} 
+        }
     });
 
-    // 3. Table Generator
-    function regenerateTable() {
+    // --- TABLE GENERATOR (FISHEYE) ---
+    function regenerateTable(majorOnly) {
         const atm = 26200;
         const tbody = document.getElementById("tableBody");
-        const onlyMajor = document.getElementById("stepToggle").checked;
         const rows = [];
-
-        // Generate 15 strikes up/down, then filter
-        for(let i=-15; i<=15; i++) {
+        
+        // Generate raw range
+        for(let i=-18; i<=18; i++) {
             let strike = atm + (i*50);
+            if(majorOnly && strike % 100 !== 0) continue;
             
-            // FILTER: If "Major Only" is checked, skip 50s (assuming 100 is major)
-            if(onlyMajor && strike % 100 !== 0) continue;
+            // Limit visual rows to ~20
+            if(rows.length >= 21) break;
 
-            // Limit to 10 rows around ATM after filtering (mock logic simplified: just take what passes)
-            // In real app, we would slice the array.
+            let dist = Math.abs(strike - atm) / (majorOnly ? 100 : 50);
             
-            let isATM = strike === atm;
+            // Fisheye Logic: Scale font 1.1 down to 0.8
+            let scale = Math.max(0.85, 1.1 - (dist * 0.04));
+            let opacity = Math.max(0.5, 1.0 - (dist * 0.05));
+
             rows.push({
-                strike: strike, isATM: isATM,
-                c: { iv: 12.5, del: 0.52, th: -12, vg: 15, gm: 0.002 },
-                p: { iv: 12.8, del: 0.48, th: -12, vg: 15, gm: 0.002 }
+                strike: strike,
+                isATM: strike === atm,
+                scale: scale,
+                opacity: opacity,
+                c: { gm:0.002, vg:12.4, th:-14, del:0.52, iv:12.4 },
+                p: { gm:0.002, vg:12.4, th:-14, del:-0.48, iv:12.9 }
             });
         }
 
-        // Slice to keep table short (Visual Requirement: Max 20 rows)
-        const center = Math.floor(rows.length / 2);
-        const finalRows = rows.slice(Math.max(0, center-10), Math.min(rows.length, center+11));
-
-        tbody.innerHTML = finalRows.map(r => `
-            <tr class="${r.isATM ? 'atm-row' : ''}">
+        // Center the ATM in the array if needed (simplified here)
+        
+        tbody.innerHTML = rows.map(r => `
+            <tr style="font-size:${r.scale}em; color:rgba(255,255,255,${r.opacity})">
                 <td style="color:#666">${r.c.gm}</td>
                 <td style="color:#888">${r.c.vg}</td>
                 <td style="color:#888">${r.c.th}</td>
-                <td class="c-green">${r.c.del}</td>
-                <td class="iv-cell c-green">${r.c.iv}</td>
+                <td class="c-g">${r.c.del}</td>
+                <td style="color:#00E676; font-family:monospace; font-weight:bold">${r.c.iv}</td>
                 
-                <td class="strike-col">${r.strike}</td>
+                <td class="strike-cell">${r.strike}</td>
                 
-                <td class="iv-cell c-red">${r.p.iv}</td>
-                <td class="c-red">${r.p.del}</td>
+                <td style="color:#FF5252; font-family:monospace; font-weight:bold">${r.p.iv}</td>
+                <td class="c-r">${r.p.del}</td>
                 <td style="color:#888">${r.p.th}</td>
                 <td style="color:#888">${r.p.vg}</td>
                 <td style="color:#666">${r.p.gm}</td>
@@ -345,7 +357,7 @@
     }
 
     // Init
-    regenerateTable();
+    regenerateTable(true);
 
 </script>
 </body>
