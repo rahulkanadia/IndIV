@@ -14,7 +14,6 @@ export function buildOptionSymbols(prefix, expiry, atm, step, count) {
 
   // Map to TradingView Symbols
   // Format: PREFIX + YYMMDD + C/P + STRIKE
-  // Example: NIFTY + 251223 + C + 26000
   return strikes.map(k => ({
     strike: k,
     call: `${prefix}${dateStr}C${k}`,
