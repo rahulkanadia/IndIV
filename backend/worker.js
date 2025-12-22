@@ -13,9 +13,9 @@ import { applyVegaWeights } from "./lib/weights.js"
 
 const tv = new TradingViewAPI()
 
-// Helper: Very Patient Fetcher for GitHub Actions
+// --- PATIENT FETCHER ---
+// Retries up to 8 times with 4s delays. Essential for GitHub Actions latency.
 async function getPrice(tickerObj) {
-    // Try 8 times (approx 30 seconds total max wait)
     for (let i = 0; i < 8; i++) {
         try {
             const data = await tickerObj.fetch()
@@ -23,8 +23,6 @@ async function getPrice(tickerObj) {
                 return data.lp || data.last_price || data.close_price
             }
         } catch (e) {}
-        
-        // Wait 4 seconds between tries (High latency tolerance)
         await new Promise(r => setTimeout(r, 4000))
     }
     return null
@@ -37,6 +35,7 @@ async function processAsset(assetName) {
   const futuresTicker = `${cfg.exchange}:${cfg.futuresSymbol}`
   
   try {
+    // 1. Fetch Futures
     const futTicker = await tv.getTicker(futuresTicker)
     const F = await getPrice(futTicker)
     
@@ -47,9 +46,11 @@ async function processAsset(assetName) {
 
     console.log(`   ✅ Futures: ${F}`)
 
+    // 2. Resolve Expiry
     const now = new Date()
     const { weekly: weeklyExp, monthly: monthlyExp } = resolveExpiry(cfg, now)
 
+    // 3. Compute Engine
     async function compute(expiry) {
       const T = tradingTimeToExpiry(now, expiry)
       if (T <= 0) return null
@@ -58,42 +59,48 @@ async function processAsset(assetName) {
 
       const atm = Math.round(F / cfg.strikeStep) * cfg.strikeStep
       
-      // Safety check: Ensure strikesEachSide exists
+      // Safety Check
       if (!cfg.strikesEachSide || !cfg.optionPrefix) {
-          console.log(`   🛑 CONFIG ERROR: Missing 'strikesEachSide' or 'optionPrefix' for ${assetName}`)
+          console.log(`   🛑 CONFIG ERROR: Missing params for ${assetName}`)
           return null
       }
 
       const symbols = buildOptionSymbols(cfg.optionPrefix, expiry, atm, cfg.strikeStep, cfg.strikesEachSide)
 
-      // DEBUG: Verify symbol construction
       if (symbols.length > 0) {
-        console.log(`   🔎 Trying First Symbol: ${cfg.exchange}:${symbols[0].call}`)
-      } else {
-        console.log(`   🛑 ERROR: No symbols generated. Check config.`)
-        return null
+        console.log(`   🔎 Trying: ${cfg.exchange}:${symbols[0].call}`)
       }
 
       let rows = []
       
       for (const s of symbols) {
-         const cTicker = await tv.getTicker(`${cfg.exchange}:${s.call}`)
-         const pTicker = await tv.getTicker(`${cfg.exchange}:${s.put}`)
-         
-         const cPrice = await getPrice(cTicker)
-         const pPrice = await getPrice(pTicker)
+         try {
+             const cTicker = await tv.getTicker(`${cfg.exchange}:${s.call}`)
+             const pTicker = await tv.getTicker(`${cfg.exchange}:${s.put}`)
+             
+             const cPrice = await getPrice(cTicker)
+             const pPrice = await getPrice(pTicker)
 
-         if (!cPrice || !pPrice) continue
+             if (!cPrice || !pPrice) continue
 
-         const civ = solveIV({ price: cPrice, F, K: s.strike, T, isCall: true })
-         const piv = solveIV({ price: pPrice, F, K: s.strike, T, isCall: false })
-         if (!civ || !piv) continue
+             const civ = solveIV({ price: cPrice, F, K: s.strike, T, isCall: true })
+             const piv = solveIV({ price: pPrice, F, K: s.strike, T, isCall: false })
+             
+             if (!civ || !piv) continue
 
-         rows.push({
-            strike: s.strike,
-            call: { price: cPrice, iv: civ },
-            put: { price: pPrice, iv: piv }
-         })
+             // --- CRITICAL FIX: CALCULATE GREEKS ---
+             const cGreeks = greeks(F, s.strike, T, civ, true)
+             const pGreeks = greeks(F, s.strike, T, piv, false)
+
+             rows.push({
+                strike: s.strike,
+                call: { price: cPrice, iv: civ, greeks: cGreeks },
+                put: { price: pPrice, iv: piv, greeks: pGreeks }
+             })
+         } catch (innerErr) {
+             // Swallow individual symbol errors so the whole chain doesn't break
+             console.warn(`     ⚠️ Skipped strike ${s.strike}: ${innerErr.message}`)
+         }
       }
 
       if (rows.length === 0) {
@@ -101,15 +108,21 @@ async function processAsset(assetName) {
         return null
       }
       
-      rows = applyVegaWeights(rows, atm)
-      let atmRow = rows.find(r => r.strike === atm) || rows[0]
-      const variance = straddleVariance(atmRow.call.price, atmRow.put.price, F, T)
+      // 4. Aggregation
+      try {
+          rows = applyVegaWeights(rows, atm)
+          let atmRow = rows.find(r => r.strike === atm) || rows[0]
+          const variance = straddleVariance(atmRow.call.price, atmRow.put.price, F, T)
 
-      return {
-        expiry: expiry.toISOString().slice(0, 10),
-        atmStrike: atm,
-        indiv: Math.sqrt(variance),
-        rows
+          return {
+            expiry: expiry.toISOString().slice(0, 10),
+            atmStrike: atm,
+            indiv: Math.sqrt(variance),
+            rows
+          }
+      } catch (aggErr) {
+          console.error(`   🛑 MATH ERROR: ${aggErr.message}`)
+          return null
       }
     }
 
@@ -128,7 +141,7 @@ async function processAsset(assetName) {
     }
 
   } catch (e) {
-    console.error(`   🛑 CRASH ${assetName}:`, e.message, e.stack)
+    console.error(`   🛑 CRASH ${assetName}:`, e.message)
     return null
   }
 }
@@ -138,7 +151,7 @@ async function run() {
   await tv.setup()
   
   const results = {}
-  // Reduced target list to debug faster (optional)
+  // Full list
   const targets = ["NIFTY", "BANKNIFTY", "CRUDEOIL", "GOLD"]
 
   for (const t of targets) {
@@ -147,12 +160,11 @@ async function run() {
   }
 
   const keys = Object.keys(results)
-  
   if (keys.length > 0) {
       fs.writeFileSync("indiv_data.json", JSON.stringify(results, null, 2))
       console.log(`\n💾 Saved ${keys.length} assets to indiv_data.json`)
   } else {
-      console.log("\n⚠️ No data collected.")
+      console.log("\n⚠️ No data collected. File not saved.")
   }
 
   tv.cleanup()
