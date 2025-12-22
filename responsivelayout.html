@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V18 (Final)</title>
+    <title>IndIV Monitor V19</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
-        /* --- 1. THEME & VARIABLES --- */
+        /* --- THEME --- */
         :root { 
             --bg: #0b0b0b; --card: #121212; --text: #e0e0e0; --border: #252525; 
             --green: #00E676; --red: #FF5252; --orange: #FF9800; --blue: #42A5F5; 
             --gold: #FFD700; --muted: #666;
-            --heat-low: rgba(255, 255, 255, 0.02); --heat-med: rgba(255, 255, 255, 0.08); --heat-high: rgba(255, 255, 255, 0.15);
+            --heat-low: rgba(255, 255, 255, 0.02);
+            --heat-med: rgba(255, 255, 255, 0.08);
+            --heat-high: rgba(255, 255, 255, 0.15);
         }
+        
         * { box-sizing: border-box; }
         body { 
             background: var(--bg); color: var(--text); 
@@ -20,14 +23,8 @@
             margin: 0; padding: 10px; min-height: 100vh; display: flex; flex-direction: column;
         }
 
-        /* --- 2. LAYOUT UTILITIES --- */
-        .flex-row { display: flex; align-items: center; }
-        .flex-col { display: flex; flex-direction: column; }
-        .flex-center { display: flex; align-items: center; justify-content: center; }
-        .space-between { justify-content: space-between; }
-        
-        /* --- 3. HEADER --- */
-        .header-row { padding: 0 10px 10px; border-bottom: 1px solid var(--border); height: 50px; flex-shrink: 0; }
+        /* --- HEADER --- */
+        .header-row { padding: 0 10px 10px; border-bottom: 1px solid var(--border); height: 50px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
         h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; color: #fff; }
         .sub-title { font-size: 0.9rem; font-weight: 400; color: #888; margin-left: 10px; }
         .help-btn { color: #fff; text-decoration: none; border: 1px solid #fff; padding: 5px 12px; border-radius: 4px; font-weight: 600; font-size: 12px; transition: 0.2s; background: rgba(255,255,255,0.1); }
@@ -35,14 +32,14 @@
         .status-badge { background: #1a1a1a; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; color: var(--green); font-weight: bold; font-size: 11px; margin-left: 20px; }
         @media (max-width: 600px) { .sub-title { display: none; } }
 
-        /* --- 4. MAIN CONTAINER (Fluid) --- */
+        /* --- CONTAINER --- */
         .container { gap: 15px; flex: 1; margin-top: 15px; flex-wrap: wrap; overflow: visible; display: flex; }
         .left-panel { flex: 1 1 450px; gap: 12px; min-width: 0; display: flex; flex-direction: column; }
         .right-panel { flex: 1 1 550px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; min-width: 0; display: flex; flex-direction: column; }
 
-        /* --- 5. LEFT PANEL COMPONENTS --- */
+        /* --- LEFT PANEL --- */
         .price-strip { 
-            display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--card); border: 1px solid var(--border); padding: 10px; border-radius: 4px; 
+            display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--card); border: 1px solid var(--border); padding: 10px; border-radius: 4px; align-items: center;
         }
         .p-group { display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .p-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
@@ -51,11 +48,11 @@
         .up { color: var(--green); } .down { color: var(--red); }
         .asset-select { background: #222; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; width: 90%; }
 
-        /* Grid System (6-Col Desktop / 3-Col Mobile) */
         .section-header { border-bottom: 2px solid #222; padding-bottom: 4px; margin-bottom: 6px; }
         .sec-title { font-size: 13px; font-weight: 800; color: #ddd; letter-spacing: 0.5px; }
         .t-week { color: var(--orange); } .t-month { color: var(--orange); } 
 
+        /* Grid */
         .data-grid-6 { 
             display: grid; gap: 6px;
             grid-template-columns: 2fr 2fr 0.2fr 2.5fr 2fr 1.5fr; 
@@ -68,7 +65,6 @@
                 grid-template-areas: "std_p std_p std_p" "c_p p_p rnk1" "c_iv p_iv rnk2" "std_iv rv .";
             }
         }
-        /* Grid Area Mapping */
         .area-cp { grid-area: c_p; } .area-civ { grid-area: c_iv; } .area-pp { grid-area: p_p; } .area-piv { grid-area: p_iv; }
         .area-sp { grid-area: sp; } .area-stdp { grid-area: std_p; } .area-stdiv { grid-area: std_iv; } .area-rv { grid-area: rv; }
         .area-rnk1 { grid-area: rnk1; } .area-rnk2 { grid-area: rnk2; }
@@ -87,17 +83,18 @@
         .rank-sq { width: 10px; height: 6px; background: #333; border-radius: 1px; }
         .r-low.on { background: #00E676; } .r-mid.on { background: #FFC107; } .r-high.on { background: #FF5252; }
 
-        /* Left Charts (Fixed Height) */
+        /* --- CHART WINDOW & CONTROLS --- */
         .chart-window { background: var(--card); border: 1px solid var(--border); border-radius: 4px; display: flex; flex-direction: column; flex: 1; min-height: 250px; }
         .chart-tabs { display: flex; border-bottom: 1px solid var(--border); background: #181818; }
         .c-tab { flex: 1; text-align: center; padding: 8px; font-size: 11px; cursor: pointer; color: #888; border-right: 1px solid var(--border); font-weight: 600; }
         .c-tab:hover { color: #fff; background: #222; }
         .c-tab.active { color: #fff; background: var(--card); border-bottom: 2px solid var(--green); }
         
-        /* New Chart Controls Bar */
+        /* UNIFIED HEADER ROW */
         .chart-controls { 
             display: flex; align-items: center; justify-content: space-between; 
-            padding: 4px 10px; background: #181818; border-bottom: 1px solid #333; height: 30px;
+            padding: 0 10px; background: #1a1a1a; border-bottom: 1px solid #333; 
+            height: 35px; /* Fixed Height */
         }
         .ctrl-legends { display: flex; gap: 10px; font-size: 10px; color: #aaa; align-items: center; }
         .ctrl-inputs { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #aaa; }
@@ -107,7 +104,7 @@
         .chart-div { position: absolute; top:0; left:0; width: 100%; height: 100%; display: none; } 
         .chart-div.visible { display: block; }
 
-        /* --- 6. RIGHT PANEL COMPONENTS --- */
+        /* --- RIGHT PANEL --- */
         .split-header { display: flex; min-height: 210px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
         .split-half { flex: 1 1 300px; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
         .split-half:last-child { border-right: none; }
@@ -117,7 +114,7 @@
             padding: 8px 10px 0; display: flex; align-items: center; justify-content: space-between;
         }
         
-        /* Intraday Chart Legends (Custom HTML) */
+        /* Intraday Legends */
         .legend-row { display: flex; gap: 15px; font-weight: normal; text-transform: none; }
         .leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
         .line-box { width: 20px; height: 0; border-top-style: solid; }
@@ -159,9 +156,9 @@
 </head>
 <body>
 
-    <div class="header-row flex-row space-between">
+    <div class="header-row">
         <div><h1>IndIV <span class="sub-title">Volatility monitor for Indian markets</span></h1></div>
-        <div class="flex-row"><a href="#" class="help-btn">How to use?</a><div class="status-badge">● LIVE DATA</div></div>
+        <div class="controls-right"><a href="#" class="help-btn">How to use?</a><div class="status-badge">● LIVE DATA</div></div>
     </div>
 
     <div class="container">
@@ -284,14 +281,13 @@
     </div>
 
 <script>
-    // --- UTILS ---
+    const cfg = { displayModeBar: false, responsive: true, staticPlot: false };
     const layoutBase = { 
         paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', 
         font:{family:'Segoe UI', color:'#666', size:10}, margin:{t:10, b:30, l:35, r:30}, 
         xaxis:{ showgrid:false, fixedrange: true }, yaxis:{ gridcolor:'#222', fixedrange: true },
         dragmode: false
     };
-    const cfg = { displayModeBar: false, responsive: true, staticPlot: false };
 
     function selectExpiry(el) {
         document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
@@ -309,57 +305,29 @@
     }
     const lastValText = (arr) => arr.map((v, i) => i === arr.length - 1 ? v.toFixed(1) : null);
 
-    // --- CHART CONTROL LOGIC ---
-    function switchTab(name, tabEl) {
-        document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
-        tabEl.classList.add('active');
-        document.querySelectorAll('.chart-div').forEach(c => c.classList.remove('visible'));
-        document.getElementById('chart-' + name).classList.add('visible');
-        updateControls(name);
-        window.dispatchEvent(new Event('resize'));
-    }
-
-    function updateControls(name) {
-        const legDiv = document.getElementById('dynamicLegends');
-        const inpDiv = document.getElementById('dynamicInputs');
-        
-        if (name === 'skew') {
-            legDiv.innerHTML = `
-                <span><span class="leg-dot" style="background:#00E676"></span>Call</span>
-                <span><span class="leg-dot" style="background:#FF5252"></span>Put</span>
-            `;
-            inpDiv.innerHTML = `<label><input type="checkbox" onchange="toggleMonthlySkew(this.checked)"> Show Monthly</label>`;
-        } else if (name === 'term') {
-            legDiv.innerHTML = `
-                <span><span class="leg-dot" style="background:#FF9800"></span>Weekly</span>
-                <span><span class="leg-dot" style="background:#42A5F5"></span>Monthly</span>
-            `;
-            inpDiv.innerHTML = `<label><input type="checkbox" onchange="toggleMonthlyTerm(this.checked)"> Show Monthly</label>`;
-        } else if (name === 'surf') {
-            legDiv.innerHTML = `<span><span class="leg-dot" style="background:#FF9800"></span>Dec</span><span><span class="leg-dot" style="background:#42A5F5"></span>Jan</span>`;
-            inpDiv.innerHTML = `<label><input type="radio" name="axis" checked> Moneyness</label><label><input type="radio" name="axis"> Delta</label>`;
-        }
-    }
-
-    // --- 1. INTRADAY (V13 Logic) ---
+    // --- 1. INTRADAY ---
     const wkIV = [12.2, 12.4, 12.1, 12.5, 12.8];
     const moIV = [14.1, 14.0, 14.2, 14.3, 14.4];
     const wkRV = [10.5,10.5,10.5,10.5,10.5];
     const moRV = [11.0,11.0,11.0,11.0,11.0];
-    const t = [1,2,3,4,5];
-    const r1 = getSmartRange([wkIV, moIV, wkRV, moRV], true);
+    const timeLabels = ["09:15", "10:15", "11:15", "12:15", "13:15"]; // Time Labels
+    const range1 = getSmartRange([wkIV, moIV, wkRV, moRV], true);
 
     Plotly.newPlot('chart-trend', [
-        { x: t, y: wkIV, name: 'Wk IV', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkIV), textposition:'middle right' },
-        { x: t, y: moIV, name: 'Mo IV', line: { color: '#FF9800', width: 3 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(moIV), textposition:'middle right' },
-        { x: t, y: wkRV, name: 'Wk RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkRV), textposition:'middle right' },
-        { x: t, y: moRV, name: 'Mo RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(moRV), textposition:'middle right' }
-    ], { ...layoutBase, showlegend: false, xaxis:{visible:false, range:[0.8, 6.0], fixedrange:true}, yaxis:{gridcolor:'#222', range:r1, fixedrange:true} }, cfg);
+        { x: timeLabels, y: wkIV, name: 'Wk IV', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkIV), textposition:'middle right' },
+        { x: timeLabels, y: moIV, name: 'Mo IV', line: { color: '#FF9800', width: 3 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(moIV), textposition:'middle right' },
+        { x: timeLabels, y: wkRV, name: 'Wk RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkRV), textposition:'middle right' },
+        { x: timeLabels, y: moRV, name: 'Mo RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(moRV), textposition:'middle right' }
+    ], { 
+        ...layoutBase, showlegend: false, 
+        xaxis:{visible:true, fixedrange:true, color:'#666', range:[0, 5.5]}, // Visible X-Axis
+        yaxis:{gridcolor:'#222', range:range1, fixedrange:true} 
+    }, cfg);
 
     // --- 2. SKEW ---
     const cIV = [13.5,12.6,12.4,12.8,13.8];
     const pIV = [14.0,13.1,12.8,13.4,14.5];
-    const cIV_mo = [14.5,14.2,14.0,14.1,14.9]; // Mock Monthly
+    const cIV_mo = [14.5,14.2,14.0,14.1,14.9];
     const pIV_mo = [15.0,14.6,14.3,14.5,15.2];
     const r2 = getSmartRange([cIV, pIV, cIV_mo, pIV_mo]);
 
@@ -367,18 +335,15 @@
         { x: [1,2,3,4,5], y: [0.5,0.5,0.4,-0.6,-0.7], name: 'Spread', type: 'bar', marker: { color: '#222' }, yaxis: 'y2' },
         { x: [1,2,3,4,5], y: cIV, name: 'Call', line: { color: '#00E676' }, type: 'scatter' },
         { x: [1,2,3,4,5], y: pIV, name: 'Put', line: { color: '#FF5252' }, type: 'scatter' },
-        // Hidden Monthly Traces
         { x: [1,2,3,4,5], y: cIV_mo, name: 'Call Mo', line: { color: '#00E676', dash:'dot' }, type: 'scatter', visible: false },
         { x: [1,2,3,4,5], y: pIV_mo, name: 'Put Mo', line: { color: '#FF5252', dash:'dot' }, type: 'scatter', visible: false },
     ], { ...layoutBase, showlegend: false, yaxis: { gridcolor:'#222', range: r2, fixedrange:true }, yaxis2: { overlaying: 'y', side: 'right', showgrid: false, fixedrange:true } }, cfg);
 
-    function toggleMonthlySkew(show) {
-        Plotly.restyle('chart-skew', { visible: show }, [3, 4]); // Toggle traces 3 and 4
-    }
+    function toggleMonthlySkew(show) { Plotly.restyle('chart-skew', { visible: show }, [3, 4]); }
 
     // --- 3. TERM ---
     const termWk = [12.8, 14.5, 15.2, 15.8];
-    const termMo = [14.5, 15.0, 15.5, 16.0]; // Mock Monthly Line
+    const termMo = [14.5, 15.0, 15.5, 16.0];
     const r3 = getSmartRange([termWk, termMo]);
 
     Plotly.newPlot('chart-term', [
@@ -386,9 +351,7 @@
         { x: ['A','B','C','D'], y: termMo, name: 'Monthly', line: { color: '#42A5F5' }, visible: false }
     ], { ...layoutBase, showlegend: false, yaxis: { gridcolor:'#222', range: r3, fixedrange:true } }, cfg);
 
-    function toggleMonthlyTerm(show) {
-        Plotly.restyle('chart-term', { visible: show }, [1]);
-    }
+    function toggleMonthlyTerm(show) { Plotly.restyle('chart-term', { visible: show }, [1]); }
 
     // --- 4. SURFACE ---
     const r4 = getSmartRange([[13,12.4,13.5], [14,14,15]]);
@@ -397,14 +360,33 @@
         { x: [-10, 0, 10], y: [14, 14.0, 15.0], name: 'Jan', line: { color: '#42A5F5' } }
     ], { ...layoutBase, showlegend: false, margin:{l:35, r:20, t:10, b:25}, yaxis: { gridcolor:'#222', range: r4, fixedrange:true } }, cfg);
 
-    // Init Controls
-    updateControls('skew');
+    // DYNAMIC HEADER LOGIC
+    function switchTab(name, tabEl) {
+        document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
+        tabEl.classList.add('active');
+        document.querySelectorAll('.chart-div').forEach(c => c.classList.remove('visible'));
+        document.getElementById('chart-' + name).classList.add('visible');
+        
+        const leg = document.getElementById('dynamicLegends');
+        const inp = document.getElementById('dynamicInputs');
+        
+        if (name === 'skew') {
+            leg.innerHTML = `<span><span class="leg-dot" style="background:#00E676"></span>Call</span><span><span class="leg-dot" style="background:#FF5252"></span>Put</span>`;
+            inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" onchange="toggleMonthlySkew(this.checked)"> Show Monthly</label>`;
+        } else if (name === 'term') {
+            leg.innerHTML = `<span><span class="leg-dot" style="background:#FF9800"></span>Weekly</span><span><span class="leg-dot" style="background:#42A5F5"></span>Monthly</span>`;
+            inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" onchange="toggleMonthlyTerm(this.checked)"> Show Monthly</label>`;
+        } else {
+            leg.innerHTML = `<span><span class="leg-dot" style="background:#FF9800"></span>Dec</span><span><span class="leg-dot" style="background:#42A5F5"></span>Jan</span>`;
+            inp.innerHTML = `<label><input type="radio" name="axis" checked> Moneyness</label><label><input type="radio" name="axis"> Delta</label>`;
+        }
+        window.dispatchEvent(new Event('resize'));
+    }
+    // Initialize Default Tab
+    switchTab('skew', document.querySelector('.c-tab.active'));
 
-    // Table Mock
     function regenerateTable(majorOnly) {
         const tbody = document.getElementById("tableBody");
-        // ... (Table logic same as before, simplified for brevity in this final block) ...
-        // Re-injecting simple rows for visual confirmation
         let rows = "";
         for(let i=0; i<10; i++) {
             rows += `<tr class="${i==5?'atm-row':''}"><td class="heat-low">0.003</td><td>15.4</td><td style="color:#888">-14</td><td class="c-g">0.5</td><td class="c-g">12.4</td><td class="strike-cell">${26000+(i*50)}</td><td class="c-r">12.9</td><td class="c-r">-0.4</td><td style="color:#888">-14</td><td>15.4</td><td class="heat-low">0.003</td></tr>`;
