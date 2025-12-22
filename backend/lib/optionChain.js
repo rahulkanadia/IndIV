@@ -1,16 +1,23 @@
-export function buildOptionSymbols(prefix, expiry, atm, step, n) {
-  const y = expiry.getFullYear().toString().slice(2)
-  const m = String(expiry.getMonth() + 1).padStart(2, "0")
-  const d = String(expiry.getDate()).padStart(2, "0")
+export function buildOptionSymbols(prefix, expiry, atm, step, count) {
+  // Format Date to YYMMDD (e.g., 2025-12-23 -> "251223")
+  const yy = expiry.getFullYear().toString().slice(-2)
+  const mm = (expiry.getMonth() + 1).toString().padStart(2, '0')
+  const dd = expiry.getDate().toString().padStart(2, '0')
+  const dateStr = `${yy}${mm}${dd}`
 
-  let out = []
-  for (let i = -n; i <= n; i++) {
-    const strike = atm + i * step
-    out.push({
-      strike,
-      call: `${prefix}${y}${m}${d}C${strike}`,
-      put: `${prefix}${y}${m}${d}P${strike}`
-    })
+  const strikes = []
+  
+  // Generate ATM, then strikes above and below
+  for (let i = -count; i <= count; i++) {
+    strikes.push(atm + (i * step))
   }
-  return out
+
+  // Map to TradingView Symbols
+  // Format: PREFIX + YYMMDD + C/P + STRIKE
+  // Example: NIFTY + 251223 + C + 26000
+  return strikes.map(k => ({
+    strike: k,
+    call: `${prefix}${dateStr}C${k}`,
+    put: `${prefix}${dateStr}P${k}`
+  }))
 }
