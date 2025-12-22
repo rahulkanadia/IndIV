@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V11</title>
+    <title>IndIV Monitor V12</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         /* --- THEME --- */
@@ -82,19 +82,28 @@
         /* ================= RIGHT PANEL ================= */
         .right-panel { flex: 0 0 55%; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
 
-        /* Split Header (Chart + SD Table) */
+        /* Split Header */
         .split-header { display: flex; height: 210px; border-bottom: 1px solid var(--border); }
         .split-half { flex: 0 0 50%; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .split-half:last-child { border-right: none; }
         
-        /* Title with Embedded Legend */
+        /* IMPROVED TITLE + LEGENDS */
         .panel-title { 
             font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; 
             padding: 8px 10px 0; display: flex; align-items: center; justify-content: space-between;
         }
-        .legend-row { display: flex; gap: 10px; font-weight: normal; text-transform: none; }
-        .leg-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #888; }
-        .dot { width: 8px; height: 2px; }
+        
+        /* New Legend Styles */
+        .legend-row { display: flex; gap: 15px; font-weight: normal; text-transform: none; }
+        .leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
+        
+        /* Lines */
+        .line-box { width: 20px; height: 0; border-top-style: solid; }
+        .l-thin { border-top-width: 1px; border-color: #FF9800; }
+        .l-thick { border-top-width: 3px; border-color: #FF9800; }
+        .l-dot { border-top-width: 1px; border-color: #42A5F5; border-top-style: dotted; }
+        .l-dash { border-top-width: 2px; border-color: #42A5F5; border-top-style: dashed; }
+
 
         .sd-container { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px; }
         .sd-header { font-size: 11px; color: var(--orange); margin-bottom: 8px; font-weight: bold; text-align: center; }
@@ -104,25 +113,11 @@
         .exp-table td { padding: 5px; border-bottom: 1px solid #222; font-weight: bold; text-align: center; }
         .range-pill { background: #222; border: 1px solid #444; padding: 2px 6px; border-radius: 3px; font-family: monospace; color: var(--gold); }
 
-        /* UPDATED TOOLBAR ALIGNMENT */
-        .table-toolbar { 
-            display: flex; height: 45px; border-bottom: 1px solid var(--border); background: #1a1a1a; 
-            align-items: center; padding: 0 10px; position: relative;
-        }
-        .toolbar-expiries { 
-            display: flex; gap: 8px; align-items: center; 
-            overflow-x: auto; white-space: nowrap; scrollbar-width: none; 
-            margin-right: 120px; /* Leave space for toggle */
-        }
+        /* TOOLBAR */
+        .table-toolbar { display: flex; height: 45px; border-bottom: 1px solid var(--border); background: #1a1a1a; align-items: center; padding: 0 10px; position: relative; }
+        .toolbar-expiries { display: flex; gap: 8px; align-items: center; overflow-x: auto; white-space: nowrap; scrollbar-width: none; margin-right: 120px; }
         .toolbar-expiries::-webkit-scrollbar { display: none; } 
-
-        /* Toggle Positioned at approx 91% width (Between Put Vega/Gamma) */
-        .toolbar-toggle-wrapper { 
-            position: absolute; 
-            right: 8%; /* 9% is gamma column width, roughly aligns with gap */
-            display: flex; align-items: center;
-        }
-
+        .toolbar-toggle-wrapper { position: absolute; right: 8%; display: flex; align-items: center; }
         .tool-tab { background: #252525; color: #888; border: 1px solid #333; border-radius: 4px; padding: 5px 10px; font-size: 11px; font-weight: bold; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
         .tool-tab:hover { background: #333; color: #fff; }
         .tool-tab.active { background: #333; color: #fff; border-color: var(--blue); }
@@ -212,12 +207,12 @@
             <div class="split-header">
                 <div class="split-half">
                     <span class="panel-title">
-                        INTRADAY IV vs RV
+                        INTRADAY Volatility vs RV
                         <div class="legend-row">
-                            <div class="leg-item"><div class="dot" style="background:#FF9800"></div>Wk</div>
-                            <div class="leg-item"><div class="dot" style="background:#42A5F5"></div>Mo</div>
-                            <div class="leg-item"><div class="dot" style="background:#FF9800; border-top:1px dotted #FF9800"></div>WkRV</div>
-                            <div class="leg-item"><div class="dot" style="background:#42A5F5; border-top:1px dashed #42A5F5"></div>MoRV</div>
+                            <div class="leg-item"><div class="line-box l-thin"></div>Wk</div>
+                            <div class="leg-item"><div class="line-box l-thick"></div>Mo</div>
+                            <div class="leg-item"><div class="line-box l-dot"></div>WkRV</div>
+                            <div class="leg-item"><div class="line-box l-dash"></div>MoRV</div>
                         </div>
                     </span>
                     <div id="chart-trend" style="width:100%; height:100%"></div>
@@ -279,26 +274,23 @@
         window.dispatchEvent(new Event('resize'));
     }
 
-    // 1. INTRADAY (Corrected Scaling + Annotations)
-    // Data
+    // 1. INTRADAY
     const wkIV = [12.2, 12.4, 12.1, 12.5, 12.8];
     const moIV = [14.1, 14.0, 14.2, 14.3, 14.4];
     const time = [1,2,3,4,5];
-    
-    // Calculate Range Padding (10%)
     const allVals = [...wkIV, ...moIV, 10.5, 11.0];
     const minV = Math.min(...allVals);
     const maxV = Math.max(...allVals);
     const pad = (maxV - minV) * 0.1;
     
     Plotly.newPlot('chart-trend', [
-        { x: time, y: wkIV, name: 'Wk IV', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+text', text:[null,null,null,null,'12.8'], textposition:'middle right' },
-        { x: time, y: moIV, name: 'Mo IV', line: { color: '#FF9800', width: 3 }, type: 'scatter', mode:'lines+text', text:[null,null,null,null,'14.4'], textposition:'middle right' },
+        { x: time, y: wkIV, name: 'Wk IV', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text:[null,null,null,null,'12.8'], textposition:'middle right' },
+        { x: time, y: moIV, name: 'Mo IV', line: { color: '#FF9800', width: 3 }, type: 'scatter', mode:'lines+markers+text', text:[null,null,null,null,'14.4'], textposition:'middle right' },
         { x: time, y: [10.5,10.5,10.5,10.5,10.5], name: 'Wk RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter' },
         { x: time, y: [11.0,11.0,11.0,11.0,11.0], name: 'Mo RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter' }
     ], { 
         ...layoutBase, showlegend: false, 
-        xaxis:{visible:false, range:[0.8, 5.8]}, // Extra room for text 
+        xaxis:{visible:false, range:[0.8, 5.8]}, 
         yaxis:{gridcolor:'#222', range:[minV-pad, maxV+pad]} 
     }, cfg);
 
