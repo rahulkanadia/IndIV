@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V15</title>
+    <title>IndIV Monitor V16</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         /* --- THEME --- */
@@ -34,18 +34,17 @@
         .help-btn:hover { background: #fff; color: #000; }
         .status-badge { background: #1a1a1a; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; color: var(--green); font-weight: bold; font-size: 11px; }
 
-        /* --- FLUID CONTAINER --- */
+        /* --- CONTAINER --- */
         .container { 
             display: flex; gap: 15px; flex: 1; margin-top: 15px; 
-            flex-wrap: wrap; /* Key to fluid layout */
-            overflow: visible; /* Allow scrolling if wrapped */
+            flex-wrap: wrap; 
+            overflow: visible;
         }
 
-        /* PANELS: Flex Basis allows them to shrink/grow but wrap if < 500px */
         .left-panel { flex: 1 1 450px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
         .right-panel { flex: 1 1 550px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; min-width: 0; }
 
-        /* --- LEFT PANEL STYLES --- */
+        /* --- LEFT PANEL --- */
         .price-strip { 
             display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center;
             background: var(--card); border: 1px solid var(--border); padding: 10px; border-radius: 4px; 
@@ -61,14 +60,12 @@
         .sec-title { font-size: 13px; font-weight: 800; color: #ddd; letter-spacing: 0.5px; }
         .t-week { color: var(--orange); } .t-month { color: var(--orange); } 
 
-        /* GRID AREAS */
         .data-grid-6 { 
             display: grid; gap: 6px;
             grid-template-columns: 2fr 2fr 0.2fr 2.5fr 2fr 1.5fr; 
             grid-template-rows: 65px 65px; 
             grid-template-areas: "c_p c_iv sp std_p std_iv rnk1" "p_p p_iv sp std_p rv rnk2";
         }
-        /* Mobile Reflow */
         @media (max-width: 600px) {
             .data-grid-6 {
                 grid-template-columns: 1fr 1fr 1fr; grid-template-rows: auto;
@@ -100,9 +97,13 @@
         .c-tab.active { color: #fff; background: var(--card); border-bottom: 2px solid var(--green); }
         .surf-controls { display: flex; gap: 10px; padding: 4px 10px; background: #181818; border-bottom: 1px solid #333; }
         .surf-toggle { font-size: 10px; color: #aaa; cursor: pointer; display: flex; align-items: center; gap: 4px; }
-        .chart-div { width: 100%; height: 100%; display: none; } .chart-div.visible { display: block; }
+        
+        /* FIXED HEIGHT FOR ALL CHARTS */
+        .chart-content { flex: 1; position: relative; min-height: 200px; padding: 0; }
+        .chart-div { position: absolute; top:0; left:0; width: 100%; height: 100%; display: none; } 
+        .chart-div.visible { display: block; }
 
-        /* --- RIGHT PANEL STYLES --- */
+        /* --- RIGHT PANEL --- */
         .split-header { display: flex; min-height: 210px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
         .split-half { flex: 1 1 300px; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
         .split-half:last-child { border-right: none; }
@@ -113,7 +114,6 @@
         }
         .legend-row { display: flex; gap: 15px; font-weight: normal; text-transform: none; }
         .leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
-        
         .line-box { width: 20px; height: 0; border-top-style: solid; }
         .l-thin { border-top-width: 1px; border-color: #FF9800; }
         .l-thick { border-top-width: 3px; border-color: #FF9800; }
@@ -128,30 +128,40 @@
         .exp-table td { padding: 5px; border-bottom: 1px solid #222; font-weight: bold; text-align: center; }
         .range-pill { background: #222; border: 1px solid #444; padding: 2px 6px; border-radius: 3px; font-family: monospace; color: var(--gold); }
 
-        /* --- TOOLBAR --- */
+        /* --- TOOLBAR (ALIGNED) --- */
         .table-toolbar { 
             display: flex; height: 45px; border-bottom: 1px solid var(--border); background: #1a1a1a; 
-            align-items: center; padding: 0 10px; 
-            flex-wrap: nowrap; /* Keep expiries in one line */
-            gap: 10px;
+            align-items: center; padding: 0 10px; gap: 15px;
         }
         
         .toolbar-expiries { 
             flex: 1; display: flex; gap: 8px; align-items: center; 
             overflow-x: auto; white-space: nowrap; scrollbar-width: none; 
-            padding-right: 10px;
+            padding-right: 10px; height: 100%;
         }
         .toolbar-expiries::-webkit-scrollbar { display: none; } 
 
         .toolbar-toggle-wrapper { 
             flex-shrink: 0; display: flex; align-items: center; 
+            height: 100%; /* Vertical Fill */
             border-left: 1px solid #333; padding-left: 15px; 
-            height: 100%; /* Vertical Center Fix */
         }
 
-        .tool-tab { background: #252525; color: #888; border: 1px solid #333; border-radius: 4px; padding: 5px 10px; font-size: 11px; font-weight: bold; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
-        .tool-tab:hover { background: #333; color: #fff; }
-        .tool-tab.active { background: #333; color: #fff; border-color: var(--blue); }
+        /* Buttons: Default State (Unselected) */
+        .tool-tab { 
+            background: #252525; color: #888; 
+            border: 1px solid #333; border-radius: 4px; 
+            padding: 5px 12px; font-size: 11px; font-weight: bold; cursor: pointer; flex-shrink: 0; 
+            transition: 0.1s; 
+        }
+        .tool-tab:hover { background: #333; color: #bbb; }
+
+        /* Buttons: Active State (Blue Border, White Text) */
+        .tool-tab.active { 
+            background: #2b2b2b; color: #fff; 
+            border-color: var(--blue); 
+            box-shadow: 0 0 5px rgba(66, 165, 245, 0.2);
+        }
 
         .table-wrapper { flex: 1; overflow-y: auto; background: var(--card); min-height: 400px; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: right; table-layout: fixed; }
@@ -209,7 +219,7 @@
                      <label class="surf-toggle"><input type="radio" name="axis" checked> Moneyness</label>
                      <label class="surf-toggle"><input type="radio" name="axis"> Delta</label>
                 </div>
-                <div class="chart-content" style="flex:1; padding:0">
+                <div class="chart-content">
                     <div id="chart-skew" class="chart-div visible"></div>
                     <div id="chart-term" class="chart-div"></div>
                     <div id="chart-surf" class="chart-div"></div>
@@ -291,10 +301,27 @@
     </div>
 
 <script>
-    const cfg = { displayModeBar: false, responsive: true };
-    const layoutBase = { paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{family:'Segoe UI', color:'#666', size:10}, margin:{t:10, b:30, l:35, r:30}, xaxis:{showgrid:false}, yaxis:{gridcolor:'#222'} };
+    // CONFIG: LOCK ZOOM & INTERACTION
+    const cfg = { 
+        displayModeBar: false, 
+        responsive: true,
+        scrollZoom: false,
+        doubleClick: false,
+        showTips: false,
+        staticPlot: false // Allow tooltips but prevent zoom
+    };
 
-    // BUTTON SELECT
+    // LAYOUT BASE: LOCK AXES
+    const layoutBase = { 
+        paper_bgcolor:'rgba(0,0,0,0)', 
+        plot_bgcolor:'rgba(0,0,0,0)', 
+        font:{family:'Segoe UI', color:'#666', size:10}, 
+        margin:{t:10, b:30, l:35, r:30}, 
+        xaxis:{ showgrid:false, fixedrange: true }, // Locked
+        yaxis:{ gridcolor:'#222', fixedrange: true }, // Locked
+        dragmode: false // Prevent dragging
+    };
+
     function selectExpiry(el) {
         document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
@@ -309,14 +336,12 @@
         window.dispatchEvent(new Event('resize'));
     }
 
-    // --- SMART RANGE CALCULATION ---
     function getSmartRange(dataArrays) {
         let all = [];
         dataArrays.forEach(arr => all.push(...arr));
         const minV = Math.min(...all);
         const maxV = Math.max(...all);
         const pad = (maxV - minV) * 0.1; 
-        // Ensure pad isn't zero if flat line
         const finalPad = pad === 0 ? 1.0 : pad;
         return [minV - finalPad, maxV + finalPad];
     }
@@ -337,11 +362,11 @@
         { x: time, y: wkRV, name: 'Wk RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkRV), textposition:'middle right' },
         { x: time, y: moRV, name: 'Mo RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(moRV), textposition:'middle right' }
     ], { 
-        ...layoutBase, showlegend: false, xaxis:{visible:false, range:[0.8, 6.0]}, 
-        yaxis:{gridcolor:'#222', range: range1} 
+        ...layoutBase, showlegend: false, xaxis:{visible:false, range:[0.8, 6.0], fixedrange:true}, 
+        yaxis:{gridcolor:'#222', range: range1, fixedrange:true} 
     }, cfg);
 
-    // 2. SKEW (Smart Range applied to IV axis only, Bar is fixed)
+    // 2. SKEW
     const cIV = [13.5,12.6,12.4,12.8,13.8];
     const pIV = [14.0,13.1,12.8,13.4,14.5];
     const range2 = getSmartRange([cIV, pIV]);
@@ -352,11 +377,11 @@
         { x: [25800,26000,26200,26400,26600], y: pIV, name: 'Put IV', line: { color: '#FF5252' }, type: 'scatter' },
     ], { 
         ...layoutBase, legend: { orientation: 'h', y: -0.2 },
-        yaxis: { gridcolor:'#222', range: range2 },
-        yaxis2: { overlaying: 'y', side: 'right', showgrid: false }
+        yaxis: { gridcolor:'#222', range: range2, fixedrange:true },
+        yaxis2: { overlaying: 'y', side: 'right', showgrid: false, fixedrange:true }
     }, cfg);
 
-    // 3. TERM (Smart Range)
+    // 3. TERM
     const termWk = [12.8, 14.5, 15.2, 15.8];
     const termMo = [14.5, 15.0, 15.5, 16.0];
     const range3 = getSmartRange([termWk, termMo]);
@@ -366,10 +391,10 @@
         { x: ['DEC','JAN','FEB','MAR'], y: termMo, name: 'Monthly', line: { color: '#42A5F5' } }
     ], { 
         ...layoutBase, showlegend: true, legend: { orientation: 'h', y: -0.2 },
-        yaxis: { gridcolor:'#222', range: range3 }
+        yaxis: { gridcolor:'#222', range: range3, fixedrange:true }
     }, cfg);
 
-    // 4. SURFACE (Smart Range)
+    // 4. SURFACE
     const surfDec = [13, 12.4, 13.5];
     const surfJan = [14, 14.0, 15.0];
     const range4 = getSmartRange([surfDec, surfJan]);
@@ -379,9 +404,10 @@
         { x: [-10, 0, 10], y: surfJan, name: 'Jan', line: { color: '#42A5F5' } }
     ], { 
         ...layoutBase, showlegend: true, margin:{l:35, r:20, t:10, b:25},
-        yaxis: { gridcolor:'#222', range: range4 }
+        yaxis: { gridcolor:'#222', range: range4, fixedrange:true }
     }, cfg);
 
+    // TABLE MOCK
     function regenerateTable(majorOnly) {
         const atm = 26200;
         const tbody = document.getElementById("tableBody");
