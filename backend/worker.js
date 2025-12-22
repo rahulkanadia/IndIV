@@ -13,16 +13,19 @@ import { applyVegaWeights } from "./lib/weights.js"
 
 const tv = new TradingViewAPI()
 
-// Helper: Tries to fetch price 3 times. Essential for MCX which is slow to start.
+// Helper: Aggressive Retry for Commodities
 async function getPrice(tickerObj) {
-    for (let i = 0; i < 4; i++) {
-        const data = await tickerObj.fetch()
-        // Check for 'lp' (Last Price) OR 'ask'/'bid' if lp is missing
-        if (data && (data.lp || data.last_price || data.close_price)) {
-            return data.lp || data.last_price || data.close_price
-        }
-        // Wait 1 second before retrying
-        await new Promise(r => setTimeout(r, 1000))
+    // Try 6 times with increasing delays
+    for (let i = 0; i < 6; i++) {
+        try {
+            const data = await tickerObj.fetch()
+            if (data && (data.lp || data.last_price || data.close_price)) {
+                return data.lp || data.last_price || data.close_price
+            }
+        } catch (e) {}
+        
+        // Wait 2.5 seconds (GitHub Actions is slow, give it time)
+        await new Promise(r => setTimeout(r, 2500))
     }
     return null
 }
@@ -42,22 +45,22 @@ async function processAsset(assetName) {
       return null
     }
 
-    console.log(`   ✅ Futures Price: ${F}`)
+    console.log(`   ✅ Futures: ${F}`)
 
     const now = new Date()
     const { weekly: weeklyExp, monthly: monthlyExp } = resolveExpiry(cfg, now)
 
     async function compute(expiry) {
       const T = tradingTimeToExpiry(now, expiry)
-      if (T <= 0) {
-        console.log(`   ⚠️ Expiry ${expiry.toISOString()} is passed. Skipping.`)
-        return null
-      }
+      if (T <= 0) return null
 
-      console.log(`   ⏳ Processing Expiry: ${expiry.toISOString().slice(0,10)} (T=${T.toFixed(4)})`)
+      console.log(`   ⏳ Expiry: ${expiry.toISOString().slice(0,10)}`)
 
       const atm = Math.round(F / cfg.strikeStep) * cfg.strikeStep
       const symbols = buildOptionSymbols(cfg.optionPrefix, expiry, atm, cfg.strikeStep, cfg.strikesEachSide)
+
+      // DEBUG: Print the first symbol we are trying, so we can verify format
+      console.log(`   🔎 Checking Symbol format: ${cfg.exchange}:${symbols[0].call}`)
 
       let rows = []
       
@@ -65,7 +68,6 @@ async function processAsset(assetName) {
          const cTicker = await tv.getTicker(`${cfg.exchange}:${s.call}`)
          const pTicker = await tv.getTicker(`${cfg.exchange}:${s.put}`)
          
-         // Fetch pair (Retries are built into getPrice, but we use strict check here)
          const cPrice = await getPrice(cTicker)
          const pPrice = await getPrice(pTicker)
 
@@ -83,7 +85,7 @@ async function processAsset(assetName) {
       }
 
       if (rows.length === 0) {
-        console.log(`   ❌ No Options Data found for ${expiry.toISOString().slice(0,10)}`)
+        console.log(`   ❌ No Options Data found`)
         return null
       }
       
@@ -102,7 +104,7 @@ async function processAsset(assetName) {
     const weekly = await compute(weeklyExp)
     
     if (weekly) {
-        console.log(`   🎉 Success! Calculated IV: ${(weekly.indiv*100).toFixed(2)}%`)
+        console.log(`   🎉 Success! IV: ${(weekly.indiv*100).toFixed(2)}%`)
     }
 
     return {
@@ -124,8 +126,7 @@ async function run() {
   await tv.setup()
   
   const results = {}
-  // NIFTY and BANKNIFTY are proven working. 
-  // CRUDE/GOLD should now work thanks to the Retry loop.
+  // Focusing on the main assets
   const targets = ["NIFTY", "BANKNIFTY", "CRUDEOIL", "GOLD"]
 
   for (const t of targets) {
@@ -134,13 +135,12 @@ async function run() {
   }
 
   const keys = Object.keys(results)
-  console.log("\n📦 Final Data Keys:", keys)
-
+  
   if (keys.length > 0) {
       fs.writeFileSync("indiv_data.json", JSON.stringify(results, null, 2))
-      console.log("💾 Saved to indiv_data.json")
+      console.log(`\n💾 Saved ${keys.length} assets to indiv_data.json`)
   } else {
-      console.log("⚠️ No data collected. File not saved.")
+      console.log("\n⚠️ No data collected.")
   }
 
   tv.cleanup()
