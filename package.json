@@ -1,0 +1,19 @@
+{
+  "name": "indiv",
+  "version": "3.0.0",
+  "description": "Indian Markets - Implied Volatility Monitor",
+  "type": "module",
+  "main": "backend/worker.js",
+  "scripts": {
+    "start": "node backend/worker.js",
+    "update": "node backend/worker.js"
+  },
+  "engines": {
+    "node": "20.x"
+  },
+  "dependencies": {
+    "tradingview-scraper": "1.0.4"
+  },
+  "author": "",
+  "license": "ISC"
+}
