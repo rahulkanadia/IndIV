@@ -3,275 +3,349 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MOCK - IndIV Monitor</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>IndIV Monitor V13</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
-        /* --- THEME VARIABLES --- */
-        :root { --bg: #0b0b0b; --card: #141414; --text: #e0e0e0; --accent: #2196F3; --green: #00E676; --red: #FF5252; --gold: #FFD700; --border: #2a2a2a; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 15px; box-sizing: border-box; }
+        /* --- THEME --- */
+        :root { 
+            --bg: #0b0b0b; --card: #121212; --text: #e0e0e0; --border: #252525; 
+            --green: #00E676; --red: #FF5252; --orange: #FF9800; --blue: #42A5F5; 
+            --gold: #FFD700; --muted: #666;
+            --heat-low: rgba(255, 255, 255, 0.02);
+            --heat-med: rgba(255, 255, 255, 0.08);
+            --heat-high: rgba(255, 255, 255, 0.15);
+        }
         
+        * { box-sizing: border-box; }
+        body { 
+            background: var(--bg); color: var(--text); 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 10px; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+
         /* --- HEADER --- */
-        .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
-        h1 { margin: 0; font-size: 1.1rem; font-weight: 500; letter-spacing: 0.5px; }
-        .mock-badge { background: #333; color: #aaa; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 10px; }
+        .header-row { display: flex; align-items: center; justify-content: space-between; padding: 0 10px 10px; border-bottom: 1px solid var(--border); height: 50px; flex-shrink: 0; }
+        h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; color: #fff; }
+        .sub-title { font-size: 0.9rem; font-weight: 400; color: #888; margin-left: 10px; }
+        .controls-right { display: flex; align-items: center; gap: 20px; font-size: 12px; }
+        .help-btn { color: #fff; text-decoration: none; border: 1px solid #fff; padding: 5px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s; background: rgba(255,255,255,0.1); }
+        .help-btn:hover { background: #fff; color: #000; }
+        .status-badge { background: #1a1a1a; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; color: var(--green); font-weight: bold; font-size: 11px; }
+
+        /* --- CONTAINER --- */
+        .container { display: flex; gap: 15px; flex: 1; margin-top: 15px; overflow: hidden; }
+
+        /* ================= LEFT PANEL (LOCKED) ================= */
+        .left-panel { flex: 0 0 45%; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding-right: 5px; }
+
+        .price-strip { 
+            display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center;
+            background: var(--card); border: 1px solid var(--border); padding: 10px; border-radius: 4px; 
+        }
+        .p-group { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .p-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .p-val { font-size: 1.4rem; font-weight: 700; color: #fff; line-height: 1; }
+        .p-change { font-size: 0.85rem; font-weight: 500; margin-top: 4px; }
+        .up { color: var(--green); } .down { color: var(--red); }
+        .asset-select { background: #222; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; width: 90%; }
+
+        .section-header { border-bottom: 2px solid #222; padding-bottom: 4px; margin-bottom: 6px; }
+        .sec-title { font-size: 13px; font-weight: 800; color: #ddd; letter-spacing: 0.5px; }
+        .t-week { color: var(--orange); } .t-month { color: var(--orange); } 
+
+        .data-grid-6 { 
+            display: grid; grid-template-columns: 2fr 2fr 0.2fr 2.5fr 2fr 1.5fr; grid-template-rows: 65px 65px; gap: 6px; 
+        }
+        .d-box { background: var(--card); border: 1px solid var(--border); padding: 4px; text-align: center; display: flex; flex-direction: column; justify-content: center; position: relative; }
+        .box-straddle-anchor { grid-column: 4; grid-row: 1 / span 2; background: #191919; border-color:#444; z-index: 2; }
+        .d-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; }
+        .d-val { font-size: 1.1rem; font-weight: 600; color: #fff; }
+        .d-chg { font-size: 0.75rem; margin-top: 1px; }
+        .iv-val { font-family: 'Courier New', monospace; font-weight: 700; font-size: 1.1rem; }
+        .c-g { color: var(--green); } .c-r { color: var(--red); }
+
+        .d-box-rank { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+        .rank-header { font-size: 13px; font-weight: bold; color: #fff; line-height: 1; }
+        .rank-row { display: flex; gap: 2px; }
+        .rank-sq { width: 10px; height: 6px; background: #333; border-radius: 1px; }
+        .r-low.on { background: #00E676; } .r-mid.on { background: #FFC107; } .r-high.on { background: #FF5252; }
+
+        .chart-window { background: var(--card); border: 1px solid var(--border); border-radius: 4px; display: flex; flex-direction: column; flex: 1; min-height: 250px; }
+        .chart-tabs { display: flex; border-bottom: 1px solid var(--border); background: #181818; }
+        .c-tab { flex: 1; text-align: center; padding: 8px; font-size: 11px; cursor: pointer; color: #888; border-right: 1px solid var(--border); font-weight: 600; }
+        .c-tab:hover { color: #fff; background: #222; }
+        .c-tab.active { color: #fff; background: var(--card); border-bottom: 2px solid var(--green); }
+        .surf-controls { display: flex; gap: 10px; padding: 4px 10px; background: #181818; border-bottom: 1px solid #333; }
+        .surf-toggle { font-size: 10px; color: #aaa; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .chart-div { width: 100%; height: 100%; display: none; } .chart-div.visible { display: block; }
+
+        /* ================= RIGHT PANEL ================= */
+        .right-panel { flex: 0 0 55%; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+
+        /* Split Header */
+        .split-header { display: flex; height: 210px; border-bottom: 1px solid var(--border); }
+        .split-half { flex: 0 0 50%; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .split-half:last-child { border-right: none; }
         
-        .controls-right { display: flex; align-items: center; gap: 15px; font-size: 12px; }
-        .status-box { text-align: right; }
-        .status-indicator { display: inline-flex; align-items: center; gap: 5px; font-weight: bold; color: var(--green); }
-        .eta-text { color: #666; font-size: 11px; }
-        .readme-link { color: var(--accent); text-decoration: none; border: 1px solid var(--accent); padding: 4px 8px; border-radius: 4px; transition: 0.2s; }
-        .readme-link:hover { background: rgba(33, 150, 243, 0.1); }
-
-        select { background: #1a1a1a; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 13px; min-width: 120px; cursor: pointer; }
-
-        /* --- MAIN LAYOUT GRID --- */
-        .container { display: grid; grid-template-columns: 380px 1fr; gap: 20px; max-width: 1600px; margin: 0 auto; }
-        @media(max-width: 1024px) { .container { grid-template-columns: 1fr; } } /* Mobile Stack */
-
-        /* --- LEFT PANEL --- */
-        .left-panel { display: flex; flex-direction: column; gap: 15px; }
-        .section-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; border-bottom: 1px solid #222; }
-
-        .futures-box { background: var(--card); padding: 12px; border: 1px solid var(--border); text-align: center; border-radius: 4px; }
-        .futures-price { font-size: 1.5rem; font-weight: bold; color: #fff; }
-        .lbl { font-size: 10px; color: #666; display: block; margin-bottom: 2px; text-transform: uppercase; }
-
-        /* Straddle Blocks Grid */
-        .straddle-container { display: grid; grid-template-columns: 70px 1fr 1fr 1fr; gap: 8px; height: 90px; }
-        .expiry-box { background: #222; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px; text-align: center; }
-        .exp-day { font-size: 1.3rem; font-weight: bold; line-height: 1; }
-        .exp-month { font-size: 0.7rem; color: #888; text-transform: uppercase; }
-
-        .data-box { background: var(--card); border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; text-align: center; border-radius: 4px; padding: 4px; }
-        .val { font-size: 15px; font-weight: 600; }
-        .iv-val { font-size: 12px; font-family: monospace; color: #888; }
+        /* TITLE + LEGENDS */
+        .panel-title { 
+            font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; 
+            padding: 8px 10px 0; display: flex; align-items: center; justify-content: space-between;
+        }
+        .legend-row { display: flex; gap: 15px; font-weight: normal; text-transform: none; }
+        .leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
         
-        /* Chart Containers */
-        .chart-wrapper { height: 180px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 10px; }
-        .skew-wrapper { height: 220px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 10px; }
+        /* Lines */
+        .line-box { width: 20px; height: 0; border-top-style: solid; }
+        .l-thin { border-top-width: 1px; border-color: #FF9800; }
+        .l-thick { border-top-width: 3px; border-color: #FF9800; }
+        .l-dot { border-top-width: 1px; border-color: #42A5F5; border-top-style: dotted; }
+        .l-dash { border-top-width: 2px; border-color: #42A5F5; border-top-style: dashed; }
 
-        /* --- RIGHT PANEL (TABLE) --- */
-        .right-panel { display: flex; flex-direction: column; height: 100%; }
-        .table-container { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: var(--card); height: 100%; max-height: 85vh; }
-        
-        table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: right; white-space: nowrap; }
-        th, td { padding: 8px 5px; border-bottom: 1px solid #222; }
-        
-        /* Sticky Headers & Columns */
-        th { background: #111; color: #777; font-weight: normal; position: sticky; top: 0; z-index: 5; }
-        .strike-col { text-align: center; background: #1a1a1a; color: #fff; font-weight: bold; border-left: 1px solid #333; border-right: 1px solid #333; position: sticky; left: 0; z-index: 10; width: 55px; }
-        
-        /* Interactive Toggle Header */
-        .toggle-th { background: #222; cursor: pointer; user-select: none; color: var(--accent); text-align: center; border: 1px solid #444; font-weight: bold; }
-        .toggle-th:hover { background: #333; color: #fff; }
-        
-        .atm-row td { background: #252525 !important; }
-        .iv-cell { font-family: monospace; font-weight: bold; }
-        .greeks-cell { color: #888; }
-        .c-green { color: var(--green); } .c-red { color: var(--red); } .c-gold { color: var(--gold); }
+
+        .sd-container { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px; }
+        .sd-header { font-size: 11px; color: var(--orange); margin-bottom: 8px; font-weight: bold; text-align: center; }
+        .sd-footer { font-size: 11px; color: var(--orange); margin-top: 8px; font-weight: bold; text-align: center; } 
+        .exp-table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 0 auto; }
+        .exp-table th { text-align: center; padding: 4px; color: #666; font-weight: normal; border-bottom: 1px solid #333; background: #161616; font-size: 10px; }
+        .exp-table td { padding: 5px; border-bottom: 1px solid #222; font-weight: bold; text-align: center; }
+        .range-pill { background: #222; border: 1px solid #444; padding: 2px 6px; border-radius: 3px; font-family: monospace; color: var(--gold); }
+
+        /* TOOLBAR */
+        .table-toolbar { display: flex; height: 45px; border-bottom: 1px solid var(--border); background: #1a1a1a; align-items: center; padding: 0 10px; position: relative; }
+        .toolbar-expiries { display: flex; gap: 8px; align-items: center; overflow-x: auto; white-space: nowrap; scrollbar-width: none; margin-right: 120px; }
+        .toolbar-expiries::-webkit-scrollbar { display: none; } 
+        .toolbar-toggle-wrapper { position: absolute; right: 8%; display: flex; align-items: center; }
+        .tool-tab { background: #252525; color: #888; border: 1px solid #333; border-radius: 4px; padding: 5px 10px; font-size: 11px; font-weight: bold; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
+        .tool-tab:hover { background: #333; color: #fff; }
+        .tool-tab.active { background: #333; color: #fff; border-color: var(--blue); }
+
+        .table-wrapper { flex: 1; overflow-y: auto; background: var(--card); }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: right; table-layout: fixed; }
+        th { position: sticky; top: 0; background: #111; color: #666; padding: 8px 2px; font-weight: normal; font-size: 9px; z-index: 10; border-bottom: 1px solid #333; text-align: center; }
+        col.greeks { width: 9%; } col.strike { width: 10%; }
+        td { padding: 5px 2px; border-bottom: 1px solid #222; text-align: center; vertical-align: middle; }
+        .strike-cell { background: #181818; color: #fff; font-weight: bold; border-left: 1px solid #333; border-right: 1px solid #333; position: sticky; left: 0; z-index: 5; }
+        .heat-low { background: var(--heat-low); } .heat-med { background: var(--heat-med); color: #fff; } .heat-high { background: var(--heat-high); color: #fff; font-weight: 500; }
+        .atm-row td { background: #2a2a2a; border-top: 1px solid #555; }
+        .atm-row .strike-cell { color: var(--gold); border-left: 2px solid var(--gold); }
+        .quote-ticker { height: 30px; background: #080808; border-top: 1px solid var(--border); color: #fff; font-weight: bold; font-size: 11px; font-style: italic; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; }
+
     </style>
 </head>
 <body>
 
     <div class="header-row">
-        <h1>IndIV Monitor <span class="mock-badge">MOCK LAYOUT</span></h1>
-        
-        <div class="controls-right">
-             <select>
-                <option>NIFTY 50</option>
-                <option>BANK NIFTY</option>
-            </select>
-
-            <a href="mock_readme.html" target="_blank" class="readme-link">How to use?</a>
-
-            <div class="status-box">
-                <div class="status-indicator">✓ LIVE</div>
-                <div class="eta-text">Updated just now</div>
-            </div>
-        </div>
+        <div><h1>IndIV <span class="sub-title">Volatility monitor for Indian markets</span></h1></div>
+        <div class="controls-right"><a href="#" class="help-btn">How to use?</a><div class="status-badge">● LIVE DATA</div></div>
     </div>
 
     <div class="container">
-        
         <div class="left-panel">
-            
-            <div class="futures-box">
-                <span class="lbl">FUTURES PRICE</span>
-                <div class="futures-price">26,185.50</div>
+            <div class="price-strip">
+                <div class="p-group"><span class="p-label">SPOT PRICE</span><span class="p-val">26,150.00</span><div class="p-change up">+45.20 (0.17%)</div></div>
+                <div class="p-group"><span class="p-label">ASSET</span><select class="asset-select"><option>NIFTY 50</option><option>BANK NIFTY</option></select></div>
+                <div class="p-group"><span class="p-label">FUTURES PRICE</span><span class="p-val">26,187.00</span><div class="p-change up">+37.00 (0.14%)</div></div>
             </div>
-
-            <div class="section-label">WEEKLY (26 DEC)</div>
-            <div class="straddle-container">
-                <div class="expiry-box">
-                    <span class="exp-day">26</span><span class="exp-month">DEC</span>
-                </div>
-                <div class="data-box">
-                    <span class="lbl">ATM CALL</span>
-                    <div class="val c-green">145.20</div>
-                    <div class="iv-val">12.4%</div>
-                </div>
-                <div class="data-box" style="border-color: #444; background:#1a1a1a">
-                    <span class="lbl">STRADDLE</span>
-                    <div class="val c-gold">284.50</div>
-                    <div class="iv-val">12.8%</div>
-                </div>
-                <div class="data-box">
-                    <span class="lbl">ATM PUT</span>
-                    <div class="val c-red">139.30</div>
-                    <div class="iv-val">13.1%</div>
+            <div>
+                <div class="section-header"><span class="sec-title t-week">WEEKLY (26 DEC 2025)</span></div>
+                <div class="data-grid-6">
+                    <div class="d-box"><span class="d-lbl">ATM CALL</span><div class="d-val c-g">145.20</div><div class="d-chg up">+12 (9%)</div></div>
+                    <div class="d-box"><span class="d-lbl">ATM CALL IV</span><div class="iv-val c-g">12.4%</div><div class="d-chg up">+2%</div></div>
+                    <div></div> 
+                    <div class="d-box box-straddle-anchor"><span class="d-lbl">STRADDLE</span><div class="d-val t-week" style="font-size:1.4rem">284.50</div><div class="d-chg down">-5 (-1%)</div></div>
+                    <div class="d-box" style="background:#191919"><span class="d-lbl">STRADDLE IV</span><div class="iv-val t-week">12.8%</div><div class="d-chg up">+0.5%</div></div>
+                    <div class="d-box d-box-rank">
+                        <span class="rank-header">IVR 45</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><div class="rank-sq"></div></div>
+                    </div>
+                    <div class="d-box"><span class="d-lbl">ATM PUT</span><div class="d-val c-r">139.30</div><div class="d-chg down">-18 (-11%)</div></div>
+                    <div class="d-box"><span class="d-lbl">ATM PUT IV</span><div class="iv-val c-r">13.1%</div><div class="d-chg down">-1%</div></div>
+                    <div></div>
+                    <div class="d-box"><span class="d-lbl">RV (5D)</span><div class="iv-val" style="color:#42A5F5">10.5%</div><div class="d-chg" style="color:#888">-0.2%</div></div>
+                    <div class="d-box d-box-rank">
+                         <span class="rank-header">IVP 60</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div></div>
+                    </div>
                 </div>
             </div>
-
-            <div class="section-label">INTRADAY IV TREND</div>
-            <div class="chart-wrapper">
-                <canvas id="mockIntradayChart"></canvas>
-            </div>
-
-            <div class="section-label">MONTHLY (29 JAN)</div>
-            <div class="straddle-container">
-                <div class="expiry-box">
-                    <span class="exp-day">29</span><span class="exp-month">JAN</span>
+            <div class="chart-window">
+                <div class="chart-tabs">
+                    <div class="c-tab active" onclick="switchTab('skew', this)">Volatility Skew</div>
+                    <div class="c-tab" onclick="switchTab('term', this)">Term Structure</div>
+                    <div class="c-tab" onclick="switchTab('surf', this)">Volatility Surface</div>
                 </div>
-                <div class="data-box">
-                    <span class="lbl">ATM CALL</span>
-                    <div class="val c-green">310.50</div>
-                    <div class="iv-val">14.2%</div>
+                <div id="surf-controls" class="surf-controls" style="display:none">
+                     <label class="surf-toggle"><input type="radio" name="axis" checked> Moneyness</label>
+                     <label class="surf-toggle"><input type="radio" name="axis"> Delta</label>
                 </div>
-                <div class="data-box" style="border-color: #444; background:#1a1a1a">
-                    <span class="lbl">STRADDLE</span>
-                    <div class="val c-gold">595.00</div>
-                    <div class="iv-val">14.5%</div>
-                </div>
-                <div class="data-box">
-                    <span class="lbl">ATM PUT</span>
-                    <div class="val c-red">284.50</div>
-                    <div class="iv-val">14.8%</div>
+                <div class="chart-content" style="flex:1; padding:0">
+                    <div id="chart-skew" class="chart-div visible"></div>
+                    <div id="chart-term" class="chart-div"></div>
+                    <div id="chart-surf" class="chart-div"></div>
                 </div>
             </div>
-
-            <div class="section-label">VOLATILITY SKEW</div>
-            <div class="skew-wrapper">
-                <canvas id="mockSkewChart"></canvas>
+            <div>
+                <div class="section-header"><span class="sec-title t-month">MONTHLY (29 JAN 2026)</span></div>
+                <div class="data-grid-6">
+                    <div class="d-box"><span class="d-lbl">ATM CALL</span><div class="d-val c-g">310.50</div><div class="d-chg up">+15 (5%)</div></div>
+                    <div class="d-box"><span class="d-lbl">CALL IV</span><div class="iv-val c-g">14.2%</div><div class="d-chg up">+1%</div></div>
+                    <div></div>
+                    <div class="d-box box-straddle-anchor"><span class="d-lbl">STRADDLE</span><div class="d-val t-month" style="font-size:1.4rem">595.00</div><div class="d-chg up">+2 (0.4%)</div></div>
+                    <div class="d-box" style="background:#191919"><span class="d-lbl">IV</span><div class="iv-val t-month">14.5%</div><div class="d-chg up">+0.8%</div></div>
+                    <div class="d-box d-box-rank"><span class="rank-header">IVR 52</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><div class="rank-sq"></div></div></div>
+                    <div class="d-box"><span class="d-lbl">ATM PUT</span><div class="d-val c-r">284.50</div><div class="d-chg down">-12 (-4%)</div></div>
+                    <div class="d-box"><span class="d-lbl">PUT IV</span><div class="iv-val c-r">14.8%</div><div class="d-chg down">-0.3%</div></div>
+                    <div></div>
+                    <div class="d-box"><span class="d-lbl">RV (20D)</span><div class="iv-val" style="color:#42A5F5">11.0%</div><div class="d-chg">-</div></div>
+                    <div class="d-box d-box-rank"><span class="rank-header">IVP 65</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><div class="rank-sq"></div></div></div>
+                </div>
             </div>
-
         </div>
 
         <div class="right-panel">
-            <div class="table-container">
+            <div class="split-header">
+                <div class="split-half">
+                    <span class="panel-title">
+                        INTRADAY Volatility vs RV
+                        <div class="legend-row">
+                            <div class="leg-item"><div class="line-box l-thin"></div>Wk</div>
+                            <div class="leg-item"><div class="line-box l-thick"></div>Mo</div>
+                            <div class="leg-item"><div class="line-box l-dot"></div>WkRV</div>
+                            <div class="leg-item"><div class="line-box l-dash"></div>MoRV</div>
+                        </div>
+                    </span>
+                    <div id="chart-trend" style="width:100%; height:100%"></div>
+                </div>
+                <div class="split-half">
+                    <div class="sd-container">
+                        <div class="sd-header">Weekly: based on IV 12.8% ±275 pts</div>
+                        <table class="exp-table">
+                            <thead><tr><th>Range</th><th>Lower</th><th>Upper</th></tr></thead>
+                            <tbody>
+                                <tr><td style="color:#aaa">1 SD (68%)</td><td style="color:#FF5252">25,900</td><td style="color:#00E676">26,450</td></tr>
+                                <tr><td style="color:#aaa">2 SD (95%)</td><td style="color:#FF5252">25,600</td><td style="color:#00E676">26,750</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="sd-footer">Monthly: based on IV 14.2% ±580 pts</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-toolbar">
+                <div class="toolbar-expiries">
+                    <div class="tool-tab active">26 Dec (Wk)</div>
+                    <div class="tool-tab">02 Jan (Wk)</div>
+                    <div class="tool-tab">09 Jan (Wk)</div>
+                    <div class="tool-tab">16 Jan (Wk)</div>
+                    <div class="tool-tab">23 Jan (Wk)</div>
+                    <div class="tool-tab">30 Jan (Mo)</div>
+                </div>
+                <div class="toolbar-toggle-wrapper">
+                    <label style="color:#aaa; font-size:11px; display:flex; gap:6px; cursor:pointer">
+                        <input type="checkbox" checked onchange="regenerateTable(this.checked)"> Major Strikes
+                    </label>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
                 <table>
+                    <colgroup><col class="greeks" span="5"><col class="strike"><col class="greeks" span="5"></colgroup>
                     <thead>
-                        <tr>
-                            <th colspan="5" style="text-align:center; color:var(--green); border-bottom:1px solid #333;">CALLS</th>
-                            <th class="toggle-th" id="toggleBtn" onclick="toggleMockData()">WEEKLY ⟳</th>
-                            <th colspan="5" style="text-align:center; color:var(--red); border-bottom:1px solid #333;">PUTS</th>
-                        </tr>
-                        <tr>
-                            <th>Gamma</th><th>Vega</th><th>Theta</th><th>Delta</th><th>IV%</th>
-                            <th class="strike-col">Strike</th>
-                            <th>IV%</th><th>Delta</th><th>Theta</th><th>Vega</th><th>Gamma</th>
-                        </tr>
+                        <tr><th>GAMMA</th><th>VEGA</th><th>THETA</th><th>DELTA</th><th>IV%</th><th>STRIKE</th><th>IV%</th><th>DELTA</th><th>THETA</th><th>VEGA</th><th>GAMMA</th></tr>
                     </thead>
-                    <tbody id="mockTableBody">
-                        </tbody>
+                    <tbody id="tableBody"></tbody>
                 </table>
             </div>
+            <div class="quote-ticker">"The market is a device for transferring money from the impatient to the patient." - Warren Buffett</div>
         </div>
-
     </div>
 
 <script>
-    // --- MOCK DATA GENERATOR ---
-    const atm = 26200;
-    let currentMode = 'weekly';
+    const cfg = { displayModeBar: false, responsive: true };
+    const layoutBase = { paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{family:'Segoe UI', color:'#666', size:10}, margin:{t:10, b:30, l:35, r:30}, xaxis:{showgrid:false}, yaxis:{gridcolor:'#222'} };
 
-    function generateMockRows(mode) {
-        const rows = [];
-        const baseIV = mode === 'weekly' ? 12.5 : 14.5;
-        const vegaMult = mode === 'weekly' ? 8 : 15;
-        const thetaMult = mode === 'weekly' ? 12 : 6;
-
-        for(let i=-12; i<=12; i++) {
-            let strike = atm + (i*50);
-            // Mock Skew smile curve
-            let skewAdder = (i*i * 0.03); 
-            let ivC = baseIV - (i*0.1) + skewAdder;
-            let ivP = baseIV + (i*0.1) + skewAdder;
-            
-            // Mock Greeks
-            let delta = 0.5 + (i*0.03);
-            delta = Math.min(Math.max(delta, 0.01), 0.99); // Clamp between 0 and 1
-
-            rows.push({
-                strike: strike,
-                isATM: strike === atm,
-                c: { iv: ivC.toFixed(1), delta: delta.toFixed(2), theta: (thetaMult - Math.abs(i)).toFixed(1), vega: vegaMult.toFixed(1), gamma: (0.003 - Math.abs(i*0.0002)).toFixed(4) },
-                p: { iv: ivP.toFixed(1), delta: delta.toFixed(2), theta: (thetaMult - Math.abs(i)).toFixed(1), vega: vegaMult.toFixed(1), gamma: (0.003 - Math.abs(i*0.0002)).toFixed(4) }
-            });
-        }
-        return rows;
+    function switchTab(name, tabEl) {
+        document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
+        tabEl.classList.add('active');
+        document.querySelectorAll('.chart-div').forEach(c => c.classList.remove('visible'));
+        document.getElementById('chart-' + name).classList.add('visible');
+        document.getElementById('surf-controls').style.display = (name === 'surf') ? 'flex' : 'none';
+        window.dispatchEvent(new Event('resize'));
     }
 
-    // --- RENDER FUNCTIONS ---
-    function renderTable(mode) {
-        const rows = generateMockRows(mode);
-        document.getElementById("mockTableBody").innerHTML = rows.map(r => `
-            <tr class="${r.isATM ? 'atm-row' : ''}">
-                <td class="greeks-cell">${r.c.gamma}</td>
-                <td class="greeks-cell">${r.c.vega}</td>
-                <td class="greeks-cell">${r.c.theta}</td>
-                <td class="c-green">${r.c.delta}</td>
-                <td class="iv-cell c-green">${r.c.iv}</td>
-                <td class="strike-col">${r.strike}</td>
-                <td class="iv-cell c-red">${r.p.iv}</td>
-                <td class="c-red">${r.p.delta}</td>
-                <td class="greeks-cell">${r.p.theta}</td>
-                <td class="greeks-cell">${r.p.vega}</td>
-                <td class="greeks-cell">${r.p.gamma}</td>
-            </tr>
-        `).join("");
-        
-        document.getElementById("toggleBtn").innerText = `${mode.toUpperCase()} ⟳`;
-        renderSkewChart(rows); // Update chart with new data
+    // 1. INTRADAY
+    const wkIV = [12.2, 12.4, 12.1, 12.5, 12.8];
+    const moIV = [14.1, 14.0, 14.2, 14.3, 14.4];
+    const wkRV = [10.5,10.5,10.5,10.5,10.5];
+    const moRV = [11.0,11.0,11.0,11.0,11.0];
+    const time = [1,2,3,4,5];
+    
+    // Axis Calculation (Min - 1, Max + 1)
+    const allVals = [...wkIV, ...moIV, ...wkRV, ...moRV];
+    const minV = Math.min(...allVals);
+    const maxV = Math.max(...allVals);
+    
+    // Helper to generate text array with only last value
+    const lastValText = (arr) => arr.map((v, i) => i === arr.length - 1 ? v.toFixed(1) : null);
+
+    Plotly.newPlot('chart-trend', [
+        { x: time, y: wkIV, name: 'Wk IV', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkIV), textposition:'middle right' },
+        { x: time, y: moIV, name: 'Mo IV', line: { color: '#FF9800', width: 3 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(moIV), textposition:'middle right' },
+        { x: time, y: wkRV, name: 'Wk RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkRV), textposition:'middle right' },
+        { x: time, y: moRV, name: 'Mo RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(moRV), textposition:'middle right' }
+    ], { 
+        ...layoutBase, showlegend: false, 
+        xaxis:{visible:false, range:[0.8, 6.0]}, // Extra space for text
+        yaxis:{gridcolor:'#222', range:[minV - 1.0, maxV + 1.0]} // FIXED: +/- 1.0 Unit
+    }, cfg);
+
+    // 2. SKEW
+    Plotly.newPlot('chart-skew', [
+        { x: [25800,26000,26200,26400,26600], y: [0.5,0.5,0.4,-0.6,-0.7], name: 'Spread', type: 'bar', marker: { color: '#222' }, yaxis: 'y2' },
+        { x: [25800,26000,26200,26400,26600], y: [13.5,12.6,12.4,12.8,13.8], name: 'Call IV', line: { color: '#00E676' }, type: 'scatter' },
+        { x: [25800,26000,26200,26400,26600], y: [14.0,13.1,12.8,13.4,14.5], name: 'Put IV', line: { color: '#FF5252' }, type: 'scatter' },
+    ], { 
+        ...layoutBase, legend: { orientation: 'h', y: -0.2 },
+        yaxis2: { overlaying: 'y', side: 'right', showgrid: false }
+    }, cfg);
+
+    // 3. TERM
+    Plotly.newPlot('chart-term', [
+        { x: ['DEC','JAN','FEB','MAR'], y: [12.8, 14.5, 15.2, 15.8], name: 'Weekly', line: { color: '#FF9800' } },
+        { x: ['DEC','JAN','FEB','MAR'], y: [14.5, 15.0, 15.5, 16.0], name: 'Monthly', line: { color: '#42A5F5' } }
+    ], { ...layoutBase, showlegend: true, legend: { orientation: 'h', y: -0.2 } }, cfg);
+
+    // 4. SURFACE
+    Plotly.newPlot('chart-surf', [
+        { x: [-10, 0, 10], y: [13, 12.4, 13.5], name: 'Dec', line: { color: '#FF9800' } },
+        { x: [-10, 0, 10], y: [14, 14.0, 15.0], name: 'Jan', line: { color: '#42A5F5' } }
+    ], { ...layoutBase, showlegend: true, margin:{l:35, r:20, t:10, b:25} }, cfg);
+
+    // TABLE
+    function regenerateTable(majorOnly) {
+        const atm = 26200;
+        const tbody = document.getElementById("tableBody");
+        let allStrikes = [];
+        for(let i=-25; i<=25; i++) { let k = atm + (i*50); if(majorOnly && k % 100 !== 0) continue; allStrikes.push(k); }
+        let atmIndex = allStrikes.findIndex(k => k === atm);
+        let visibleStrikes = allStrikes.slice(atmIndex - 10, atmIndex + 11);
+
+        tbody.innerHTML = visibleStrikes.map(strike => {
+            let isATM = strike === atm;
+            let dist = Math.abs(strike - atm);
+            let gamma = isATM ? 0.0035 : (0.0035 - (dist*0.000005));
+            let vega = 15 - (dist*0.01);
+            const getHeat = (val, type) => {
+                if(type === 'gamma') return val > 0.003 ? 'heat-high' : (val > 0.002 ? 'heat-med' : '');
+                if(type === 'vega') return val > 14 ? 'heat-high' : (val > 10 ? 'heat-med' : ''); return '';
+            }
+            return `<tr class="${isATM ? 'atm-row' : ''}">
+                <td class="${getHeat(gamma, 'gamma')}">${gamma.toFixed(4)}</td><td class="${getHeat(vega, 'vega')}">${vega.toFixed(1)}</td><td style="color:#888">-14.2</td><td class="c-g">0.52</td><td class="c-g" style="font-family:monospace">12.4</td>
+                <td class="strike-cell">${strike}</td>
+                <td class="c-r" style="font-family:monospace">12.9</td><td class="c-r">-0.48</td><td style="color:#888">-14.2</td><td class="${getHeat(vega, 'vega')}">${vega.toFixed(1)}</td><td class="${getHeat(gamma, 'gamma')}">${gamma.toFixed(4)}</td>
+            </tr>`;
+        }).join("");
     }
-
-    function toggleMockData() {
-        currentMode = currentMode === 'weekly' ? 'monthly' : 'weekly';
-        renderTable(currentMode);
-    }
-
-    // --- MOCK CHARTS ---
-    let skewChartVar;
-    function renderSkewChart(rows) {
-        const ctx = document.getElementById('mockSkewChart').getContext('2d');
-        if(skewChartVar) skewChartVar.destroy();
-        skewChartVar = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: rows.map(r=>r.strike),
-                datasets: [
-                    {label:'Call IV', data:rows.map(r=>r.c.iv), borderColor:'#00E676', borderWidth:2, pointRadius:0, tension:0.4},
-                    {label:'Put IV', data:rows.map(r=>r.p.iv), borderColor:'#FF5252', borderWidth:2, pointRadius:0, tension:0.4}
-                ]
-            },
-            options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#222'}}} }
-        });
-    }
-
-    // Intraday is static mock for now
-    new Chart(document.getElementById('mockIntradayChart'), {
-        type: 'line',
-        data: {
-            labels: ["9:15", "10:00", "11:00", "12:00", "13:00", "14:00", "Now"],
-            datasets: [
-                {label:'Weekly IV', data:[12.2, 12.4, 12.1, 12.5, 12.8, 12.6, 12.8], borderColor:'#00E676', borderWidth:2},
-                {label:'Monthly IV', data:[14.1, 14.0, 14.2, 14.3, 14.4, 14.5, 14.5], borderColor:'#2196F3', borderWidth:2}
-            ]
-        },
-        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#888', boxWidth:12}}}, scales:{x:{display:false}, y:{grid:{color:'#222'}}} }
-    });
-
-    // Initial Render
-    renderTable(currentMode);
+    regenerateTable(true);
 </script>
 </body>
 </html>
