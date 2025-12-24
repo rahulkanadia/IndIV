@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V24</title>
+    <title>IndIV Monitor V25</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
-        /* --- THEME --- */
+        /* --- 1. LOCKED THEME --- */
         :root { 
             --bg: #0b0b0b; --card: #121212; --text: #e0e0e0; --border: #252525; 
             --green: #00E676; --red: #FF5252; --orange: #FF9800; --blue: #42A5F5; 
@@ -20,14 +20,13 @@
             margin: 0; padding: 10px; min-height: 100vh; display: flex; flex-direction: column;
         }
 
-        /* --- HEADER (Fixed Alignment) --- */
+        /* --- 2. LOCKED HEADER --- */
         .header-row { 
             display: flex; align-items: center; justify-content: space-between; 
             padding: 0 10px 10px; border-bottom: 1px solid var(--border); height: 50px; flex-shrink: 0; 
         }
         .header-left { display: flex; align-items: baseline; }
-        .header-right { display: flex; align-items: center; gap: 20px; } /* Ensures spacing */
-        
+        .header-right { display: flex; align-items: center; gap: 20px; }
         h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; color: #fff; }
         .sub-title { font-size: 0.9rem; font-weight: 400; color: #888; margin-left: 10px; }
         .help-btn { color: #fff; text-decoration: none; border: 1px solid #fff; padding: 5px 12px; border-radius: 4px; font-weight: 600; font-size: 12px; transition: 0.2s; background: rgba(255,255,255,0.1); }
@@ -35,12 +34,12 @@
         .status-badge { background: #1a1a1a; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; color: var(--green); font-weight: bold; font-size: 11px; }
         @media (max-width: 600px) { .sub-title { display: none; } }
 
-        /* --- LAYOUT --- */
+        /* --- 3. LAYOUT --- */
         .container { display: flex; gap: 15px; flex: 1; margin-top: 15px; flex-wrap: wrap; overflow: visible; }
         .left-panel { flex: 1 1 450px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
         .right-panel { flex: 1 1 550px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; min-width: 0; }
 
-        /* --- PRICE STRIP --- */
+        /* --- 4. LOCKED PRICE STRIP --- */
         .price-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--card); border: 1px solid var(--border); padding: 10px; border-radius: 4px; align-items: center; }
         .p-group { display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .p-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
@@ -49,7 +48,7 @@
         .up { color: var(--green); } .down { color: var(--red); }
         .asset-select { background: #222; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; width: 90%; }
 
-        /* --- GRID --- */
+        /* --- 5. LOCKED GRID --- */
         .section-header { border-bottom: 2px solid #222; padding-bottom: 4px; margin-bottom: 6px; }
         .sec-title { font-size: 13px; font-weight: 800; color: #ddd; letter-spacing: 0.5px; }
         .t-week { color: var(--orange); } .t-month { color: var(--orange); } 
@@ -79,8 +78,14 @@
         .rank-sq { width: 10px; height: 6px; background: #333; border-radius: 1px; }
         .r-low.on { background: #00E676; } .r-mid.on { background: #FFC107; } .r-high.on { background: #FF5252; }
 
-        /* --- CHART WINDOW & CONTROLS --- */
-        .chart-window { background: var(--card); border: 1px solid var(--border); border-radius: 4px; display: flex; flex-direction: column; flex: 1; min-height: 290px; }
+        /* --- 6. CHART WINDOW (EXPANDED) --- */
+        .chart-window { 
+            background: var(--card); border: 1px solid var(--border); border-radius: 4px; 
+            display: flex; flex-direction: column; 
+            /* FILL AVAILABLE SPACE */
+            flex: 1; 
+            min-height: 350px; 
+        }
         .chart-tabs { display: flex; border-bottom: 1px solid var(--border); background: #181818; }
         .c-tab { flex: 1; text-align: center; padding: 8px; font-size: 11px; cursor: pointer; color: #888; border-right: 1px solid var(--border); font-weight: 600; }
         .c-tab:hover { color: #fff; background: #222; }
@@ -90,25 +95,24 @@
         .ctrl-legends { display: flex; gap: 12px; font-size: 10px; color: #aaa; align-items: center; }
         .ctrl-inputs { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #aaa; }
         
-        /* Legend Dots (Fixed) */
-        .leg-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
-        .leg-box { width: 8px; height: 8px; display: inline-block; margin-right: 4px; background: #333; border: 1px solid #555; }
-
-        .chart-content { position: relative; height: 250px; width: 100%; overflow: hidden; }
+        /* NEW SVG LEGENDS */
+        .svg-icon { vertical-align: middle; margin-right: 4px; }
+        
+        /* Container Stretches */
+        .chart-content { position: relative; flex: 1; width: 100%; overflow: hidden; }
         .chart-div { position: absolute; top:0; left:0; width: 100%; height: 100%; display: none; } 
         .chart-div.visible { display: block; }
         
         /* Dual Surface */
         #chart-surf.visible { display: flex !important; width: 100%; height: 100%; }
-        .surf-half { flex: 1; height: 100%; position: relative; min-width: 0; }
+        .surf-half { flex: 1; height: 100%; position: relative; min-width: 0; border-right: 1px solid #222; }
+        .surf-half:last-child { border-right: none; }
 
-        /* --- RIGHT PANEL --- */
+        /* --- 7. LOCKED RIGHT PANEL --- */
         .split-header { display: flex; min-height: 210px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
         .split-half { flex: 1 1 300px; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
         .split-half:last-child { border-right: none; }
         .panel-title { font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; padding: 8px 10px 0; display: flex; align-items: center; justify-content: space-between; }
-        
-        /* Intraday Chart Legends (Title Bar) */
         .legend-row { display: flex; gap: 15px; font-weight: normal; text-transform: none; }
         .leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
         .line-box { width: 20px; height: 0; border-top-style: solid; }
@@ -289,8 +293,17 @@
             monthly: [14.5, 15.0, 15.5, 16.0, 16.5],
             expiries: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '30 Jan']
         },
-        surfMoney: { z: [[13,12,13],[14,14,15],[15,15,16]], x: [-10,0,10], y: ['D','J','F'] },
-        surfDelta: { z: [[14,13,14],[15,15,16],[16,16,17]], x: [20,50,80], y: ['D','J','F'] }, 
+        // Contour Data (Matrix)
+        surfMoney: { 
+            z: [[13,12.5,13],[14,14,15],[15,15.5,16]], 
+            x: ['-10%', 'ATM', '+10%'], 
+            y: ['Dec', 'Jan', 'Feb'] 
+        },
+        surfDelta: { 
+            z: [[14,13,14],[15,15,16],[16,16,17]], 
+            x: ['20D', '50D', '80D'], 
+            y: ['Dec', 'Jan', 'Feb'] 
+        }, 
         
         intraday: {
             time: ["09:15", "10:15", "11:15", "12:15", "13:15"],
@@ -301,10 +314,10 @@
         }
     };
 
-    // --- 2. CONFIG ---
+    // --- 2. LAYOUT TEMPLATES ---
     const config = { displayModeBar: false, responsive: true, staticPlot: false };
     
-    // Layout 2D (Standard) - Intraday
+    // Layout 2D (Standard) - Intraday (RESTORED V21)
     const layout2D = {
         paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', 
         font:{family:'Segoe UI', color:'#666', size:10}, margin:{t:10, b:30, l:35, r:30}, 
@@ -313,7 +326,7 @@
         dragmode: false
     };
 
-    // Layout Clean (For Skew/Term)
+    // Layout Clean (For Skew/Term) - With extra margin
     const layoutClean = {
         paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', 
         font:{family:'Segoe UI', color:'#666', size:10}, margin:{t:10, b:20, l:30, r:40}, 
@@ -322,17 +335,13 @@
         dragmode: false
     };
 
-    // Layout 3D (Surface - Smaller Font)
-    const layout3D = {
-        margin: {t:0, b:0, l:0, r:0}, 
-        paper_bgcolor:'rgba(0,0,0,0)',
-        scene: {
-            xaxis:{title:'', showgrid:true, gridcolor:'#333', zeroline:false, tickfont:{size:6}},
-            yaxis:{title:'', showgrid:true, gridcolor:'#333', tickfont:{size:6}},
-            zaxis:{title:'', showgrid:true, gridcolor:'#333', tickfont:{size:6}},
-            camera: { eye: {x:1.5, y:1.5, z:1.5} }, 
-            bgcolor: 'rgba(0,0,0,0)'
-        }
+    // Layout Contour (Surface - Smaller Font)
+    const layoutContour = {
+        paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', 
+        font:{family:'Segoe UI', color:'#666', size:10}, margin:{t:20, b:20, l:30, r:10}, 
+        xaxis:{ title: '', tickfont:{size:9}, color:'#888', fixedrange:true }, 
+        yaxis:{ title: '', tickfont:{size:9}, color:'#888', fixedrange:true },
+        dragmode: false
     };
 
     function getSmartRange(dataArrays, absoluteMode = false) {
@@ -373,7 +382,7 @@
 
     function toggleMonthlySkew(show) { Plotly.restyle('chart-skew', { visible: show }, [3, 4]); }
 
-    // CHART 3: TERM
+    // CHART 3: TERM (Fixed Data)
     const rTerm = getSmartRange([mockData.term.weekly, mockData.term.monthly]);
     Plotly.newPlot('chart-term', [
         { x: mockData.term.expiries, y: mockData.term.weekly, name: 'Wk', line: { color: '#FF9800' }, type: 'scatter' },
@@ -382,9 +391,16 @@
 
     function toggleMonthlyTerm(show) { Plotly.restyle('chart-term', { visible: show }, [1]); }
 
-    // CHART 4: DUAL SURFACE
-    Plotly.newPlot('surf-money', [{ z: mockData.surfMoney.z, type: 'surface', colorscale: 'Viridis', showscale: false }], layout3D, config);
-    Plotly.newPlot('surf-delta', [{ z: mockData.surfDelta.z, type: 'surface', colorscale: 'Plasma', showscale: false }], layout3D, config);
+    // CHART 4: DUAL CONTOUR (Heatmaps)
+    Plotly.newPlot('surf-money', [{ 
+        z: mockData.surfMoney.z, x: mockData.surfMoney.x, y: mockData.surfMoney.y, 
+        type: 'heatmap', colorscale: 'Viridis', showscale: false 
+    }], { ...layoutContour, title: {text: 'IV vs Moneyness', font:{size:10, color:'#666'}, y:0.95} }, config);
+    
+    Plotly.newPlot('surf-delta', [{ 
+        z: mockData.surfDelta.z, x: mockData.surfDelta.x, y: mockData.surfDelta.y, 
+        type: 'heatmap', colorscale: 'Plasma', showscale: false 
+    }], { ...layoutContour, title: {text: 'IV vs Delta', font:{size:10, color:'#666'}, y:0.95} }, config);
 
     // --- CONTROLS ---
     function switchTab(name, tabEl) {
@@ -397,13 +413,20 @@
         const inp = document.getElementById('dynamicInputs');
         
         if (name === 'skew') {
-            leg.innerHTML = `<span class="leg-box"></span>Skew <span class="leg-dot" style="background:#00E676;margin-left:8px"></span>Weekly ATM Call <span class="leg-dot" style="background:#FF5252"></span>Weekly ATM Put <span class="leg-dot" style="background:#00E676; border:1px dotted #00E676; margin-left:8px"></span>Monthly ATM Call <span class="leg-dot" style="background:#FF5252; border:1px dotted #FF5252"></span>Monthly ATM Put`;
+            // Full Text, Dots, Lines
+            leg.innerHTML = `
+                <span class="svg-icon"><svg width="10" height="10"><rect width="10" height="10" fill="#333" stroke="#555"/></svg></span>Skew 
+                <span style="margin-left:10px"><span class="svg-icon"><svg width="15" height="2"><line x1="0" y1="1" x2="15" y2="1" stroke="#00E676" stroke-width="2"/></svg></span>Wk Call</span>
+                <span><span class="svg-icon"><svg width="15" height="2"><line x1="0" y1="1" x2="15" y2="1" stroke="#FF5252" stroke-width="2"/></svg></span>Wk Put</span>
+                <span style="margin-left:10px"><span class="svg-icon"><svg width="15" height="2"><line x1="0" y1="1" x2="15" y2="1" stroke="#00E676" stroke-width="2" stroke-dasharray="2,2"/></svg></span>Mo Call</span>
+                <span><span class="svg-icon"><svg width="15" height="2"><line x1="0" y1="1" x2="15" y2="1" stroke="#FF5252" stroke-width="2" stroke-dasharray="2,2"/></svg></span>Mo Put</span>
+            `;
             inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" checked onchange="toggleMonthlySkew(this.checked)"> Show Monthly</label>`;
         } else if (name === 'term') {
-            leg.innerHTML = `<span class="leg-dot" style="background:#FF9800"></span>Weekly <span class="leg-dot" style="background:#42A5F5"></span>Monthly`;
+            leg.innerHTML = `<span><span class="leg-dot" style="background:#FF9800"></span>Weekly</span> <span><span class="leg-dot" style="background:#42A5F5"></span>Monthly</span>`;
             inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" checked onchange="toggleMonthlyTerm(this.checked)"> Show Monthly</label>`;
         } else {
-            leg.innerHTML = `<span style="color:#00E676">Moneyness</span> vs <span style="color:#FF9800">Delta</span>`;
+            leg.innerHTML = `<span style="color:#00E676">Moneyness</span> | <span style="color:#FF9800">Delta</span>`;
             inp.innerHTML = ``;
         }
         window.dispatchEvent(new Event('resize'));
@@ -414,22 +437,19 @@
         el.classList.add('active');
     }
 
-    // --- TABLE LOGIC ---
+    // --- TABLE LOGIC (Fixed 21 Rows) ---
     function regenerateTable(majorOnly) {
         const tbody = document.getElementById("tableBody");
         const atm = 26200;
         let rows = "";
         
-        // Always iterate 21 times (-10 to 10)
-        // Adjust STEP size based on Major Toggle
         let step = majorOnly ? 100 : 50; 
         
         for(let i=-10; i<=10; i++) {
-            let k = atm + (i * step); // Center ATM + spread out based on step
+            let k = atm + (i * step); 
             let isATM = i === 0;
             let dist = Math.abs(i);
             
-            // Mock Values
             let gamma = 0.0035 - (dist * 0.0001);
             let vega = 15 - (dist * 0.2);
             let heatG = gamma > 0.003 ? 'heat-high' : (gamma > 0.002 ? 'heat-med' : '');
@@ -447,7 +467,7 @@
 
     // Init
     switchTab('skew', document.querySelector('.c-tab.active'));
-    regenerateTable(false); // Default Major Off
+    regenerateTable(false);
 
 </script>
 </body>
