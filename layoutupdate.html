@@ -277,7 +277,7 @@
 ================================ */
 const PLOTLY_CONFIG = { displayModeBar: false, responsive: true, staticPlot: false };
 
-// --- Layout Presets (RESTORED FROM V1) ---
+// --- Layout Presets (Extracted directly from V1 for fidelity) ---
 const LAYOUT_2D = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI', color: '#666', size: 10 },
@@ -384,7 +384,7 @@ function renderIntradayChart() {
 /* ===============================
    MODULE: CHART – VOLATILITY SKEW
 ================================ */
-function renderSkewChart(showMonthly = false) {
+function renderSkewChart(showMonthly) {
     const traces = [
         { x: mockData.strikes, y: mockData.skew.spread, name: 'Spread', type: 'bar', marker: { color: '#222', opacity:0.3 }, yaxis: 'y2', hoverinfo:'y' },
         { x: mockData.strikes, y: mockData.skew.call, name: 'Call', line: { color: '#00E676' }, type: 'scatter', mode:'lines' },
@@ -413,13 +413,7 @@ function renderSkewChart(showMonthly = false) {
 /* ===============================
    MODULE: CHART – TERM STRUCTURE
 ================================ */
-function renderTermChart(showMonthly = false) {
-    // Note: The toggle logic here in V1 restyled visibility. 
-    // In V2, we strictly re-render. 
-    // If showMonthly is false (unchecked), we only show trace 0.
-    // However, V1 logic was: Checkbox checked by default, toggleMonthlyTerm(true).
-    
-    // We will follow the visual output:
+function renderTermChart(showMonthly) {
     const traces = [
         { x: mockData.term.expiries, y: mockData.term.weekly, name: 'Wk', line: { color: '#FF9800' }, type: 'scatter' }
     ];
@@ -460,12 +454,10 @@ function renderSurfaceCharts() {
    MODULE: TABLE – GREEKS
 ================================ */
 function renderTable(strikeCenter, isMajorOnly) {
-    // RESTORING V1 LOGIC EXACTLY (Loop based) 
-    // to ensure exact CSS class matching for ATM rows and Heatmaps
     const tbody = document.getElementById("tableBody");
     if(!tbody) return;
     
-    // Mock center from V1 logic
+    // Exact loop logic from Version 1
     const atm = 26200; 
     let rows = "";
     let step = isMajorOnly ? 100 : 50; 
@@ -496,8 +488,8 @@ function renderTable(strikeCenter, isMajorOnly) {
 ================================ */
 const appState = {
     activeTab: 'skew',
-    showMonthlySkew: true, // Default true in V1
-    showMonthlyTerm: true, // Default true in V1
+    showMonthlySkew: true, // Default to true as per V1
+    showMonthlyTerm: true, // Default to true as per V1
     majorStrikes: false
 };
 
@@ -508,7 +500,7 @@ function updateDynamicControls() {
     leg.innerHTML = '';
     inp.innerHTML = '';
 
-    // RESTORING SPECIFIC HTML FROM V1
+    // Precise SVG Legends reconstruction from V1
     if (appState.activeTab === 'skew') {
         leg.innerHTML = `
             <span class="svg-icon"><svg width="10" height="10"><rect width="10" height="10" fill="#333" stroke="#555"/></svg></span>Skew 
@@ -517,7 +509,7 @@ function updateDynamicControls() {
             <span style="margin-left:10px"><span class="svg-icon"><svg width="15" height="2"><line x1="0" y1="1" x2="15" y2="1" stroke="#00E676" stroke-width="2" stroke-dasharray="2,2"/></svg></span>Mo Call</span>
             <span><span class="svg-icon"><svg width="15" height="2"><line x1="0" y1="1" x2="15" y2="1" stroke="#FF5252" stroke-width="2" stroke-dasharray="2,2"/></svg></span>Mo Put</span>
         `;
-        
+        // Inject check box manually to ensure handler attachment in module scope
         const lbl = document.createElement('label');
         lbl.style.display = 'flex'; lbl.style.alignItems = 'center'; lbl.style.gap = '4px'; lbl.style.cursor = 'pointer';
         lbl.innerHTML = `<input type="checkbox" ${appState.showMonthlySkew ? 'checked' : ''}> Show Monthly`;
@@ -544,18 +536,17 @@ function updateDynamicControls() {
     }
 }
 
-// Global Exports for Inline Handlers
+// --- GLOBAL HANDLERS (EXPOSED TO WINDOW FOR HTML CLICK EVENTS) ---
+
 window.switchTab = function(tabName, el) {
-    // 1. Update Tabs
     document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
 
-    // 2. Update Visibility
     document.querySelectorAll('.chart-div').forEach(d => d.classList.remove('visible'));
     const target = document.getElementById('chart-' + tabName);
     if(target) target.classList.add('visible');
 
-    // 3. Trigger Resize
+    // Trigger Resize to fix Plotly layout in hidden tabs
     if(tabName === 'skew') Plotly.Plots.resize('chart-skew');
     if(tabName === 'term') Plotly.Plots.resize('chart-term');
     if(tabName === 'surf') { 
@@ -563,7 +554,6 @@ window.switchTab = function(tabName, el) {
         Plotly.Plots.resize('surf-delta'); 
     }
 
-    // 4. Update Controls
     appState.activeTab = tabName;
     updateDynamicControls();
 };
@@ -571,7 +561,6 @@ window.switchTab = function(tabName, el) {
 window.selectExpiry = function(el) {
     document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
-    // Mock action
     renderTable(mockData.spot, appState.majorStrikes);
 };
 
@@ -589,7 +578,7 @@ function initApp() {
     renderTermChart(appState.showMonthlyTerm);
     renderSurfaceCharts();
     
-    // Initial UI Setup
+    // Initial Table Render
     renderTable(mockData.spot, appState.majorStrikes);
     updateDynamicControls();
 }
