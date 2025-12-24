@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V23 (Production Ready)</title>
+    <title>IndIV Monitor V24</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         /* --- THEME --- */
@@ -20,13 +20,19 @@
             margin: 0; padding: 10px; min-height: 100vh; display: flex; flex-direction: column;
         }
 
-        /* --- HEADER --- */
-        .header-row { display: flex; align-items: center; justify-content: space-between; padding: 0 10px 10px; border-bottom: 1px solid var(--border); height: 50px; flex-shrink: 0; }
+        /* --- HEADER (Fixed Alignment) --- */
+        .header-row { 
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 0 10px 10px; border-bottom: 1px solid var(--border); height: 50px; flex-shrink: 0; 
+        }
+        .header-left { display: flex; align-items: baseline; }
+        .header-right { display: flex; align-items: center; gap: 20px; } /* Ensures spacing */
+        
         h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; color: #fff; }
         .sub-title { font-size: 0.9rem; font-weight: 400; color: #888; margin-left: 10px; }
         .help-btn { color: #fff; text-decoration: none; border: 1px solid #fff; padding: 5px 12px; border-radius: 4px; font-weight: 600; font-size: 12px; transition: 0.2s; background: rgba(255,255,255,0.1); }
         .help-btn:hover { background: #fff; color: #000; }
-        .status-badge { background: #1a1a1a; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; color: var(--green); font-weight: bold; font-size: 11px; margin-left: 20px; }
+        .status-badge { background: #1a1a1a; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; color: var(--green); font-weight: bold; font-size: 11px; }
         @media (max-width: 600px) { .sub-title { display: none; } }
 
         /* --- LAYOUT --- */
@@ -43,7 +49,7 @@
         .up { color: var(--green); } .down { color: var(--red); }
         .asset-select { background: #222; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; width: 90%; }
 
-        /* --- GRID AREAS --- */
+        /* --- GRID --- */
         .section-header { border-bottom: 2px solid #222; padding-bottom: 4px; margin-bottom: 6px; }
         .sec-title { font-size: 13px; font-weight: 800; color: #ddd; letter-spacing: 0.5px; }
         .t-week { color: var(--orange); } .t-month { color: var(--orange); } 
@@ -84,12 +90,9 @@
         .ctrl-legends { display: flex; gap: 12px; font-size: 10px; color: #aaa; align-items: center; }
         .ctrl-inputs { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #aaa; }
         
-        /* Specific Legend Lines */
-        .leg-line { width: 15px; height: 0; border-top: 2px solid; display: inline-block; vertical-align: middle; margin-right: 4px; }
-        .l-solid-g { border-color: #00E676; } .l-solid-r { border-color: #FF5252; }
-        .l-dot-g { border-color: #00E676; border-style: dotted; } .l-dot-r { border-color: #FF5252; border-style: dotted; }
-        .l-solid-grey { border-color: #444; border-width: 6px; } /* For Bar */
-        .l-solid-o { border-color: #FF9800; } .l-solid-b { border-color: #42A5F5; }
+        /* Legend Dots (Fixed) */
+        .leg-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+        .leg-box { width: 8px; height: 8px; display: inline-block; margin-right: 4px; background: #333; border: 1px solid #555; }
 
         .chart-content { position: relative; height: 250px; width: 100%; overflow: hidden; }
         .chart-div { position: absolute; top:0; left:0; width: 100%; height: 100%; display: none; } 
@@ -103,12 +106,11 @@
         .split-header { display: flex; min-height: 210px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
         .split-half { flex: 1 1 300px; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
         .split-half:last-child { border-right: none; }
-        
         .panel-title { font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; padding: 8px 10px 0; display: flex; align-items: center; justify-content: space-between; }
+        
+        /* Intraday Chart Legends (Title Bar) */
         .legend-row { display: flex; gap: 15px; font-weight: normal; text-transform: none; }
         .leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
-        
-        /* Intraday Legends */
         .line-box { width: 20px; height: 0; border-top-style: solid; }
         .l-thin { border-top-width: 1px; border-color: #FF9800; } .l-thick { border-top-width: 3px; border-color: #FF9800; }
         .l-dot { border-top-width: 1px; border-color: #42A5F5; border-top-style: dotted; } .l-dash { border-top-width: 2px; border-color: #42A5F5; border-top-style: dashed; }
@@ -270,7 +272,7 @@
     </div>
 
 <script>
-    // --- 1. ROBUST MOCK DATA ---
+    // --- 1. MOCK DATA ---
     const mockData = {
         strikes: Array.from({length: 21}, (_, i) => 26000 + (i * 50)),
         skew: {
@@ -299,10 +301,10 @@
         }
     };
 
-    // --- 2. LAYOUT TEMPLATES ---
+    // --- 2. CONFIG ---
     const config = { displayModeBar: false, responsive: true, staticPlot: false };
     
-    // Layout 2D (Standard)
+    // Layout 2D (Standard) - Intraday
     const layout2D = {
         paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', 
         font:{family:'Segoe UI', color:'#666', size:10}, margin:{t:10, b:30, l:35, r:30}, 
@@ -325,9 +327,9 @@
         margin: {t:0, b:0, l:0, r:0}, 
         paper_bgcolor:'rgba(0,0,0,0)',
         scene: {
-            xaxis:{title:'', showgrid:true, gridcolor:'#333', zeroline:false, tickfont:{size:7}},
-            yaxis:{title:'', showgrid:true, gridcolor:'#333', tickfont:{size:7}},
-            zaxis:{title:'', showgrid:true, gridcolor:'#333', tickfont:{size:7}},
+            xaxis:{title:'', showgrid:true, gridcolor:'#333', zeroline:false, tickfont:{size:6}},
+            yaxis:{title:'', showgrid:true, gridcolor:'#333', tickfont:{size:6}},
+            zaxis:{title:'', showgrid:true, gridcolor:'#333', tickfont:{size:6}},
             camera: { eye: {x:1.5, y:1.5, z:1.5} }, 
             bgcolor: 'rgba(0,0,0,0)'
         }
@@ -346,7 +348,7 @@
 
     // --- 3. CHARTS ---
     
-    // CHART 1: INTRADAY (V21 LOGIC RESTORED)
+    // CHART 1: INTRADAY
     const rTrend = getSmartRange([mockData.intraday.wk, mockData.intraday.mo, mockData.intraday.wkRv, mockData.intraday.moRv], true);
     Plotly.newPlot('chart-trend', [
         { x: mockData.intraday.time, y: mockData.intraday.wk, name: 'Wk', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(mockData.intraday.wk), textposition:'middle right' },
@@ -371,7 +373,7 @@
 
     function toggleMonthlySkew(show) { Plotly.restyle('chart-skew', { visible: show }, [3, 4]); }
 
-    // CHART 3: TERM (Fixed Visibility)
+    // CHART 3: TERM
     const rTerm = getSmartRange([mockData.term.weekly, mockData.term.monthly]);
     Plotly.newPlot('chart-term', [
         { x: mockData.term.expiries, y: mockData.term.weekly, name: 'Wk', line: { color: '#FF9800' }, type: 'scatter' },
@@ -380,7 +382,7 @@
 
     function toggleMonthlyTerm(show) { Plotly.restyle('chart-term', { visible: show }, [1]); }
 
-    // CHART 4: DUAL SURFACE (Small Fonts)
+    // CHART 4: DUAL SURFACE
     Plotly.newPlot('surf-money', [{ z: mockData.surfMoney.z, type: 'surface', colorscale: 'Viridis', showscale: false }], layout3D, config);
     Plotly.newPlot('surf-delta', [{ z: mockData.surfDelta.z, type: 'surface', colorscale: 'Plasma', showscale: false }], layout3D, config);
 
@@ -395,10 +397,10 @@
         const inp = document.getElementById('dynamicInputs');
         
         if (name === 'skew') {
-            leg.innerHTML = `<span class="leg-line l-solid-grey"></span>Skew <span class="leg-line l-solid-g"></span>Weekly ATM Call <span class="leg-line l-solid-r"></span>Weekly ATM Put <span class="leg-line l-dot-g"></span>Monthly ATM Call <span class="leg-line l-dot-r"></span>Monthly ATM Put`;
+            leg.innerHTML = `<span class="leg-box"></span>Skew <span class="leg-dot" style="background:#00E676;margin-left:8px"></span>Weekly ATM Call <span class="leg-dot" style="background:#FF5252"></span>Weekly ATM Put <span class="leg-dot" style="background:#00E676; border:1px dotted #00E676; margin-left:8px"></span>Monthly ATM Call <span class="leg-dot" style="background:#FF5252; border:1px dotted #FF5252"></span>Monthly ATM Put`;
             inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" checked onchange="toggleMonthlySkew(this.checked)"> Show Monthly</label>`;
         } else if (name === 'term') {
-            leg.innerHTML = `<span class="leg-line l-solid-o"></span>Weekly <span class="leg-line l-solid-b"></span>Monthly`;
+            leg.innerHTML = `<span class="leg-dot" style="background:#FF9800"></span>Weekly <span class="leg-dot" style="background:#42A5F5"></span>Monthly`;
             inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" checked onchange="toggleMonthlyTerm(this.checked)"> Show Monthly</label>`;
         } else {
             leg.innerHTML = `<span style="color:#00E676">Moneyness</span> vs <span style="color:#FF9800">Delta</span>`;
@@ -412,17 +414,18 @@
         el.classList.add('active');
     }
 
-    // --- TABLE LOGIC (Fixed Row Count) ---
+    // --- TABLE LOGIC ---
     function regenerateTable(majorOnly) {
         const tbody = document.getElementById("tableBody");
         const atm = 26200;
         let rows = "";
         
-        // Dynamic step to keep 21 rows centered on ATM
+        // Always iterate 21 times (-10 to 10)
+        // Adjust STEP size based on Major Toggle
         let step = majorOnly ? 100 : 50; 
         
         for(let i=-10; i<=10; i++) {
-            let k = atm + (i * step); // Center ATM + spread out
+            let k = atm + (i * step); // Center ATM + spread out based on step
             let isATM = i === 0;
             let dist = Math.abs(i);
             
