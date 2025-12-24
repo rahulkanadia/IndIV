@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V21</title>
+    <title>IndIV Monitor V22</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
-        /* --- THEME --- */
+        /* --- 1. THEME --- */
         :root { 
             --bg: #0b0b0b; --card: #121212; --text: #e0e0e0; --border: #252525; 
             --green: #00E676; --red: #FF5252; --orange: #FF9800; --blue: #42A5F5; 
@@ -20,14 +20,13 @@
             margin: 0; padding: 10px; min-height: 100vh; display: flex; flex-direction: column;
         }
 
-        /* --- HEADER --- */
+        /* --- 2. HEADER --- */
         .header-row { 
             display: flex; align-items: center; justify-content: space-between; 
             padding: 0 10px 10px; border-bottom: 1px solid var(--border); height: 50px; flex-shrink: 0; 
         }
         .header-left { display: flex; align-items: baseline; }
         .header-right { display: flex; align-items: center; gap: 20px; }
-        
         h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; color: #fff; }
         .sub-title { font-size: 0.9rem; font-weight: 400; color: #888; margin-left: 10px; }
         .help-btn { color: #fff; text-decoration: none; border: 1px solid #fff; padding: 5px 12px; border-radius: 4px; font-weight: 600; font-size: 12px; transition: 0.2s; background: rgba(255,255,255,0.1); }
@@ -35,12 +34,12 @@
         .status-badge { background: #1a1a1a; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; color: var(--green); font-weight: bold; font-size: 11px; }
         @media (max-width: 600px) { .sub-title { display: none; } }
 
-        /* --- LAYOUT --- */
+        /* --- 3. LAYOUT --- */
         .container { display: flex; gap: 15px; flex: 1; margin-top: 15px; flex-wrap: wrap; overflow: visible; }
         .left-panel { flex: 1 1 450px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
         .right-panel { flex: 1 1 550px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; min-width: 0; }
 
-        /* --- DATA STRIP --- */
+        /* --- 4. PANELS --- */
         .price-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--card); border: 1px solid var(--border); padding: 10px; border-radius: 4px; align-items: center; }
         .p-group { display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .p-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
@@ -49,7 +48,6 @@
         .up { color: var(--green); } .down { color: var(--red); }
         .asset-select { background: #222; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; width: 90%; }
 
-        /* --- GRID --- */
         .section-header { border-bottom: 2px solid #222; padding-bottom: 4px; margin-bottom: 6px; }
         .sec-title { font-size: 13px; font-weight: 800; color: #ddd; letter-spacing: 0.5px; }
         .t-week { color: var(--orange); } .t-month { color: var(--orange); } 
@@ -79,7 +77,7 @@
         .rank-sq { width: 10px; height: 6px; background: #333; border-radius: 1px; }
         .r-low.on { background: #00E676; } .r-mid.on { background: #FFC107; } .r-high.on { background: #FF5252; }
 
-        /* --- CHART WINDOW (Height Fix) --- */
+        /* --- CHART WINDOW --- */
         .chart-window { background: var(--card); border: 1px solid var(--border); border-radius: 4px; display: flex; flex-direction: column; flex: 1; min-height: 290px; }
         .chart-tabs { display: flex; border-bottom: 1px solid var(--border); background: #181818; }
         .c-tab { flex: 1; text-align: center; padding: 8px; font-size: 11px; cursor: pointer; color: #888; border-right: 1px solid var(--border); font-weight: 600; }
@@ -92,9 +90,14 @@
         .leg-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
         .leg-box { width: 8px; height: 8px; display: inline-block; margin-right: 4px; background: #333; border: 1px solid #555; }
         
-        .chart-content { position: relative; height: 250px; width: 100%; overflow: hidden; } /* Increased Height */
+        /* Container for charts */
+        .chart-content { position: relative; height: 250px; width: 100%; overflow: hidden; }
         .chart-div { position: absolute; top:0; left:0; width: 100%; height: 100%; display: none; } 
         .chart-div.visible { display: block; }
+
+        /* Dual Surface Layout */
+        #chart-surf.visible { display: flex !important; width: 100%; height: 100%; }
+        .surf-half { flex: 1; height: 100%; position: relative; min-width: 0; }
 
         /* --- RIGHT PANEL --- */
         .split-header { display: flex; min-height: 210px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
@@ -181,7 +184,10 @@
                 <div class="chart-content">
                     <div id="chart-skew" class="chart-div visible"></div>
                     <div id="chart-term" class="chart-div"></div>
-                    <div id="chart-surf" class="chart-div"></div>
+                    <div id="chart-surf" class="chart-div">
+                        <div id="surf-money" class="surf-half"></div>
+                        <div id="surf-delta" class="surf-half"></div>
+                    </div>
                 </div>
             </div>
 
@@ -242,7 +248,7 @@
                 </div>
                 <div class="toolbar-toggle-wrapper">
                     <label style="color:#aaa; font-size:11px; display:flex; gap:6px; cursor:pointer">
-                        <input type="checkbox" checked onchange="regenerateTable(this.checked)"> Major Strikes
+                        <input type="checkbox" id="majorToggle" onchange="regenerateTable(this.checked)"> Major Strikes
                     </label>
                 </div>
             </div>
@@ -256,12 +262,12 @@
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
-            <div class="quote-ticker">"We suffer more often in imagination than in reality." – Seneca</div>
+            <div class="quote-ticker">"He who has a why to live can bear almost any how." – Friedrich Nietzsche</div>
         </div>
     </div>
 
 <script>
-    // --- 1. MOCK DATA ---
+    // --- MOCK DATA ---
     const mockData = {
         strikes: Array.from({length: 21}, (_, i) => 26000 + (i * 50)),
         skew: {
@@ -278,16 +284,10 @@
             monthly: [14.5, 15.0, 15.5, 16.0, 16.5],
             expiries: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '30 Jan']
         },
-        // 3D Surface Data (Z-Matrix)
-        surface: {
-            z: [
-                [13.5, 13.0, 12.6, 12.4, 12.8, 13.5], // Expiry 1
-                [14.5, 14.2, 14.0, 14.1, 14.5, 15.0], // Expiry 2
-                [15.5, 15.3, 15.1, 15.2, 15.6, 16.2]  // Expiry 3
-            ],
-            x: [25800, 26000, 26200, 26400, 26600, 26800], // Strikes
-            y: ['Dec', 'Jan', 'Feb'] // Expiries
-        },
+        // Z-Matrices for Surfaces
+        surfMoney: { z: [[13,12,13],[14,14,15],[15,15,16]], x: [-10,0,10], y: ['D','J','F'] },
+        surfDelta: { z: [[14,13,14],[15,15,16],[16,16,17]], x: [20,50,80], y: ['D','J','F'] }, // Inverted for visual diff
+        
         intraday: {
             time: ["09:15", "10:15", "11:15", "12:15", "13:15"],
             wk: [12.2, 12.4, 12.1, 12.5, 12.8],
@@ -322,61 +322,58 @@
     }
     const lastValText = (arr) => arr.map((v, i) => i === arr.length - 1 ? v.toFixed(1) : null);
 
-    // --- 3. CHARTS ---
+    // --- 3. PLOTS ---
     
     // CHART 1: INTRADAY
-    const rangeTrend = getSmartRange([mockData.intraday.wk, mockData.intraday.mo, mockData.intraday.wkRv, mockData.intraday.moRv], true);
+    const rTrend = getSmartRange([mockData.intraday.wk, mockData.intraday.mo], true);
     Plotly.newPlot('chart-trend', [
         { x: mockData.intraday.time, y: mockData.intraday.wk, name: 'Wk', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(mockData.intraday.wk), textposition:'middle right' },
         { x: mockData.intraday.time, y: mockData.intraday.mo, name: 'Mo', line: { color: '#FF9800', width: 3 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(mockData.intraday.mo), textposition:'middle right' },
         { x: mockData.intraday.time, y: mockData.intraday.wkRv, name: 'WkRV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(mockData.intraday.wkRv), textposition:'middle right' },
         { x: mockData.intraday.time, y: mockData.intraday.moRv, name: 'MoRV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(mockData.intraday.moRv), textposition:'middle right' }
-    ], { ...layoutBase, showlegend: false, xaxis:{visible:true, fixedrange:true, color:'#666', range:[0, 5.5]}, yaxis:{gridcolor:'#222', range:rangeTrend, fixedrange:true} }, cfg);
+    ], { ...layoutBase, showlegend: false, xaxis:{visible:true, fixedrange:true, color:'#666', range:[0, 5.5]}, yaxis:{gridcolor:'#222', range:rTrend, fixedrange:true} }, cfg);
 
-    // CHART 2: SKEW (Trace Order: Bar first)
-    const rangeSkew = getSmartRange([mockData.skew.call, mockData.skew.put, mockData.skewMo.call, mockData.skewMo.put]);
+    // CHART 2: SKEW (Padding Fix + Layers)
+    const rSkew = getSmartRange([mockData.skew.call, mockData.skew.put, mockData.skewMo.call]);
     Plotly.newPlot('chart-skew', [
-        { x: mockData.strikes, y: mockData.skew.spread, name: 'Spread', type: 'bar', marker: { color: '#222', opacity: 0.3 }, yaxis: 'y2', hoverinfo:'y' }, // BOTTOM LAYER
+        { x: mockData.strikes, y: mockData.skew.spread, name: 'Spread', type: 'bar', marker: { color: '#222', opacity:0.3 }, yaxis: 'y2', hoverinfo:'y' },
         { x: mockData.strikes, y: mockData.skew.call, name: 'Call', line: { color: '#00E676' }, type: 'scatter', mode:'lines' },
         { x: mockData.strikes, y: mockData.skew.put, name: 'Put', line: { color: '#FF5252' }, type: 'scatter', mode:'lines' },
-        { x: mockData.strikes, y: mockData.skewMo.call, name: 'Call Mo', line: { color: '#00E676', dash:'dot' }, type: 'scatter', visible: false },
-        { x: mockData.strikes, y: mockData.skewMo.put, name: 'Put Mo', line: { color: '#FF5252', dash:'dot' }, type: 'scatter', visible: false }
+        { x: mockData.strikes, y: mockData.skewMo.call, name: 'Call Mo', line: { color: '#00E676', dash:'dot' }, type: 'scatter' }, // Visible Default
+        { x: mockData.strikes, y: mockData.skewMo.put, name: 'Put Mo', line: { color: '#FF5252', dash:'dot' }, type: 'scatter' }  // Visible Default
     ], { 
-        ...layoutBase, showlegend: false, 
-        yaxis: { gridcolor:'#222', range: rangeSkew, fixedrange:true }, 
+        ...layoutBase, showlegend: false, margin:{t:10, b:20, l:30, r:40}, // Added Right Margin
+        yaxis: { gridcolor:'#222', range: rSkew, fixedrange:true }, 
         yaxis2: { overlaying: 'y', side: 'right', showgrid: false, fixedrange:true } 
     }, cfg);
 
     function toggleMonthlySkew(show) { Plotly.restyle('chart-skew', { visible: show }, [3, 4]); }
 
     // CHART 3: TERM
-    const rangeTerm = getSmartRange([mockData.term.weekly, mockData.term.monthly]);
+    const rTerm = getSmartRange([mockData.term.weekly, mockData.term.monthly]);
     Plotly.newPlot('chart-term', [
         { x: mockData.term.expiries, y: mockData.term.weekly, name: 'Wk', line: { color: '#FF9800' }, type: 'scatter' },
-        { x: mockData.term.expiries, y: mockData.term.monthly, name: 'Mo', line: { color: '#42A5F5' }, type: 'scatter', visible: false }
-    ], { ...layoutBase, showlegend: false, yaxis: { gridcolor:'#222', range: rangeTerm, fixedrange:true } }, cfg);
+        { x: mockData.term.expiries, y: mockData.term.monthly, name: 'Mo', line: { color: '#42A5F5' }, type: 'scatter' } // Visible Default
+    ], { ...layoutBase, showlegend: false, yaxis: { gridcolor:'#222', range: rTerm, fixedrange:true } }, cfg);
 
     function toggleMonthlyTerm(show) { Plotly.restyle('chart-term', { visible: show }, [1]); }
 
-    // CHART 4: SURFACE (3D)
-    Plotly.newPlot('chart-surf', [{
-        z: mockData.surface.z,
-        x: mockData.surface.x,
-        y: mockData.surface.y,
-        type: 'surface',
-        colorscale: 'Viridis',
-        showscale: false
-    }], { 
-        ...layoutBase, 
-        margin: {t:0, b:0, l:0, r:0}, // Tight 3D margins
+    // CHART 4 & 5: DUAL SURFACE
+    const surfLayout = { 
+        margin: {t:0, b:0, l:0, r:0}, 
         scene: {
             xaxis:{title:'', showgrid:true, gridcolor:'#333', zeroline:false},
             yaxis:{title:'', showgrid:true, gridcolor:'#333'},
             zaxis:{title:'', showgrid:true, gridcolor:'#333'},
-            camera: { eye: {x:1.5, y:1.5, z:1.2} }, // Default view
+            camera: { eye: {x:1.5, y:1.5, z:1.5} }, 
             bgcolor: 'rgba(0,0,0,0)'
-        }
-    }, cfg);
+        },
+        paper_bgcolor:'rgba(0,0,0,0)'
+    };
+    
+    Plotly.newPlot('surf-money', [{ z: mockData.surfMoney.z, type: 'surface', colorscale: 'Viridis', showscale: false }], surfLayout, cfg);
+    Plotly.newPlot('surf-delta', [{ z: mockData.surfDelta.z, type: 'surface', colorscale: 'Plasma', showscale: false }], surfLayout, cfg);
+
 
     // --- 4. CONTROLS ---
     function switchTab(name, tabEl) {
@@ -389,13 +386,13 @@
         const inp = document.getElementById('dynamicInputs');
         
         if (name === 'skew') {
-            leg.innerHTML = `<span class="leg-box"></span>Spread <span class="leg-dot" style="background:#00E676;margin-left:8px"></span>Wk Call <span class="leg-dot" style="background:#FF5252"></span>Wk Put <span class="leg-dot" style="background:#00E676; border:1px dotted #00E676; margin-left:8px"></span>Mo Call <span class="leg-dot" style="background:#FF5252; border:1px dotted #FF5252"></span>Mo Put`;
-            inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" onchange="toggleMonthlySkew(this.checked)"> Show Monthly</label>`;
+            leg.innerHTML = `<span class="leg-box"></span>Spread <span class="leg-dot" style="background:#00E676;margin-left:8px"></span>Wk ATM Call <span class="leg-dot" style="background:#FF5252"></span>Wk ATM Put <span class="leg-dot" style="background:#00E676; border:1px dotted #00E676; margin-left:8px"></span>Mo ATM Call <span class="leg-dot" style="background:#FF5252; border:1px dotted #FF5252"></span>Mo ATM Put`;
+            inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" checked onchange="toggleMonthlySkew(this.checked)"> Show Monthly</label>`;
         } else if (name === 'term') {
             leg.innerHTML = `<span class="leg-dot" style="background:#FF9800"></span>Weekly <span class="leg-dot" style="background:#42A5F5"></span>Monthly`;
-            inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" onchange="toggleMonthlyTerm(this.checked)"> Show Monthly</label>`;
+            inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" checked onchange="toggleMonthlyTerm(this.checked)"> Show Monthly</label>`;
         } else {
-            leg.innerHTML = ``;
+            leg.innerHTML = `<span style="color:#00E676">Moneyness</span> vs <span style="color:#FF9800">Delta</span>`;
             inp.innerHTML = ``;
         }
         window.dispatchEvent(new Event('resize'));
@@ -409,6 +406,7 @@
             let k = atm + (i*50);
             if(majorOnly && k % 100 !== 0) continue;
             let isATM = k === atm;
+            // ... (Same rendering logic) ...
             let dist = Math.abs(i);
             let gamma = isATM ? 0.0035 : (0.0035 - (dist*0.0001));
             let vega = 15 - (dist*0.2);
@@ -419,9 +417,9 @@
         tbody.innerHTML = rows;
     }
 
-    // Init
+    // Init with Defaults
     switchTab('skew', document.querySelector('.c-tab.active'));
-    regenerateTable(true);
+    regenerateTable(false); // Major Strikes OFF by default
 
 </script>
 </body>
