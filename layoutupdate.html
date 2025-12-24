@@ -333,32 +333,34 @@ const lastValText = (arr) => arr.map((v, i) => i === arr.length - 1 ? v.toFixed(
 /* ===============================
    MODULE: CHART – INTRADAY IV & RV
 ================================ */
+
 function renderIntradayChart() {
-    // --- FULL MARKET SESSION TIME AXIS (09:15 → 15:30, 15-min) ---
+    // --- FULL MARKET SESSION (09:15 → 15:30, 15-MIN INTERVALS) ---
     const fullTimeAxis = [];
-    let h = 9, m = 15;
-    while (!(h === 15 && m === 45)) {
+    let hour = 9, minute = 15;
+
+    while (!(hour === 15 && minute === 45)) {
         fullTimeAxis.push(
-            `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+            `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
         );
-        m += 15;
-        if (m === 60) {
-            m = 0;
-            h++;
+        minute += 15;
+        if (minute === 60) {
+            minute = 0;
+            hour++;
         }
     }
 
     // --- MAP EXISTING DATA ONTO FULL AXIS ---
-    const mapToFullAxis = (times, values) =>
+    const mapToAxis = (times, values) =>
         fullTimeAxis.map(t => {
             const idx = times.indexOf(t);
             return idx !== -1 ? values[idx] : null;
         });
 
-    const wkIV  = mapToFullAxis(mockData.intraday.time, mockData.intraday.wk);
-    const moIV  = mapToFullAxis(mockData.intraday.time, mockData.intraday.mo);
-    const wkRV  = mapToFullAxis(mockData.intraday.time, mockData.intraday.wkRv);
-    const moRV  = mapToFullAxis(mockData.intraday.time, mockData.intraday.moRv);
+    const wkIV = mapToAxis(mockData.intraday.time, mockData.intraday.wk);
+    const moIV = mapToAxis(mockData.intraday.time, mockData.intraday.mo);
+    const wkRV = mapToAxis(mockData.intraday.time, mockData.intraday.wkRv);
+    const moRV = mapToAxis(mockData.intraday.time, mockData.intraday.moRv);
 
     const traces = [
         {
@@ -422,7 +424,12 @@ function renderIntradayChart() {
             gridcolor: '#222',
             fixedrange: true,
             range: getSmartRange(
-                [mockData.intraday.wk, mockData.intraday.mo, mockData.intraday.wkRv, mockData.intraday.moRv],
+                [
+                    mockData.intraday.wk,
+                    mockData.intraday.mo,
+                    mockData.intraday.wkRv,
+                    mockData.intraday.moRv
+                ],
                 true
             )
         },
