@@ -278,6 +278,15 @@
 const PLOTLY_CONFIG = { displayModeBar: false, responsive: true, staticPlot: false };
 
 /* ===============================
+   MODULE: UI BRIDGE (REQUIRED FOR INLINE HANDLERS)
+================================ */
+window.switchTab = switchTab;
+window.toggleMonthlySkew = toggleMonthlySkew;
+window.toggleMonthlyTerm = toggleMonthlyTerm;
+window.selectExpiry = selectExpiry;
+window.regenerateTable = regenerateTable;
+
+/* ===============================
    MODULE: MOCK DATA
 ================================ */
 const mockData = {
