@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IndIV Monitor V25</title>
 
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 
 <style>
-
-/* ================= LOCKED: GLOBAL THEME ================= */
+/* =========================
+   LOCKED: GLOBAL THEME
+   ========================= */
 :root { 
   --bg:#0b0b0b; --card:#121212; --text:#e0e0e0; --border:#252525;
   --green:#00E676; --red:#FF5252; --orange:#FF9800; --blue:#42A5F5;
@@ -20,35 +21,57 @@
 }
 *{box-sizing:border-box}
 body{
-  margin:0;padding:10px;
-  background:var(--bg);color:var(--text);
+  background:var(--bg); color:var(--text);
   font-family:'Segoe UI',Roboto,Arial,sans-serif;
-  min-height:100vh;display:flex;flex-direction:column;
+  margin:0; padding:10px;
+  min-height:100vh;
+  display:flex; flex-direction:column;
 }
 
-/* ================= LOCKED: HEADER BAR ================= */
-.header-row{display:flex;justify-content:space-between;align-items:center;height:50px;padding:0 10px 10px;border-bottom:1px solid var(--border)}
+/* =========================
+   LOCKED: HEADER
+   ========================= */
+.header-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 10px 10px;
+  border-bottom:1px solid var(--border);
+  height:50px;
+}
 .header-left{display:flex;align-items:baseline}
 .header-right{display:flex;align-items:center;gap:20px}
 h1{margin:0;font-size:1.3rem;font-weight:600;color:#fff}
 .sub-title{font-size:.9rem;color:#888;margin-left:10px}
-.help-btn{color:#fff;border:1px solid #fff;padding:5px 12px;border-radius:4px;text-decoration:none;font-size:12px}
+.help-btn{color:#fff;border:1px solid #fff;padding:5px 12px;border-radius:4px;font-size:12px;text-decoration:none}
 .status-badge{background:#1a1a1a;border:1px solid #333;color:var(--green);font-weight:bold;font-size:11px;padding:4px 10px;border-radius:4px}
 
-/* ================= LOCKED: LAYOUT ================= */
+/* =========================
+   LOCKED: LAYOUT
+   ========================= */
 .container{display:flex;gap:15px;flex:1;margin-top:15px;flex-wrap:wrap}
 .left-panel{flex:1 1 450px;display:flex;flex-direction:column;gap:12px}
 .right-panel{flex:1 1 550px;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
 
-/* ================= LOCKED: PRICE STRIP ================= */
-.price-strip{display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--card);border:1px solid var(--border);padding:10px;border-radius:4px}
+/* =========================
+   LOCKED: PRICE STRIP
+   ========================= */
+.price-strip{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  background:var(--card);
+  border:1px solid var(--border);
+  padding:10px;
+  border-radius:4px;
+}
 .p-group{text-align:center}
 .p-label{font-size:10px;color:var(--muted)}
 .p-val{font-size:1.4rem;font-weight:700}
 .p-change{font-size:.85rem}
-.asset-select{width:90%;background:#222;color:#fff;border:1px solid #444;padding:6px;border-radius:4px}
+.up{color:var(--green)} .down{color:var(--red)}
+.asset-select{background:#222;color:#fff;border:1px solid #444;padding:6px;border-radius:4px}
 
-/* ================= LOCKED: METRIC GRIDS ================= */
+/* =========================
+   LOCKED: METRIC GRIDS
+   ========================= */
 .section-header{border-bottom:2px solid #222;margin-bottom:6px}
 .sec-title{font-size:13px;font-weight:800}
 .data-grid-6{
@@ -58,43 +81,120 @@ h1{margin:0;font-size:1.3rem;font-weight:600;color:#fff}
     "c_p c_iv sp std_p std_iv r1"
     "p_p p_iv sp std_p rv r2";
 }
-.d-box{background:var(--card);border:1px solid var(--border);text-align:center;padding:4px}
+.d-box{
+  background:var(--card);
+  border:1px solid var(--border);
+  padding:4px;
+  text-align:center;
+}
 .box-straddle-anchor{background:#191919;border-color:#444}
 .d-lbl{font-size:9px;color:var(--muted)}
 .d-val{font-size:1.1rem;font-weight:600}
 .iv-val{font-family:monospace;font-weight:700}
 .c-g{color:var(--green)} .c-r{color:var(--red)}
 
-/* ================= CHART WINDOW (UNLOCKED STRUCTURE ONLY) ================= */
-.chart-window{flex:1;min-height:350px;background:var(--card);border:1px solid var(--border);border-radius:4px}
+/* =========================
+   CHART WINDOW (STRUCTURE ONLY)
+   ========================= */
+.chart-window{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:4px;
+  flex:1;
+  min-height:350px;
+  display:flex;
+  flex-direction:column;
+}
 .chart-tabs{display:flex;border-bottom:1px solid var(--border)}
-.c-tab{flex:1;text-align:center;padding:8px;font-size:11px;color:#888;cursor:pointer}
-.c-tab.active{color:#fff;border-bottom:2px solid var(--green)}
-.chart-controls{display:flex;justify-content:space-between;align-items:center;padding:0 10px;height:35px;background:#1a1a1a}
-.ctrl-legends{display:flex;gap:14px;font-size:11px;color:#aaa}
+.c-tab{
+  flex:1;text-align:center;padding:8px;
+  font-size:11px;color:#888;
+  cursor:pointer;
+}
+.c-tab.active{
+  color:#fff;
+  border-bottom:2px solid var(--green);
+}
+.chart-controls{
+  display:flex;justify-content:space-between;
+  align-items:center;
+  padding:0 10px;
+  height:35px;
+  background:#1a1a1a;
+}
+.ctrl-legends{
+  display:flex;
+  gap:14px;
+  font-size:11px;
+  color:#aaa;
+}
 .chart-content{flex:1;position:relative}
-.chart-div{position:absolute;top:0;left:0;width:100%;height:100%;display:none}
+.chart-div{
+  position:absolute;
+  top:0;left:0;
+  width:100%;height:100%;
+  display:none;
+}
 .chart-div.visible{display:block}
 
-/* ================= LOCKED: RIGHT PANEL ================= */
+/* =========================
+   LOCKED: RIGHT PANEL
+   ========================= */
 .split-header{display:flex;border-bottom:1px solid var(--border)}
-.split-half{flex:1;padding:0;display:flex;flex-direction:column}
-.panel-title{font-size:10px;color:#888;font-weight:bold;padding:8px}
+.split-half{flex:1;display:flex;flex-direction:column}
+.panel-title{
+  font-size:10px;
+  color:#888;
+  font-weight:bold;
+  padding:8px 10px;
+}
 
-/* ================= LOCKED: OPTIONS TABLE ================= */
-.table-toolbar{display:flex;align-items:center;height:45px;background:#1a1a1a;border-bottom:1px solid var(--border)}
-.tool-tab{background:#252525;color:#888;border:1px solid #333;padding:5px 12px;border-radius:4px;font-size:11px;cursor:pointer}
+/* =========================
+   LOCKED: OPTIONS TABLE
+   ========================= */
+.table-toolbar{
+  display:flex;align-items:center;
+  height:45px;
+  background:#1a1a1a;
+  border-bottom:1px solid var(--border);
+}
+.tool-tab{
+  background:#252525;color:#888;
+  border:1px solid #333;
+  padding:5px 12px;
+  border-radius:4px;
+  font-size:11px;
+  cursor:pointer;
+}
 .tool-tab.active{color:#fff;border-color:var(--blue)}
 .table-wrapper{flex:1;overflow-y:auto}
 table{width:100%;border-collapse:collapse;font-size:11px}
-th{position:sticky;top:0;background:#111;color:#666;font-size:9px;padding:8px}
-td{padding:5px;text-align:center;border-bottom:1px solid #222}
-.strike-cell{background:#181818;font-weight:bold;position:sticky;left:0}
+th{
+  position:sticky;top:0;
+  background:#111;color:#666;
+  font-size:9px;
+  padding:8px;
+}
+td{
+  padding:5px;
+  border-bottom:1px solid #222;
+  text-align:center;
+}
+.strike-cell{
+  background:#181818;
+  font-weight:bold;
+  position:sticky;left:0;
+}
 .atm-row td{background:#2a2a2a}
-.quote-ticker{height:30px;background:#080808;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px}
-
-/* ================= END LOCKED CSS ================= */
-
+.quote-ticker{
+  height:30px;
+  background:#080808;
+  border-top:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:11px;
+}
 </style>
 </head>
 
@@ -116,9 +216,20 @@ td{padding:5px;text-align:center;border-bottom:1px solid #222}
 
 <!-- ================= LOCKED: PRICE STRIP ================= -->
 <div class="price-strip">
-  <div class="p-group"><span class="p-label">SPOT</span><div class="p-val">26,150</div></div>
-  <div class="p-group"><span class="p-label">ASSET</span><select class="asset-select"><option>NIFTY</option></select></div>
-  <div class="p-group"><span class="p-label">FUT</span><div class="p-val">26,187</div></div>
+  <div class="p-group">
+    <span class="p-label">SPOT PRICE</span>
+    <div class="p-val">26,150</div>
+    <div class="p-change up">+45 (0.17%)</div>
+  </div>
+  <div class="p-group">
+    <span class="p-label">ASSET</span>
+    <select class="asset-select"><option>NIFTY 50</option></select>
+  </div>
+  <div class="p-group">
+    <span class="p-label">FUT PRICE</span>
+    <div class="p-val">26,187</div>
+    <div class="p-change up">+37 (0.14%)</div>
+  </div>
 </div>
 
 <!-- ================= UNLOCKED: CHART WINDOW ================= -->
@@ -126,7 +237,7 @@ td{padding:5px;text-align:center;border-bottom:1px solid #222}
   <div class="chart-tabs">
     <div class="c-tab active" onclick="switchTab('trend',this)">Intraday IV & RV</div>
     <div class="c-tab" onclick="switchTab('skew',this)">Skew</div>
-    <div class="c-tab" onclick="switchTab('term',this)">Term</div>
+    <div class="c-tab" onclick="switchTab('term',this)">Term Structure</div>
   </div>
   <div class="chart-controls">
     <div class="ctrl-legends" id="chartLegend"></div>
@@ -147,41 +258,57 @@ td{padding:5px;text-align:center;border-bottom:1px solid #222}
 <div class="split-header">
   <div class="split-half">
     <span class="panel-title">IV & RV</span>
-    <div id="trend-mini" style="flex:1"></div>
+    <div id="chart-trend-mini" style="flex:1"></div>
   </div>
 </div>
 
 <!-- ================= LOCKED: OPTIONS CHAIN ================= -->
 <div class="table-toolbar">
-  <div class="tool-tab active">26 Dec</div>
+  <div class="tool-tab active">26 Dec (Wk)</div>
 </div>
+
 <div class="table-wrapper">
 <table>
-<thead><tr><th>GAMMA</th><th>VEGA</th><th>THETA</th><th>DELTA</th><th>IV</th><th>STRIKE</th><th>IV</th><th>DELTA</th><th>THETA</th><th>VEGA</th><th>GAMMA</th></tr></thead>
+<thead>
+<tr>
+<th>GAMMA</th><th>VEGA</th><th>THETA</th><th>DELTA</th><th>IV%</th>
+<th>STRIKE</th>
+<th>IV%</th><th>DELTA</th><th>THETA</th><th>VEGA</th><th>GAMMA</th>
+</tr>
+</thead>
 <tbody id="tableBody"></tbody>
 </table>
 </div>
 
-<div class="quote-ticker">"He who has a why to live can bear almost any how."</div>
+<div class="quote-ticker">
+"He who has a why to live can bear almost any how." – Friedrich Nietzsche
+</div>
 
 </div>
 </div>
 
 <script>
 
-/* ================= CHART MODULE: INTRADAY IV RV ================= */
+/* ============================================================
+   CHART MODULE 1: INTRADAY IV & RV (FULL TIMELINE)
+   ============================================================ */
 (function(){
   const times=[];
   for(let h=9,m=15;h<15||(h===15&&m<=30);){
     times.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
-    m+=5;if(m>=60){m=0;h++;}
+    m+=5; if(m>=60){m=0;h++;}
   }
 
+  const wkIV=times.map((_,i)=>i<12?12.2+i*0.05:null);
+  const moIV=times.map((_,i)=>i<12?14.0+i*0.04:null);
+  const wkRV=times.map((_,i)=>i<12?10.5:null);
+  const moRV=times.map((_,i)=>i<12?11.0:null);
+
   Plotly.newPlot('chart-trend',[
-    {x:times,y:times.map((_,i)=>i<10?12+i*.05:null),name:'Weekly IV',mode:'lines',line:{color:'#FF9800'}},
-    {x:times,y:times.map((_,i)=>i<10?14+i*.04:null),name:'Monthly IV',mode:'lines',line:{color:'#FF9800',width:3}},
-    {x:times,y:times.map((_,i)=>i<10?10.5:null),name:'Weekly RV',mode:'lines',line:{color:'#42A5F5',dash:'dot'}},
-    {x:times,y:times.map((_,i)=>i<10?11:null),name:'Monthly RV',mode:'lines',line:{color:'#42A5F5',dash:'dash'}}
+    {x:times,y:wkIV,name:'Weekly IV',mode:'lines',line:{color:'#FF9800'}},
+    {x:times,y:moIV,name:'Monthly IV',mode:'lines',line:{color:'#FF9800',width:3}},
+    {x:times,y:wkRV,name:'Weekly RV',mode:'lines',line:{color:'#42A5F5',dash:'dot'}},
+    {x:times,y:moRV,name:'Monthly RV',mode:'lines',line:{color:'#42A5F5',dash:'dash'}}
   ],{
     title:'Intraday IV & RV Trend',
     paper_bgcolor:'rgba(0,0,0,0)',
@@ -192,15 +319,24 @@ td{padding:5px;text-align:center;border-bottom:1px solid #222}
   },{displayModeBar:false});
 })();
 
-/* ================= CHART MODULE: SKEW ================= */
+/* ============================================================
+   CHART MODULE 2: SKEW
+   ============================================================ */
 (function(){
   const strikes=[25900,26000,26100,26200,26300,26400];
   Plotly.newPlot('chart-skew',[
-    {x:strikes,y:[1,0.5,0,-0.3,-0.6,-1],type:'bar',opacity:.5,name:'Skew',marker:{color:'#444'}},
+    {
+      x:strikes,
+      y:[1,0.6,0,-0.4,-0.8,-1.2],
+      type:'bar',
+      name:'Skew',
+      opacity:0.5,
+      marker:{color:'#444'}
+    },
     {x:strikes,y:[12,12.2,12.4,12.6,12.9,13.2],mode:'lines',name:'Weekly ATM Call',line:{color:'#00E676'}},
-    {x:strikes,y:[14,13.8,13.5,13.2,13,12.8],mode:'lines',name:'Weekly ATM Put',line:{color:'#FF5252'}},
-    {x:strikes,y:[13,13.2,13.5,13.8,14,14.4],mode:'lines',name:'Monthly ATM Call',line:{color:'#00E676',dash:'dot'}},
-    {x:strikes,y:[15,14.6,14.2,14,13.8,13.6],mode:'lines',name:'Monthly ATM Put',line:{color:'#FF5252',dash:'dot'}}
+    {x:strikes,y:[14,13.8,13.5,13.2,13.0,12.8],mode:'lines',name:'Weekly ATM Put',line:{color:'#FF5252'}},
+    {x:strikes,y:[13,13.2,13.5,13.8,14.1,14.5],mode:'lines',name:'Monthly ATM Call',line:{color:'#00E676',dash:'dot'}},
+    {x:strikes,y:[15,14.6,14.2,14.0,13.8,13.6],mode:'lines',name:'Monthly ATM Put',line:{color:'#FF5252',dash:'dot'}}
   ],{
     barmode:'overlay',
     paper_bgcolor:'rgba(0,0,0,0)',
@@ -210,11 +346,13 @@ td{padding:5px;text-align:center;border-bottom:1px solid #222}
   },{displayModeBar:false});
 })();
 
-/* ================= CHART MODULE: TERM STRUCTURE ================= */
+/* ============================================================
+   CHART MODULE 3: TERM STRUCTURE
+   ============================================================ */
 (function(){
   Plotly.newPlot('chart-term',[
-    {x:['Dec','Jan','Feb'],y:[12.8,14.5,15.2],mode:'lines+markers',name:'Weekly',line:{color:'#FF9800'}},
-    {x:['Dec','Jan','Feb'],y:[14.2,15.5,16.3],mode:'lines+markers',name:'Monthly',line:{color:'#42A5F5'}}
+    {x:['Dec','Jan','Feb','Mar'],y:[12.8,14.5,15.2,15.8],mode:'lines+markers',name:'Weekly',line:{color:'#FF9800'}},
+    {x:['Dec','Jan','Feb','Mar'],y:[14.2,15.5,16.3,17.0],mode:'lines+markers',name:'Monthly',line:{color:'#42A5F5'}}
   ],{
     paper_bgcolor:'rgba(0,0,0,0)',
     plot_bgcolor:'rgba(0,0,0,0)',
@@ -231,19 +369,20 @@ function switchTab(name,el){
   document.getElementById('chart-'+name).classList.add('visible');
 }
 
-/* ================= LOCKED: TABLE INIT ================= */
+/* ================= LOCKED: TABLE MOCK ================= */
 (function(){
+  const atm=26200;
   let html='';
   for(let i=-5;i<=5;i++){
-    html+=`<tr class="${i===0?'atm-row':''}">
-      <td>0.003</td><td>14</td><td>-12</td><td>0.5</td><td>12.4</td>
-      <td class="strike-cell">${26200+i*50}</td>
-      <td>12.9</td><td>-0.5</td><td>-12</td><td>14</td><td>0.003</td>
+    html+=`
+    <tr class="${i===0?'atm-row':''}">
+      <td>0.003</td><td>14</td><td>-12</td><td>0.52</td><td>12.4</td>
+      <td class="strike-cell">${atm+i*50}</td>
+      <td>12.9</td><td>-0.48</td><td>-12</td><td>14</td><td>0.003</td>
     </tr>`;
   }
   document.getElementById('tableBody').innerHTML=html;
 })();
-
 </script>
 </body>
 </html>
