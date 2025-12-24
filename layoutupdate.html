@@ -1,655 +1,617 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V25</title>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <style>
-        /* --- 1. LOCKED THEME --- */
-        :root { 
-            --bg: #0b0b0b; --card: #121212; --text: #e0e0e0; --border: #252525; 
-            --green: #00E676; --red: #FF5252; --orange: #FF9800; --blue: #42A5F5; 
-            --gold: #FFD700; --muted: #666;
-            --heat-low: rgba(255, 255, 255, 0.02); --heat-med: rgba(255, 255, 255, 0.08); --heat-high: rgba(255, 255, 255, 0.15);
-        }
-        * { box-sizing: border-box; }
-        body { 
-            background: var(--bg); color: var(--text); 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0; padding: 10px; min-height: 100vh; display: flex; flex-direction: column;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IndIV Monitor V25</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+/* --- 1. LOCKED THEME --- */
+:root {
+--bg: #0b0b0b; --card: #121212; --text: #e0e0e0; --border: #252525;
+--green: #00E676; --red: #FF5252; --orange: #FF9800; --blue: #42A5F5;
+--gold: #FFD700; --muted: #666;
+--heat-low: rgba(255, 255, 255, 0.02); --heat-med: rgba(255, 255, 255, 0.08); --heat-high: rgba(255, 255, 255, 0.15);
+}
+* { box-sizing: border-box; }
+body {
+background: var(--bg); color: var(--text);
+font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+margin: 0; padding: 10px; min-height: 100vh; display: flex; flex-direction: column;
+}
+    /* --- 2. LOCKED HEADER --- */
+    .header-row { 
+        display: flex; align-items: center; justify-content: space-between; 
+        padding: 0 10px 10px; border-bottom: 1px solid var(--border); height: 50px; flex-shrink: 0; 
+    }
+    .header-left { display: flex; align-items: baseline; }
+    .header-right { display: flex; align-items: center; gap: 20px; }
+    h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; color: #fff; }
+    .sub-title { font-size: 0.9rem; font-weight: 400; color: #888; margin-left: 10px; }
+    .help-btn { color: #fff; text-decoration: none; border: 1px solid #fff; padding: 5px 12px; border-radius: 4px; font-weight: 600; font-size: 12px; transition: 0.2s; background: rgba(255,255,255,0.1); }
+    .help-btn:hover { background: #fff; color: #000; }
+    .status-badge { background: #1a1a1a; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; color: var(--green); font-weight: bold; font-size: 11px; }
+    @media (max-width: 600px) { .sub-title { display: none; } }
 
-        /* --- 2. LOCKED HEADER --- */
-        .header-row { 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 10px 10px; border-bottom: 1px solid var(--border); height: 50px; flex-shrink: 0; 
-        }
-        .header-left { display: flex; align-items: baseline; }
-        .header-right { display: flex; align-items: center; gap: 20px; }
-        h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; color: #fff; }
-        .sub-title { font-size: 0.9rem; font-weight: 400; color: #888; margin-left: 10px; }
-        .help-btn { color: #fff; text-decoration: none; border: 1px solid #fff; padding: 5px 12px; border-radius: 4px; font-weight: 600; font-size: 12px; transition: 0.2s; background: rgba(255,255,255,0.1); }
-        .help-btn:hover { background: #fff; color: #000; }
-        .status-badge { background: #1a1a1a; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; color: var(--green); font-weight: bold; font-size: 11px; }
-        @media (max-width: 600px) { .sub-title { display: none; } }
+    /* --- 3. LAYOUT --- */
+    .container { display: flex; gap: 15px; flex: 1; margin-top: 15px; flex-wrap: wrap; overflow: visible; }
+    .left-panel { flex: 1 1 450px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .right-panel { flex: 1 1 550px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; min-width: 0; }
 
-        /* --- 3. LAYOUT --- */
-        .container { display: flex; gap: 15px; flex: 1; margin-top: 15px; flex-wrap: wrap; overflow: visible; }
-        .left-panel { flex: 1 1 450px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-        .right-panel { flex: 1 1 550px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; min-width: 0; }
+    /* --- 4. LOCKED PRICE STRIP --- */
+    .price-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--card); border: 1px solid var(--border); padding: 10px; border-radius: 4px; align-items: center; }
+    .p-group { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .p-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .p-val { font-size: 1.4rem; font-weight: 700; color: #fff; line-height: 1; }
+    .p-change { font-size: 0.85rem; font-weight: 500; margin-top: 4px; }
+    .up { color: var(--green); } .down { color: var(--red); }
+    .asset-select { background: #222; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; width: 90%; }
 
-        /* --- 4. LOCKED PRICE STRIP --- */
-        .price-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--card); border: 1px solid var(--border); padding: 10px; border-radius: 4px; align-items: center; }
-        .p-group { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .p-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-        .p-val { font-size: 1.4rem; font-weight: 700; color: #fff; line-height: 1; }
-        .p-change { font-size: 0.85rem; font-weight: 500; margin-top: 4px; }
-        .up { color: var(--green); } .down { color: var(--red); }
-        .asset-select { background: #222; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; width: 90%; }
+    /* --- 5. LOCKED GRID --- */
+    .section-header { border-bottom: 2px solid #222; padding-bottom: 4px; margin-bottom: 6px; }
+    .sec-title { font-size: 13px; font-weight: 800; color: #ddd; letter-spacing: 0.5px; }
+    .t-week { color: var(--orange); } .t-month { color: var(--orange); } 
 
-        /* --- 5. LOCKED GRID --- */
-        .section-header { border-bottom: 2px solid #222; padding-bottom: 4px; margin-bottom: 6px; }
-        .sec-title { font-size: 13px; font-weight: 800; color: #ddd; letter-spacing: 0.5px; }
-        .t-week { color: var(--orange); } .t-month { color: var(--orange); } 
+    .data-grid-6 { 
+        display: grid; gap: 6px;
+        grid-template-columns: 2fr 2fr 0.2fr 2.5fr 2fr 1.5fr; 
+        grid-template-rows: 65px 65px; 
+        grid-template-areas: "c_p c_iv sp std_p std_iv rnk1" "p_p p_iv sp std_p rv rnk2";
+    }
+    @media (max-width: 600px) { .data-grid-6 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: auto; grid-template-areas: "std_p std_p std_p" "c_p p_p rnk1" "c_iv p_iv rnk2" "std_iv rv ."; } }
+    .area-cp { grid-area: c_p; } .area-civ { grid-area: c_iv; } .area-pp { grid-area: p_p; } .area-piv { grid-area: p_iv; }
+    .area-sp { grid-area: sp; } .area-stdp { grid-area: std_p; } .area-stdiv { grid-area: std_iv; } .area-rv { grid-area: rv; }
+    .area-rnk1 { grid-area: rnk1; } .area-rnk2 { grid-area: rnk2; }
 
-        .data-grid-6 { 
-            display: grid; gap: 6px;
-            grid-template-columns: 2fr 2fr 0.2fr 2.5fr 2fr 1.5fr; 
-            grid-template-rows: 65px 65px; 
-            grid-template-areas: "c_p c_iv sp std_p std_iv rnk1" "p_p p_iv sp std_p rv rnk2";
-        }
-        @media (max-width: 600px) { .data-grid-6 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: auto; grid-template-areas: "std_p std_p std_p" "c_p p_p rnk1" "c_iv p_iv rnk2" "std_iv rv ."; } }
-        .area-cp { grid-area: c_p; } .area-civ { grid-area: c_iv; } .area-pp { grid-area: p_p; } .area-piv { grid-area: p_iv; }
-        .area-sp { grid-area: sp; } .area-stdp { grid-area: std_p; } .area-stdiv { grid-area: std_iv; } .area-rv { grid-area: rv; }
-        .area-rnk1 { grid-area: rnk1; } .area-rnk2 { grid-area: rnk2; }
+    .d-box { background: var(--card); border: 1px solid var(--border); padding: 4px; text-align: center; display: flex; flex-direction: column; justify-content: center; position: relative; }
+    .box-straddle-anchor { background: #191919; border-color:#444; z-index: 2; }
+    .d-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; }
+    .d-val { font-size: 1.1rem; font-weight: 600; color: #fff; }
+    .d-chg { font-size: 0.75rem; margin-top: 1px; }
+    .iv-val { font-family: 'Courier New', monospace; font-weight: 700; font-size: 1.1rem; }
+    .c-g { color: var(--green); } .c-r { color: var(--red); }
 
-        .d-box { background: var(--card); border: 1px solid var(--border); padding: 4px; text-align: center; display: flex; flex-direction: column; justify-content: center; position: relative; }
-        .box-straddle-anchor { background: #191919; border-color:#444; z-index: 2; }
-        .d-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; }
-        .d-val { font-size: 1.1rem; font-weight: 600; color: #fff; }
-        .d-chg { font-size: 0.75rem; margin-top: 1px; }
-        .iv-val { font-family: 'Courier New', monospace; font-weight: 700; font-size: 1.1rem; }
-        .c-g { color: var(--green); } .c-r { color: var(--red); }
+    .d-box-rank { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .rank-header { font-size: 13px; font-weight: bold; color: #fff; line-height: 1; }
+    .rank-row { display: flex; gap: 2px; }
+    .rank-sq { width: 10px; height: 6px; background: #333; border-radius: 1px; }
+    .r-low.on { background: #00E676; } .r-mid.on { background: #FFC107; } .r-high.on { background: #FF5252; }
 
-        .d-box-rank { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
-        .rank-header { font-size: 13px; font-weight: bold; color: #fff; line-height: 1; }
-        .rank-row { display: flex; gap: 2px; }
-        .rank-sq { width: 10px; height: 6px; background: #333; border-radius: 1px; }
-        .r-low.on { background: #00E676; } .r-mid.on { background: #FFC107; } .r-high.on { background: #FF5252; }
+    /* --- 6. CHART WINDOW (EXPANDED) --- */
+    .chart-window { 
+        background: var(--card); border: 1px solid var(--border); border-radius: 4px; 
+        display: flex; flex-direction: column; 
+        flex: 1; 
+        min-height: 350px; 
+    }
+    .chart-tabs { display: flex; border-bottom: 1px solid var(--border); background: #181818; }
+    .c-tab { flex: 1; text-align: center; padding: 8px; font-size: 11px; cursor: pointer; color: #888; border-right: 1px solid var(--border); font-weight: 600; }
+    .c-tab:hover { color: #fff; background: #222; }
+    .c-tab.active { color: #fff; background: var(--card); border-bottom: 2px solid var(--green); }
 
-        /* --- 6. CHART WINDOW (EXPANDED) --- */
-        .chart-window { 
-            background: var(--card); border: 1px solid var(--border); border-radius: 4px; 
-            display: flex; flex-direction: column; 
-            flex: 1; 
-            min-height: 350px; 
-        }
-        .chart-tabs { display: flex; border-bottom: 1px solid var(--border); background: #181818; }
-        .c-tab { flex: 1; text-align: center; padding: 8px; font-size: 11px; cursor: pointer; color: #888; border-right: 1px solid var(--border); font-weight: 600; }
-        .c-tab:hover { color: #fff; background: #222; }
-        .c-tab.active { color: #fff; background: var(--card); border-bottom: 2px solid var(--green); }
+    .chart-controls { display: flex; align-items: center; justify-content: space-between; padding: 0 10px; background: #1a1a1a; border-bottom: 1px solid #333; height: 35px; }
+    .ctrl-legends { display: flex; gap: 12px; font-size: 10px; color: #aaa; align-items: center; }
+    .ctrl-inputs { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #aaa; }
 
-        .chart-controls { display: flex; align-items: center; justify-content: space-between; padding: 0 10px; background: #1a1a1a; border-bottom: 1px solid #333; height: 35px; }
-        .ctrl-legends { display: flex; gap: 12px; font-size: 10px; color: #aaa; align-items: center; }
-        .ctrl-inputs { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #aaa; }
+    .svg-icon { vertical-align: middle; margin-right: 4px; }
 
-        .svg-icon { vertical-align: middle; margin-right: 4px; }
+    .chart-content { position: relative; flex: 1; width: 100%; overflow: hidden; }
+    .chart-div { position: absolute; top:0; left:0; width: 100%; height: 100%; display: none; } 
+    .chart-div.visible { display: block; }
 
-        .chart-content { position: relative; flex: 1; width: 100%; overflow: hidden; }
-        .chart-div { position: absolute; top:0; left:0; width: 100%; height: 100%; display: none; } 
-        .chart-div.visible { display: block; }
+    #chart-surf.visible { display: flex !important; width: 100%; height: 100%; }
+    .surf-half { flex: 1; height: 100%; position: relative; min-width: 0; border-right: 1px solid #222; }
+    .surf-half:last-child { border-right: none; }
 
-        #chart-surf.visible { display: flex !important; width: 100%; height: 100%; }
-        .surf-half { flex: 1; height: 100%; position: relative; min-width: 0; border-right: 1px solid #222; }
-        .surf-half:last-child { border-right: none; }
+    /* --- 7. LOCKED RIGHT PANEL --- */
+    .split-header { display: flex; min-height: 210px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .split-half { flex: 1 1 300px; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
+    .split-half:last-child { border-right: none; }
+    .panel-title { font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; padding: 8px 10px 0; display: flex; align-items: center; justify-content: space-between; }
+    .legend-row { display: flex; gap: 15px; font-weight: normal; text-transform: none; }
+    .leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
+    .line-box { width: 20px; height: 0; border-top-style: solid; }
+    .l-thin { border-top-width: 1px; border-color: #FF9800; } .l-thick { border-top-width: 3px; border-color: #FF9800; }
+    .l-dot { border-top-width: 1px; border-color: #42A5F5; border-top-style: dotted; } .l-dash { border-top-width: 2px; border-color: #42A5F5; border-top-style: dashed; }
 
-        /* --- 7. LOCKED RIGHT PANEL --- */
-        .split-header { display: flex; min-height: 210px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-        .split-half { flex: 1 1 300px; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
-        .split-half:last-child { border-right: none; }
-        .panel-title { font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; padding: 8px 10px 0; display: flex; align-items: center; justify-content: space-between; }
-        .legend-row { display: flex; gap: 15px; font-weight: normal; text-transform: none; }
-        .leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
-        .line-box { width: 20px; height: 0; border-top-style: solid; }
-        .l-thin { border-top-width: 1px; border-color: #FF9800; } .l-thick { border-top-width: 3px; border-color: #FF9800; }
-        .l-dot { border-top-width: 1px; border-color: #42A5F5; border-top-style: dotted; } .l-dash { border-top-width: 2px; border-color: #42A5F5; border-top-style: dashed; }
+    .sd-container { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px; }
+    .sd-header { font-size: 11px; color: var(--orange); margin-bottom: 8px; font-weight: bold; text-align: center; }
+    .sd-footer { font-size: 11px; color: var(--orange); margin-top: 8px; font-weight: bold; text-align: center; } 
+    .exp-table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 0 auto; }
+    .exp-table th { text-align: center; padding: 4px; color: #666; font-weight: normal; border-bottom: 1px solid #333; background: #161616; font-size: 10px; }
+    .exp-table td { padding: 5px; border-bottom: 1px solid #222; font-weight: bold; text-align: center; }
+    .range-pill { background: #222; border: 1px solid #444; padding: 2px 6px; border-radius: 3px; font-family: monospace; color: var(--gold); }
 
-        .sd-container { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px; }
-        .sd-header { font-size: 11px; color: var(--orange); margin-bottom: 8px; font-weight: bold; text-align: center; }
-        .sd-footer { font-size: 11px; color: var(--orange); margin-top: 8px; font-weight: bold; text-align: center; } 
-        .exp-table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 0 auto; }
-        .exp-table th { text-align: center; padding: 4px; color: #666; font-weight: normal; border-bottom: 1px solid #333; background: #161616; font-size: 10px; }
-        .exp-table td { padding: 5px; border-bottom: 1px solid #222; font-weight: bold; text-align: center; }
-        .range-pill { background: #222; border: 1px solid #444; padding: 2px 6px; border-radius: 3px; font-family: monospace; color: var(--gold); }
+    .table-toolbar { display: flex; height: 45px; border-bottom: 1px solid var(--border); background: #1a1a1a; align-items: center; padding: 0 10px; gap: 15px; }
+    .toolbar-expiries { flex: 1; display: flex; gap: 8px; align-items: center; overflow-x: auto; white-space: nowrap; scrollbar-width: none; padding-right: 10px; height: 100%; }
+    .toolbar-expiries::-webkit-scrollbar { display: none; } 
+    .toolbar-toggle-wrapper { flex-shrink: 0; display: flex; align-items: center; height: 100%; border-left: 1px solid #333; padding-left: 15px; }
 
-        .table-toolbar { display: flex; height: 45px; border-bottom: 1px solid var(--border); background: #1a1a1a; align-items: center; padding: 0 10px; gap: 15px; }
-        .toolbar-expiries { flex: 1; display: flex; gap: 8px; align-items: center; overflow-x: auto; white-space: nowrap; scrollbar-width: none; padding-right: 10px; height: 100%; }
-        .toolbar-expiries::-webkit-scrollbar { display: none; } 
-        .toolbar-toggle-wrapper { flex-shrink: 0; display: flex; align-items: center; height: 100%; border-left: 1px solid #333; padding-left: 15px; }
+    .tool-tab { background: #252525; color: #888; border: 1px solid #333; border-radius: 4px; padding: 5px 12px; font-size: 11px; font-weight: bold; cursor: pointer; flex-shrink: 0; transition: 0.1s; }
+    .tool-tab:hover { background: #333; color: #bbb; }
+    .tool-tab.active { background: #2b2b2b; color: #fff; border-color: var(--blue); box-shadow: 0 0 5px rgba(66, 165, 245, 0.2); }
 
-        .tool-tab { background: #252525; color: #888; border: 1px solid #333; border-radius: 4px; padding: 5px 12px; font-size: 11px; font-weight: bold; cursor: pointer; flex-shrink: 0; transition: 0.1s; }
-        .tool-tab:hover { background: #333; color: #bbb; }
-        .tool-tab.active { background: #2b2b2b; color: #fff; border-color: var(--blue); box-shadow: 0 0 5px rgba(66, 165, 245, 0.2); }
+    .table-wrapper { flex: 1; overflow-y: auto; background: var(--card); min-height: 400px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: right; table-layout: fixed; }
+    th { position: sticky; top: 0; background: #111; color: #666; padding: 8px 2px; font-weight: normal; font-size: 9px; z-index: 10; border-bottom: 1px solid #333; text-align: center; }
+    col.greeks { width: 9%; } col.strike { width: 10%; }
+    td { padding: 5px 2px; border-bottom: 1px solid #222; text-align: center; vertical-align: middle; }
+    .strike-cell { background: #181818; color: #fff; font-weight: bold; border-left: 1px solid #333; border-right: 1px solid #333; position: sticky; left: 0; z-index: 5; }
+    .heat-low { background: var(--heat-low); } .heat-med { background: var(--heat-med); color: #fff; } .heat-high { background: var(--heat-high); color: #fff; font-weight: 500; }
+    .atm-row td { background: #2a2a2a; border-top: 1px solid #555; }
+    .atm-row .strike-cell { color: var(--gold); border-left: 2px solid var(--gold); }
+    .quote-ticker { height: 30px; background: #080808; border-top: 1px solid var(--border); color: #fff; font-weight: bold; font-size: 11px; font-style: italic; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; }
+</style>
 
-        .table-wrapper { flex: 1; overflow-y: auto; background: var(--card); min-height: 400px; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: right; table-layout: fixed; }
-        th { position: sticky; top: 0; background: #111; color: #666; padding: 8px 2px; font-weight: normal; font-size: 9px; z-index: 10; border-bottom: 1px solid #333; text-align: center; }
-        col.greeks { width: 9%; } col.strike { width: 10%; }
-        td { padding: 5px 2px; border-bottom: 1px solid #222; text-align: center; vertical-align: middle; }
-        .strike-cell { background: #181818; color: #fff; font-weight: bold; border-left: 1px solid #333; border-right: 1px solid #333; position: sticky; left: 0; z-index: 5; }
-        .heat-low { background: var(--heat-low); } .heat-med { background: var(--heat-med); color: #fff; } .heat-high { background: var(--heat-high); color: #fff; font-weight: 500; }
-        .atm-row td { background: #2a2a2a; border-top: 1px solid #555; }
-        .atm-row .strike-cell { color: var(--gold); border-left: 2px solid var(--gold); }
-        .quote-ticker { height: 30px; background: #080808; border-top: 1px solid var(--border); color: #fff; font-weight: bold; font-size: 11px; font-style: italic; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; }
-    </style>
 </head>
 <body>
+<div class="header-row">
+    <div class="header-left"><h1>IndIV <span class="sub-title">Volatility monitor for Indian markets</span></h1></div>
+    <div class="header-right"><a href="#" class="help-btn">How to use?</a><div class="status-badge">● LIVE DATA</div></div>
+</div>
 
-    <div class="header-row">
-        <div class="header-left"><h1>IndIV <span class="sub-title">Volatility monitor for Indian markets</span></h1></div>
-        <div class="header-right"><a href="#" class="help-btn">How to use?</a><div class="status-badge">● LIVE DATA</div></div>
-    </div>
+<div class="container">
+    <div class="left-panel">
+        <div class="price-strip">
+            <div class="p-group"><span class="p-label">SPOT PRICE</span><span class="p-val">26,150.00</span><div class="p-change up">+45.20 (0.17%)</div></div>
+            <div class="p-group"><span class="p-label">ASSET</span><select class="asset-select"><option>NIFTY 50</option><option>BANK NIFTY</option></select></div>
+            <div class="p-group"><span class="p-label">FUTURES PRICE</span><span class="p-val">26,187.00</span><div class="p-change up">+37.00 (0.14%)</div></div>
+        </div>
 
-    <div class="container">
-        <div class="left-panel">
-            <div class="price-strip">
-                <div class="p-group"><span class="p-label">SPOT PRICE</span><span class="p-val">26,150.00</span><div class="p-change up">+45.20 (0.17%)</div></div>
-                <div class="p-group"><span class="p-label">ASSET</span><select class="asset-select"><option>NIFTY 50</option><option>BANK NIFTY</option></select></div>
-                <div class="p-group"><span class="p-label">FUTURES PRICE</span><span class="p-val">26,187.00</span><div class="p-change up">+37.00 (0.14%)</div></div>
+        <div>
+            <div class="section-header"><span class="sec-title t-week">WEEKLY (26 DEC 2025)</span></div>
+            <div class="data-grid-6">
+                <div class="d-box area-cp"><span class="d-lbl">ATM CALL</span><div class="d-val c-g">145.20</div><div class="d-chg up">+12 (9%)</div></div>
+                <div class="d-box area-civ"><span class="d-lbl">ATM CALL IV</span><div class="iv-val c-g">12.4%</div><div class="d-chg up">+2%</div></div>
+                <div class="area-sp"></div> 
+                <div class="d-box box-straddle-anchor area-stdp"><span class="d-lbl">STRADDLE</span><div class="d-val t-week" style="font-size:1.4rem">284.50</div><div class="d-chg down">-5 (-1%)</div></div>
+                <div class="d-box area-stdiv" style="background:#191919"><span class="d-lbl">STRADDLE IV</span><div class="iv-val t-week">12.8%</div><div class="d-chg up">+0.5%</div></div>
+                <div class="d-box d-box-rank area-rnk1"><span class="rank-header">IVR 45</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><div class="rank-sq"></div></div></div>
+                <div class="d-box area-pp"><span class="d-lbl">ATM PUT</span><div class="d-val c-r">139.30</div><div class="d-chg down">-18 (-11%)</div></div>
+                <div class="d-box area-piv"><span class="d-lbl">ATM PUT IV</span><div class="iv-val c-r">13.1%</div><div class="d-chg down">-1%</div></div>
+                <div class="d-box area-rv"><span class="d-lbl">RV (5D)</span><div class="iv-val" style="color:#42A5F5">10.5%</div><div class="d-chg" style="color:#888">-0.2%</div></div>
+                <div class="d-box d-box-rank area-rnk2"><span class="rank-header">IVP 60</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div></div></div>
             </div>
+        </div>
 
-            <div>
-                <div class="section-header"><span class="sec-title t-week">WEEKLY (26 DEC 2025)</span></div>
-                <div class="data-grid-6">
-                    <div class="d-box area-cp"><span class="d-lbl">ATM CALL</span><div class="d-val c-g">145.20</div><div class="d-chg up">+12 (9%)</div></div>
-                    <div class="d-box area-civ"><span class="d-lbl">ATM CALL IV</span><div class="iv-val c-g">12.4%</div><div class="d-chg up">+2%</div></div>
-                    <div class="area-sp"></div> 
-                    <div class="d-box box-straddle-anchor area-stdp"><span class="d-lbl">STRADDLE</span><div class="d-val t-week" style="font-size:1.4rem">284.50</div><div class="d-chg down">-5 (-1%)</div></div>
-                    <div class="d-box area-stdiv" style="background:#191919"><span class="d-lbl">STRADDLE IV</span><div class="iv-val t-week">12.8%</div><div class="d-chg up">+0.5%</div></div>
-                    <div class="d-box d-box-rank area-rnk1"><span class="rank-header">IVR 45</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><div class="rank-sq"></div></div></div>
-                    <div class="d-box area-pp"><span class="d-lbl">ATM PUT</span><div class="d-val c-r">139.30</div><div class="d-chg down">-18 (-11%)</div></div>
-                    <div class="d-box area-piv"><span class="d-lbl">ATM PUT IV</span><div class="iv-val c-r">13.1%</div><div class="d-chg down">-1%</div></div>
-                    <div class="d-box area-rv"><span class="d-lbl">RV (5D)</span><div class="iv-val" style="color:#42A5F5">10.5%</div><div class="d-chg" style="color:#888">-0.2%</div></div>
-                    <div class="d-box d-box-rank area-rnk2"><span class="rank-header">IVP 60</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div></div></div>
-                </div>
+        <div class="chart-window">
+            <div class="chart-tabs">
+                <div class="c-tab active" onclick="switchTab('skew', this)">Volatility Skew</div>
+                <div class="c-tab" onclick="switchTab('term', this)">Term Structure</div>
+                <div class="c-tab" onclick="switchTab('surf', this)">Volatility Surface</div>
             </div>
-
-            <div class="chart-window">
-                <div class="chart-tabs">
-                    <div class="c-tab active" onclick="switchTab('skew', this)">Volatility Skew</div>
-                    <div class="c-tab" onclick="switchTab('term', this)">Term Structure</div>
-                    <div class="c-tab" onclick="switchTab('surf', this)">Volatility Surface</div>
-                </div>
-                <div class="chart-controls">
-                    <div class="ctrl-legends" id="dynamicLegends"></div>
-                    <div class="ctrl-inputs" id="dynamicInputs"></div>
-                </div>
-                <div class="chart-content">
-                    <div id="chart-skew" class="chart-div visible"></div>
-                    <div id="chart-term" class="chart-div"></div>
-                    <div id="chart-surf" class="chart-div">
-                        <div id="surf-money" class="surf-half"></div>
-                        <div id="surf-delta" class="surf-half"></div>
-                    </div>
-                </div>
+            <div class="chart-controls">
+                <div class="ctrl-legends" id="dynamicLegends"></div>
+                <div class="ctrl-inputs" id="dynamicInputs"></div>
             </div>
-
-            <div>
-                <div class="section-header"><span class="sec-title t-month">MONTHLY (29 JAN 2026)</span></div>
-                <div class="data-grid-6">
-                    <div class="d-box area-cp"><span class="d-lbl">ATM CALL</span><div class="d-val c-g">310.50</div><div class="d-chg up">+15 (5%)</div></div>
-                    <div class="d-box area-civ"><span class="d-lbl">CALL IV</span><div class="iv-val c-g">14.2%</div><div class="d-chg up">+1%</div></div>
-                    <div class="area-sp"></div>
-                    <div class="d-box box-straddle-anchor area-stdp"><span class="d-lbl">STRADDLE</span><div class="d-val t-month" style="font-size:1.4rem">595.00</div><div class="d-chg up">+2 (0.4%)</div></div>
-                    <div class="d-box area-stdiv" style="background:#191919"><span class="d-lbl">IV</span><div class="iv-val t-month">14.5%</div><div class="d-chg up">+0.8%</div></div>
-                    <div class="d-box d-box-rank area-rnk1"><span class="rank-header">IVR 52</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><div class="rank-sq"></div></div></div>
-                    <div class="d-box area-pp"><span class="d-lbl">ATM PUT</span><div class="d-val c-r">284.50</div><div class="d-chg down">-12 (-4%)</div></div>
-                    <div class="d-box area-piv"><span class="d-lbl">PUT IV</span><div class="iv-val c-r">14.8%</div><div class="d-chg down">-0.3%</div></div>
-                    <div class="d-box area-rv"><span class="d-lbl">RV (20D)</span><div class="iv-val" style="color:#42A5F5">11.0%</div><div class="d-chg">-</div></div>
-                    <div class="d-box d-box-rank area-rnk2"><span class="rank-header">IVP 65</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><div class="rank-sq"></div></div></div>
+            <div class="chart-content">
+                <div id="chart-skew" class="chart-div visible"></div>
+                <div id="chart-term" class="chart-div"></div>
+                <div id="chart-surf" class="chart-div">
+                    <div id="surf-money" class="surf-half"></div>
+                    <div id="surf-delta" class="surf-half"></div>
                 </div>
             </div>
         </div>
 
-        <div class="right-panel">
-            <div class="split-header">
-                <div class="split-half">
-                    <span class="panel-title">
-                        IV & RV
-                        <div class="legend-row">
-                            <div class="leg-item"><div class="line-box l-thin"></div>Wk</div>
-                            <div class="leg-item"><div class="line-box l-thick"></div>Mo</div>
-                            <div class="leg-item"><div class="line-box l-dot"></div>WkRV</div>
-                            <div class="leg-item"><div class="line-box l-dash"></div>MoRV</div>
-                        </div>
-                    </span>
-                    <div id="chart-trend" style="width:100%; height:100%"></div>
-                </div>
-                <div class="split-half">
-                    <div class="sd-container">
-                        <div class="sd-header">Weekly: based on IV 12.8% ±275 pts</div>
-                        <table class="exp-table">
-                            <thead><tr><th>Range</th><th>Lower</th><th>Upper</th></tr></thead>
-                            <tbody>
-                                <tr><td style="color:#aaa">1 SD (68%)</td><td style="color:#FF5252">25,900</td><td style="color:#00E676">26,450</td></tr>
-                                <tr><td style="color:#aaa">2 SD (95%)</td><td style="color:#FF5252">25,600</td><td style="color:#00E676">26,750</td></tr>
-                            </tbody>
-                        </table>
-                        <div class="sd-footer">Monthly: based on IV 14.2% ±580 pts</div>
-                    </div>
-                </div>
+        <div>
+            <div class="section-header"><span class="sec-title t-month">MONTHLY (29 JAN 2026)</span></div>
+            <div class="data-grid-6">
+                <div class="d-box area-cp"><span class="d-lbl">ATM CALL</span><div class="d-val c-g">310.50</div><div class="d-chg up">+15 (5%)</div></div>
+                <div class="d-box area-civ"><span class="d-lbl">CALL IV</span><div class="iv-val c-g">14.2%</div><div class="d-chg up">+1%</div></div>
+                <div class="area-sp"></div>
+                <div class="d-box box-straddle-anchor area-stdp"><span class="d-lbl">STRADDLE</span><div class="d-val t-month" style="font-size:1.4rem">595.00</div><div class="d-chg up">+2 (0.4%)</div></div>
+                <div class="d-box area-stdiv" style="background:#191919"><span class="d-lbl">IV</span><div class="iv-val t-month">14.5%</div><div class="d-chg up">+0.8%</div></div>
+                <div class="d-box d-box-rank area-rnk1"><span class="rank-header">IVR 52</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><div class="rank-sq"></div></div></div>
+                <div class="d-box area-pp"><span class="d-lbl">ATM PUT</span><div class="d-val c-r">284.50</div><div class="d-chg down">-12 (-4%)</div></div>
+                <div class="d-box area-piv"><span class="d-lbl">PUT IV</span><div class="iv-val c-r">14.8%</div><div class="d-chg down">-0.3%</div></div>
+                <div class="d-box area-rv"><span class="d-lbl">RV (20D)</span><div class="iv-val" style="color:#42A5F5">11.0%</div><div class="d-chg">-</div></div>
+                <div class="d-box d-box-rank area-rnk2"><span class="rank-header">IVP 65</span><div class="rank-row"><div class="rank-sq r-mid on"></div><div class="rank-sq r-mid on"></div><div class="rank-sq r-low on"></div><div class="rank-sq"></div><div class="rank-sq"></div></div></div>
             </div>
-
-            <div class="table-toolbar">
-                <div class="toolbar-expiries">
-                    <div class="tool-tab active" onclick="selectExpiry(this)">26 Dec (Wk)</div>
-                    <div class="tool-tab" onclick="selectExpiry(this)">02 Jan (Wk)</div>
-                    <div class="tool-tab" onclick="selectExpiry(this)">09 Jan (Wk)</div>
-                    <div class="tool-tab" onclick="selectExpiry(this)">16 Jan (Wk)</div>
-                    <div class="tool-tab" onclick="selectExpiry(this)">23 Jan (Wk)</div>
-                    <div class="tool-tab" onclick="selectExpiry(this)">30 Jan (Mo)</div>
-                </div>
-                <div class="toolbar-toggle-wrapper">
-                    <label style="color:#aaa; font-size:11px; display:flex; gap:6px; cursor:pointer">
-                        <input type="checkbox" id="majorToggle" onchange="regenerateTable(this.checked)"> Major Strikes
-                    </label>
-                </div>
-            </div>
-
-            <div class="table-wrapper">
-                <table>
-                    <colgroup><col class="greeks" span="5"><col class="strike"><col class="greeks" span="5"></colgroup>
-                    <thead>
-                        <tr><th>GAMMA</th><th>VEGA</th><th>THETA</th><th>DELTA</th><th>IV%</th><th>STRIKE</th><th>IV%</th><th>DELTA</th><th>THETA</th><th>VEGA</th><th>GAMMA</th></tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-            </div>
-            <div class="quote-ticker">"He who has a why to live can bear almost any how." – Friedrich Nietzsche</div>
         </div>
     </div>
 
+    <div class="right-panel">
+        <div class="split-header">
+            <div class="split-half">
+                <span class="panel-title">
+                    IV & RV
+                    <div class="legend-row">
+                        <div class="leg-item"><div class="line-box l-thin"></div>Wk</div>
+                        <div class="leg-item"><div class="line-box l-thick"></div>Mo</div>
+                        <div class="leg-item"><div class="line-box l-dot"></div>WkRV</div>
+                        <div class="leg-item"><div class="line-box l-dash"></div>MoRV</div>
+                    </div>
+                </span>
+                <div id="chart-trend" style="width:100%; height:100%"></div>
+            </div>
+            <div class="split-half">
+                <div class="sd-container">
+                    <div class="sd-header">Weekly: based on IV 12.8% ±275 pts</div>
+                    <table class="exp-table">
+                        <thead><tr><th>Range</th><th>Lower</th><th>Upper</th></tr></thead>
+                        <tbody>
+                            <tr><td style="color:#aaa">1 SD (68%)</td><td style="color:#FF5252">25,900</td><td style="color:#00E676">26,450</td></tr>
+                            <tr><td style="color:#aaa">2 SD (95%)</td><td style="color:#FF5252">25,600</td><td style="color:#00E676">26,750</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="sd-footer">Monthly: based on IV 14.2% ±580 pts</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-toolbar">
+            <div class="toolbar-expiries">
+                <div class="tool-tab active" onclick="selectExpiry(this)">26 Dec (Wk)</div>
+                <div class="tool-tab" onclick="selectExpiry(this)">02 Jan (Wk)</div>
+                <div class="tool-tab" onclick="selectExpiry(this)">09 Jan (Wk)</div>
+                <div class="tool-tab" onclick="selectExpiry(this)">16 Jan (Wk)</div>
+                <div class="tool-tab" onclick="selectExpiry(this)">23 Jan (Wk)</div>
+                <div class="tool-tab" onclick="selectExpiry(this)">30 Jan (Mo)</div>
+            </div>
+            <div class="toolbar-toggle-wrapper">
+                <label style="color:#aaa; font-size:11px; display:flex; gap:6px; cursor:pointer">
+                    <input type="checkbox" id="majorToggle" onchange="regenerateTable(this.checked)"> Major Strikes
+                </label>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <colgroup><col class="greeks" span="5"><col class="strike"><col class="greeks" span="5"></colgroup>
+                <thead>
+                    <tr><th>GAMMA</th><th>VEGA</th><th>THETA</th><th>DELTA</th><th>IV%</th><th>STRIKE</th><th>IV%</th><th>DELTA</th><th>THETA</th><th>VEGA</th><th>GAMMA</th></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <div class="quote-ticker">"He who has a why to live can bear almost any how." – Friedrich Nietzsche</div>
+    </div>
+</div>
 
 <script type="module">
 /* ===============================
-   MODULE: GLOBAL CONSTANTS
+MODULE: GLOBAL CONSTANTS
 ================================ */
 const PLOTLY_CONFIG = { displayModeBar: false, responsive: true, staticPlot: false };
-
-/* ===============================
-   MODULE: UI BRIDGE (REQUIRED FOR INLINE HANDLERS)
-================================ */
-window.switchTab = switchTab;
-window.toggleMonthlySkew = toggleMonthlySkew;
-window.toggleMonthlyTerm = toggleMonthlyTerm;
-window.selectExpiry = selectExpiry;
-window.regenerateTable = regenerateTable;
-
-/* ===============================
-   MODULE: MOCK DATA
-================================ */
-const mockData = {
-    strikes: Array.from({length: 21}, (_, i) => 26000 + (i * 50)),
-    skew: {
-        call: [13.5, 13.2, 13.0, 12.8, 12.6, 12.5, 12.4, 12.4, 12.5, 12.6, 12.8, 13.0, 13.3, 13.6, 13.9, 14.3, 14.7, 15.2, 15.8, 16.4, 17.0],
-        put: [15.5, 15.0, 14.6, 14.2, 13.9, 13.6, 13.4, 13.2, 13.0, 12.9, 12.8, 12.8, 12.9, 13.0, 13.2, 13.5, 13.9, 14.4, 15.0, 15.7, 16.5],
-        spread: [2.0, 1.8, 1.6, 1.4, 1.3, 1.1, 1.0, 0.8, 0.5, 0.3, 0.0, -0.2, -0.4, -0.6, -0.7, -0.8, -0.8, -0.8, -0.8, -0.7, -0.5]
-    },
-    skewMo: {
-        call: [14.5, 14.4, 14.3, 14.2, 14.1, 14.0, 14.0, 14.0, 14.1, 14.2, 14.3, 14.5, 14.7, 15.0, 15.3, 15.7, 16.1, 16.6, 17.1, 17.7, 18.3],
-        put: [16.0, 15.8, 15.6, 15.4, 15.2, 15.0, 14.8, 14.7, 14.6, 14.5, 14.5, 14.5, 14.6, 14.7, 14.9, 15.2, 15.5, 15.9, 16.4, 17.0, 17.7]
-    },
-    term: {
-        weekly: [12.8, 14.5, 15.2, 15.8, 16.2],
-        monthly: [14.5, 15.0, 15.5, 16.0, 16.5],
-        expiries: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '30 Jan']
-    },
-    // Contour Data (Matrix)
-    surfMoney: { 
-        z: [[13,12.5,13],[14,14,15],[15,15.5,16]], 
-        x: ['-10%', 'ATM', '+10%'], 
-        y: ['Dec', 'Jan', 'Feb'] 
-    },
-    surfDelta: { 
-        z: [[14,13,14],[15,15,16],[16,16,17]], 
-        x: ['20D', '50D', '80D'], 
-        y: ['Dec', 'Jan', 'Feb'] 
-    }, 
-    intraday: {
-        time: ["09:15", "10:15", "11:15", "12:15", "13:15"],
-        wk: [12.2, 12.4, 12.1, 12.5, 12.8],
-        mo: [14.1, 14.0, 14.2, 14.3, 14.4],
-        wkRv: [10.5, 10.5, 10.5, 10.5, 10.5],
-        moRv: [11.0, 11.0, 11.0, 11.0, 11.0]
-    }
+const COLORS = {
+bg: 'rgba(0,0,0,0)',
+grid: '#222',
+text: '#666',
+green: '#00E676',
+red: '#FF5252',
+orange: '#FF9800',
+blue: '#42A5F5',
+bar: '#222'
 };
-
 /* ===============================
-   MODULE: DATA ACCESS LAYER
+MODULE: MOCK DATA
+================================ */
+// Base data structures for charts and table
+const mockData = {
+spot: 26150,
+strikes: Array.from({length: 21}, (_, i) => 26000 + (i * 50)),
+skew: {
+call: [13.5, 13.2, 13.0, 12.8, 12.6, 12.5, 12.4, 12.4, 12.5, 12.6, 12.8, 13.0, 13.3, 13.6, 13.9, 14.3, 14.7, 15.2, 15.8, 16.4, 17.0],
+put: [15.5, 15.0, 14.6, 14.2, 13.9, 13.6, 13.4, 13.2, 13.0, 12.9, 12.8, 12.8, 12.9, 13.0, 13.2, 13.5, 13.9, 14.4, 15.0, 15.7, 16.5],
+spread: [2.0, 1.8, 1.6, 1.4, 1.3, 1.1, 1.0, 0.8, 0.5, 0.3, 0.0, -0.2, -0.4, -0.6, -0.7, -0.8, -0.8, -0.8, -0.8, -0.7, -0.5]
+},
+skewMo: {
+call: [14.5, 14.4, 14.3, 14.2, 14.1, 14.0, 14.0, 14.0, 14.1, 14.2, 14.3, 14.5, 14.7, 15.0, 15.3, 15.7, 16.1, 16.6, 17.1, 17.7, 18.3],
+put: [16.0, 15.8, 15.6, 15.4, 15.2, 15.0, 14.8, 14.7, 14.6, 14.5, 14.5, 14.5, 14.6, 14.7, 14.9, 15.2, 15.5, 15.9, 16.4, 17.0, 17.7]
+},
+term: {
+weekly: [12.8, 14.5, 15.2, 15.8, 16.2],
+monthly: [14.5, 15.0, 15.5, 16.0, 16.5],
+expiries: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '30 Jan']
+},
+surfMoney: {
+z: [[13,12.5,13],[14,14,15],[15,15.5,16]],
+x: ['-10%', 'ATM', '+10%'],
+y: ['Dec', 'Jan', 'Feb']
+},
+surfDelta: {
+z: [[14,13,14],[15,15,16],[16,16,17]],
+x: ['20D', '50D', '80D'],
+y: ['Dec', 'Jan', 'Feb']
+},
+intraday: {
+time: ["09:15", "10:15", "11:15", "12:15", "13:15"],
+wk: [12.2, 12.4, 12.1, 12.5, 12.8],
+mo: [14.1, 14.0, 14.2, 14.3, 14.4],
+wkRv: [10.5, 10.5, 10.5, 10.5, 10.5],
+moRv: [11.0, 11.0, 11.0, 11.0, 11.0]
+}
+};
+/* ===============================
+MODULE: DATA ACCESS LAYER
 ================================ */
 function getSmartRange(dataArrays, absoluteMode = false) {
-    let all = [];
-    dataArrays.forEach(arr => all.push(...arr));
-    const minV = Math.min(...all);
-    const maxV = Math.max(...all);
-    if (absoluteMode) return [minV - 1.0, maxV + 1.0];
-    const pad = (maxV - minV) * 0.1; 
-    return [minV - (pad||1.0), maxV + (pad||1.0)];
+let all = [];
+dataArrays.forEach(arr => all.push(...arr));
+const minV = Math.min(...all);
+const maxV = Math.max(...all);
+if (absoluteMode) return [minV - 1.0, maxV + 1.0];
+const pad = (maxV - minV) * 0.1;
+return [minV - (pad||1.0), maxV + (pad||1.0)];
 }
 const lastValText = (arr) => arr.map((v, i) => i === arr.length - 1 ? v.toFixed(1) : null);
+// Generates row data for the Greeks table
+function generateTableData(strikeStart, spot, isMajorOnly) {
+const rows = [];
+// If major only, filter strikes ending in 00 or 500, but here mock strikes are 50 steps
+// We'll just filter every 2nd strike for "Major" simulation
+const steps = Array.from({length: 40}, (_, i) => strikeStart - 1000 + (i * 50));
+steps.forEach(strike =&gt; {
+    if (isMajorOnly &amp;&amp; strike % 100 !== 0) return;
+    
+    const dist = (strike - spot) / spot;
+    const isATM = Math.abs(strike - spot) &lt; 25;
+    
+    // Mock Greeks Logic
+    rows.push({
+        strike: strike,
+        isAtm: isATM,
+        call: {
+            gamma: (0.002 - Math.abs(dist)*0.001).toFixed(4),
+            vega: (10 - Math.abs(dist)*20).toFixed(1),
+            theta: (-15 + Math.abs(dist)*5).toFixed(1),
+            delta: (0.5 - dist * 5).toFixed(2),
+            iv: (12 + Math.abs(dist)*10 + Math.random()).toFixed(1)
+        },
+        put: {
+            gamma: (0.002 - Math.abs(dist)*0.001).toFixed(4),
+            vega: (10 - Math.abs(dist)*20).toFixed(1),
+            theta: (-12 + Math.abs(dist)*5).toFixed(1),
+            delta: (-0.5 - dist * 5).toFixed(2),
+            iv: (13 + Math.abs(dist)*10 + Math.random()).toFixed(1)
+        }
+    });
+});
+return rows;
 
+}
 /* ===============================
-   MODULE: CHART – INTRADAY IV & RV
+MODULE: CHART – INTRADAY IV & RV
 ================================ */
-
 function renderIntradayChart() {
-    // --- FULL MARKET SESSION (09:15 → 15:30, 15-MIN INTERVALS) ---
-    const fullTimeAxis = [];
-    let hour = 9, minute = 15;
-
-    while (!(hour === 15 && minute === 45)) {
-        fullTimeAxis.push(
-            `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
-        );
-        minute += 15;
-        if (minute === 60) {
-            minute = 0;
-            hour++;
-        }
-    }
-
-    // --- MAP EXISTING DATA ONTO FULL AXIS ---
-    const mapToAxis = (times, values) =>
-        fullTimeAxis.map(t => {
-            const idx = times.indexOf(t);
-            return idx !== -1 ? values[idx] : null;
-        });
-
-    const wkIV = mapToAxis(mockData.intraday.time, mockData.intraday.wk);
-    const moIV = mapToAxis(mockData.intraday.time, mockData.intraday.mo);
-    const wkRV = mapToAxis(mockData.intraday.time, mockData.intraday.wkRv);
-    const moRV = mapToAxis(mockData.intraday.time, mockData.intraday.moRv);
-
-    const traces = [
-        {
-            x: fullTimeAxis,
-            y: wkIV,
-            name: 'Weekly IV',
-            type: 'scatter',
-            mode: 'lines+markers+text',
-            line: { color: '#FF9800', width: 1 },
-            text: lastValText(wkIV),
-            textposition: 'middle right'
-        },
-        {
-            x: fullTimeAxis,
-            y: moIV,
-            name: 'Monthly IV',
-            type: 'scatter',
-            mode: 'lines+markers+text',
-            line: { color: '#FF9800', width: 3 },
-            text: lastValText(moIV),
-            textposition: 'middle right'
-        },
-        {
-            x: fullTimeAxis,
-            y: wkRV,
-            name: 'Weekly RV',
-            type: 'scatter',
-            mode: 'lines+markers+text',
-            line: { color: '#42A5F5', width: 1, dash: 'dot' },
-            text: lastValText(wkRV),
-            textposition: 'middle right'
-        },
-        {
-            x: fullTimeAxis,
-            y: moRV,
-            name: 'Monthly RV',
-            type: 'scatter',
-            mode: 'lines+markers+text',
-            line: { color: '#42A5F5', width: 2, dash: 'dash' },
-            text: lastValText(moRV),
-            textposition: 'middle right'
-        }
-    ];
-
-    const layout = {
-        title: {
-            text: 'Intraday IV & RV Trend',
-            font: { size: 11, color: '#888' },
-            x: 0.5
-        },
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        font: { family: 'Segoe UI', color: '#666', size: 10 },
-        margin: { t: 25, b: 30, l: 35, r: 30 },
-        xaxis: {
-            showgrid: false,
-            fixedrange: true,
-            color: '#666'
-        },
-        yaxis: {
-            gridcolor: '#222',
-            fixedrange: true,
-            range: getSmartRange(
-                [
-                    mockData.intraday.wk,
-                    mockData.intraday.mo,
-                    mockData.intraday.wkRv,
-                    mockData.intraday.moRv
-                ],
-                true
-            )
-        },
-        dragmode: false,
-        showlegend: false
-    };
-
-    const config = {
-        displayModeBar: false,
-        responsive: true,
-        staticPlot: false
-    };
-
-    Plotly.newPlot('chart-trend', traces, layout, config);
+// Generate full time axis
+const fullTimeAxis = [];
+let h = 9, m = 15;
+while (!(h === 15 && m === 45)) {
+fullTimeAxis.push(${String(h).padStart(2,&#39;0&#39;)}:${String(m).padStart(2,&#39;0&#39;)});
+m += 15; if (m===60) { m=0; h++; }
 }
+const mapToAxis = (times, vals) =&gt; fullTimeAxis.map(t =&gt; {
+    const idx = times.indexOf(t); return idx !== -1 ? vals[idx] : null;
+});
 
-function renderSkewChart() {
-    const traces = [
-        // --- BAR: SKEW (MUST BE FIRST → BACK LAYER) ---
-        {
-            x: mockData.strikes,
-            y: mockData.skew.spread,
-            name: 'Skew',
-            type: 'bar',
-            marker: { color: '#222', opacity: 0.5 },
-            yaxis: 'y2',
-            hoverinfo: 'y'
-        },
+const wkIV = mapToAxis(mockData.intraday.time, mockData.intraday.wk);
+const moIV = mapToAxis(mockData.intraday.time, mockData.intraday.mo);
+const wkRV = mapToAxis(mockData.intraday.time, mockData.intraday.wkRv);
+const moRV = mapToAxis(mockData.intraday.time, mockData.intraday.moRv);
 
-        // --- WEEKLY LINES ---
-        {
-            x: mockData.strikes,
-            y: mockData.skew.call,
-            name: 'Weekly ATM Call',
-            type: 'scatter',
-            mode: 'lines',
-            line: { color: '#00E676' }
-        },
-        {
-            x: mockData.strikes,
-            y: mockData.skew.put,
-            name: 'Weekly ATM Put',
-            type: 'scatter',
-            mode: 'lines',
-            line: { color: '#FF5252' }
-        },
+const traces = [
+    { x: fullTimeAxis, y: wkIV, type: &#39;scatter&#39;, mode: &#39;lines+markers+text&#39;, line: {color: COLORS.orange, width: 1}, text: lastValText(wkIV), textposition: &#39;middle right&#39; },
+    { x: fullTimeAxis, y: moIV, type: &#39;scatter&#39;, mode: &#39;lines+markers+text&#39;, line: {color: COLORS.orange, width: 3}, text: lastValText(moIV), textposition: &#39;middle right&#39; },
+    { x: fullTimeAxis, y: wkRV, type: &#39;scatter&#39;, mode: &#39;lines+markers+text&#39;, line: {color: COLORS.blue, width: 1, dash: &#39;dot&#39;}, text: lastValText(wkRV), textposition: &#39;middle right&#39; },
+    { x: fullTimeAxis, y: moRV, type: &#39;scatter&#39;, mode: &#39;lines+markers+text&#39;, line: {color: COLORS.blue, width: 2, dash: &#39;dash&#39;}, text: lastValText(moRV), textposition: &#39;middle right&#39; }
+];
 
-        // --- MONTHLY LINES ---
-        {
-            x: mockData.strikes,
-            y: mockData.skewMo.call,
-            name: 'Monthly ATM Call',
-            type: 'scatter',
-            mode: 'lines',
-            line: { color: '#00E676', dash: 'dot' }
-        },
-        {
-            x: mockData.strikes,
-            y: mockData.skewMo.put,
-            name: 'Monthly ATM Put',
-            type: 'scatter',
-            mode: 'lines',
-            line: { color: '#FF5252', dash: 'dot' }
-        }
-    ];
+const layout = {
+    title: { text: &#39;Intraday IV &amp; RV Trend&#39;, font: {size: 11, color: &#39;#888&#39;}, x: 0.5 },
+    paper_bgcolor: COLORS.bg, plot_bgcolor: COLORS.bg,
+    font: { family: &#39;Segoe UI&#39;, color: COLORS.text, size: 10 },
+    margin: { t: 25, b: 30, l: 35, r: 30 },
+    xaxis: { showgrid: false, fixedrange: true, color: COLORS.text },
+    yaxis: { gridcolor: COLORS.grid, fixedrange: true, range: getSmartRange([mockData.intraday.wk, mockData.intraday.mo, mockData.intraday.wkRv, mockData.intraday.moRv], true) },
+    dragmode: false, showlegend: false
+};
 
-    const layout = {
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        font: { family: 'Segoe UI', color: '#666', size: 10 },
-        margin: { t: 10, b: 20, l: 30, r: 40 },
-        xaxis: { showgrid: false, fixedrange: true },
-        yaxis: {
-            gridcolor: '#222',
-            fixedrange: true,
-            range: getSmartRange([
-                mockData.skew.call,
-                mockData.skew.put,
-                mockData.skewMo.call
-            ])
-        },
-        yaxis2: {
-            overlaying: 'y',
-            side: 'right',
-            showgrid: false,
-            fixedrange: true
-        },
-        dragmode: false,
-        showlegend: false
-    };
+Plotly.newPlot(&#39;chart-trend&#39;, traces, layout, PLOTLY_CONFIG);
 
-    const config = {
-        displayModeBar: false,
-        responsive: true,
-        staticPlot: false
-    };
-
-    Plotly.newPlot('chart-skew', traces, layout, config);
 }
-
-function renderTermChart() {
-    const traces = [
-        {
-            x: mockData.term.expiries,
-            y: mockData.term.weekly,
-            name: 'Weekly IV',
-            type: 'scatter',
-            mode: 'lines+markers',
-            line: { color: '#FF9800', width: 2 },
-            marker: { size: 5 }
-        },
-        {
-            x: mockData.term.expiries,
-            y: mockData.term.monthly,
-            name: 'Monthly IV',
-            type: 'scatter',
-            mode: 'lines+markers',
-            line: { color: '#42A5F5', width: 2 },
-            marker: { size: 5 }
-        }
-    ];
-
-    const layout = {
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        font: { family: 'Segoe UI', color: '#666', size: 10 },
-        margin: { t: 10, b: 20, l: 30, r: 40 },
-        xaxis: { showgrid: false, fixedrange: true },
-        yaxis: {
-            gridcolor: '#222',
-            fixedrange: true,
-            range: getSmartRange([
-                mockData.term.weekly,
-                mockData.term.monthly
-            ])
-        },
-        dragmode: false,
-        showlegend: false
-    };
-
-    const config = {
-        displayModeBar: false,
-        responsive: true,
-        staticPlot: false
-    };
-
-    Plotly.newPlot('chart-term', traces, layout, config);
-}
-
-function renderSurfaceCharts() {
-    Plotly.newPlot(
-        'surf-money',
-        [{
-            z: mockData.surfMoney.z,
-            x: mockData.surfMoney.x,
-            y: mockData.surfMoney.y,
-            type: 'heatmap',
-            colorscale: 'Viridis',
-            showscale: false
-        }],
-        {
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            font: { family: 'Segoe UI', color: '#666', size: 10 },
-            margin: { t: 20, b: 20, l: 30, r: 10 },
-            xaxis: { tickfont: { size: 9 }, color: '#888', fixedrange: true },
-            yaxis: { tickfont: { size: 9 }, color: '#888', fixedrange: true },
-            title: { text: 'IV vs Moneyness', font: { size: 10 }, y: 0.95 },
-            dragmode: false
-        },
-        { displayModeBar: false, responsive: true, staticPlot: false }
-    );
-
-    Plotly.newPlot(
-        'surf-delta',
-        [{
-            z: mockData.surfDelta.z,
-            x: mockData.surfDelta.x,
-            y: mockData.surfDelta.y,
-            type: 'heatmap',
-            colorscale: 'Plasma',
-            showscale: false
-        }],
-        {
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            font: { family: 'Segoe UI', color: '#666', size: 10 },
-            margin: { t: 20, b: 20, l: 30, r: 10 },
-            xaxis: { tickfont: { size: 9 }, color: '#888', fixedrange: true },
-            yaxis: { tickfont: { size: 9 }, color: '#888', fixedrange: true },
-            title: { text: 'IV vs Delta', font: { size: 10 }, y: 0.95 },
-            dragmode: false
-        },
-        { displayModeBar: false, responsive: true, staticPlot: false }
-    );
-}
-
 /* ===============================
-   MODULE: CONTROLLER
+MODULE: CHART – VOLATILITY SKEW
+================================ */
+function renderSkewChart(showMonthly = false) {
+const traces = [
+// Bar
+{ x: mockData.strikes, y: mockData.skew.spread, name: 'Skew', type: 'bar', marker: {color: COLORS.bar, opacity: 0.5}, yaxis: 'y2', hoverinfo: 'y' },
+// Weekly
+{ x: mockData.strikes, y: mockData.skew.call, name: 'Wk Call', type: 'scatter', mode: 'lines', line: {color: COLORS.green} },
+{ x: mockData.strikes, y: mockData.skew.put, name: 'Wk Put', type: 'scatter', mode: 'lines', line: {color: COLORS.red} }
+];
+if (showMonthly) {
+    traces.push(
+        { x: mockData.strikes, y: mockData.skewMo.call, name: &#39;Mo Call&#39;, type: &#39;scatter&#39;, mode: &#39;lines&#39;, line: {color: COLORS.green, dash: &#39;dot&#39;} },
+        { x: mockData.strikes, y: mockData.skewMo.put, name: &#39;Mo Put&#39;, type: &#39;scatter&#39;, mode: &#39;lines&#39;, line: {color: COLORS.red, dash: &#39;dot&#39;} }
+    );
+}
+
+const layout = {
+    paper_bgcolor: COLORS.bg, plot_bgcolor: COLORS.bg,
+    font: { family: &#39;Segoe UI&#39;, color: COLORS.text, size: 10 },
+    margin: { t: 10, b: 20, l: 30, r: 40 },
+    xaxis: { showgrid: false, fixedrange: true },
+    yaxis: { gridcolor: COLORS.grid, fixedrange: true, range: getSmartRange([mockData.skew.call, mockData.skew.put, mockData.skewMo.call]) },
+    yaxis2: { overlaying: &#39;y&#39;, side: &#39;right&#39;, showgrid: false, fixedrange: true },
+    dragmode: false, showlegend: false
+};
+
+Plotly.newPlot(&#39;chart-skew&#39;, traces, layout, PLOTLY_CONFIG);
+
+}
+/* ===============================
+MODULE: CHART – TERM STRUCTURE
+================================ */
+function renderTermChart(showMonthly = false) {
+// Note: The "showMonthly" flag here is placeholder if we wanted to toggle data,
+// but the original mockup showed both lines by default.
+const traces = [
+{ x: mockData.term.expiries, y: mockData.term.weekly, name: 'Weekly', type: 'scatter', mode: 'lines+markers', line: {color: COLORS.orange, width: 2}, marker: {size: 5} },
+{ x: mockData.term.expiries, y: mockData.term.monthly, name: 'Monthly', type: 'scatter', mode: 'lines+markers', line: {color: COLORS.blue, width: 2}, marker: {size: 5} }
+];
+const layout = {
+    paper_bgcolor: COLORS.bg, plot_bgcolor: COLORS.bg,
+    font: { family: &#39;Segoe UI&#39;, color: COLORS.text, size: 10 },
+    margin: { t: 10, b: 20, l: 30, r: 40 },
+    xaxis: { showgrid: false, fixedrange: true },
+    yaxis: { gridcolor: COLORS.grid, fixedrange: true, range: getSmartRange([mockData.term.weekly, mockData.term.monthly]) },
+    dragmode: false, showlegend: false
+};
+
+Plotly.newPlot(&#39;chart-term&#39;, traces, layout, PLOTLY_CONFIG);
+
+}
+/* ===============================
+MODULE: CHART – VOLATILITY SURFACE
+================================ */
+function renderSurfaceCharts() {
+const commonLayout = {
+paper_bgcolor: COLORS.bg, plot_bgcolor: COLORS.bg,
+font: { family: 'Segoe UI', color: COLORS.text, size: 10 },
+margin: { t: 20, b: 20, l: 30, r: 10 },
+xaxis: { tickfont: {size: 9}, color: '#888', fixedrange: true },
+yaxis: { tickfont: {size: 9}, color: '#888', fixedrange: true },
+dragmode: false
+};
+Plotly.newPlot(&#39;surf-money&#39;, [{
+    z: mockData.surfMoney.z, x: mockData.surfMoney.x, y: mockData.surfMoney.y,
+    type: &#39;heatmap&#39;, colorscale: &#39;Viridis&#39;, showscale: false
+}], { ...commonLayout, title: {text: &#39;IV vs Moneyness&#39;, font: {size: 10}, y: 0.95} }, PLOTLY_CONFIG);
+
+Plotly.newPlot(&#39;surf-delta&#39;, [{
+    z: mockData.surfDelta.z, x: mockData.surfDelta.x, y: mockData.surfDelta.y,
+    type: &#39;heatmap&#39;, colorscale: &#39;Plasma&#39;, showscale: false
+}], { ...commonLayout, title: {text: &#39;IV vs Delta&#39;, font: {size: 10}, y: 0.95} }, PLOTLY_CONFIG);
+
+}
+/* ===============================
+MODULE: TABLE – GREEKS
+================================ */
+function renderTable(strikeCenter, isMajorOnly) {
+const tbody = document.getElementById('tableBody');
+if(!tbody) return;
+tbody.innerHTML = '';
+const rows = generateTableData(strikeCenter, mockData.spot, isMajorOnly);
+
+// Helper for heat coloring
+const getHeatClass = (val) =&gt; {
+    const v = Math.abs(parseFloat(val));
+    if(v &gt; 20) return &#39;heat-high&#39;;
+    if(v &gt; 10) return &#39;heat-med&#39;;
+    return &#39;heat-low&#39;;
+};
+
+const html = rows.map(r =&gt; {
+    const cls = r.isAtm ? &#39;atm-row&#39; : &#39;&#39;;
+    return `
+    &lt;tr class=&quot;${cls}&quot;&gt;
+        &lt;td style=&quot;color:#666&quot;&gt;${r.call.gamma}&lt;/td&gt;
+        &lt;td style=&quot;color:#888&quot;&gt;${r.call.vega}&lt;/td&gt;
+        &lt;td style=&quot;color:#FF5252&quot;&gt;${r.call.theta}&lt;/td&gt;
+        &lt;td style=&quot;color:#ccc&quot;&gt;${r.call.delta}&lt;/td&gt;
+        &lt;td class=&quot;${getHeatClass(r.call.iv)}&quot;&gt;${r.call.iv}%&lt;/td&gt;
+        &lt;td class=&quot;strike-cell&quot;&gt;${r.strike}&lt;/td&gt;
+        &lt;td class=&quot;${getHeatClass(r.put.iv)}&quot;&gt;${r.put.iv}%&lt;/td&gt;
+        &lt;td style=&quot;color:#ccc&quot;&gt;${r.put.delta}&lt;/td&gt;
+        &lt;td style=&quot;color:#FF5252&quot;&gt;${r.put.theta}&lt;/td&gt;
+        &lt;td style=&quot;color:#888&quot;&gt;${r.put.vega}&lt;/td&gt;
+        &lt;td style=&quot;color:#666&quot;&gt;${r.put.gamma}&lt;/td&gt;
+    &lt;/tr&gt;`;
+}).join(&#39;&#39;);
+
+tbody.innerHTML = html;
+
+}
+/* ===============================
+MODULE: UI CONTROLS & EVENTS
+================================ */
+// Internal State
+const appState = {
+activeTab: 'skew',
+showMonthlySkew: false,
+expiryIndex: 0,
+majorStrikes: false
+};
+function updateDynamicControls() {
+const legendContainer = document.getElementById('dynamicLegends');
+const inputContainer = document.getElementById('dynamicInputs');
+legendContainer.innerHTML = &#39;&#39;;
+inputContainer.innerHTML = &#39;&#39;;
+
+if (appState.activeTab === &#39;skew&#39;) {
+    legendContainer.innerHTML = `
+        &lt;div class=&quot;leg-item&quot;&gt;&lt;div class=&quot;line-box l-thick&quot; style=&quot;border-color:${COLORS.green}; border-top-style:solid&quot;&gt;&lt;/div&gt;Wk Call&lt;/div&gt;
+        &lt;div class=&quot;leg-item&quot;&gt;&lt;div class=&quot;line-box l-thick&quot; style=&quot;border-color:${COLORS.red}; border-top-style:solid&quot;&gt;&lt;/div&gt;Wk Put&lt;/div&gt;
+    `;
+    // Checkbox for monthly
+    const lbl = document.createElement(&#39;label&#39;);
+    lbl.style.cursor = &#39;pointer&#39;;
+    lbl.style.display = &#39;flex&#39;;
+    lbl.style.gap = &#39;4px&#39;;
+    lbl.innerHTML = `&lt;input type=&quot;checkbox&quot; ${appState.showMonthlySkew ? &#39;checked&#39; : &#39;&#39;}&gt; Monthly`;
+    lbl.querySelector(&#39;input&#39;).onchange = (e) =&gt; {
+        appState.showMonthlySkew = e.target.checked;
+        renderSkewChart(appState.showMonthlySkew);
+    };
+    inputContainer.appendChild(lbl);
+} else if (appState.activeTab === &#39;term&#39;) {
+     legendContainer.innerHTML = `
+        &lt;div class=&quot;leg-item&quot;&gt;&lt;div class=&quot;line-box l-thick&quot; style=&quot;border-color:${COLORS.orange}&quot;&gt;&lt;/div&gt;Weekly&lt;/div&gt;
+        &lt;div class=&quot;leg-item&quot;&gt;&lt;div class=&quot;line-box l-thick&quot; style=&quot;border-color:${COLORS.blue}&quot;&gt;&lt;/div&gt;Monthly&lt;/div&gt;
+    `;
+}
+
+}
+// Global Exports for Inline HTML Handlers
+window.switchTab = function(tabName, el) {
+// 1. Update Tabs
+document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
+el.classList.add('active');
+// 2. Update Visibility
+document.querySelectorAll(&#39;.chart-div&#39;).forEach(d =&gt; d.classList.remove(&#39;visible&#39;));
+const target = document.getElementById(&#39;chart-&#39; + tabName);
+if(target) target.classList.add(&#39;visible&#39;);
+
+// 3. Trigger Resize (essential for Plotly in hidden tabs)
+if(tabName === &#39;skew&#39;) Plotly.Plots.resize(&#39;chart-skew&#39;);
+if(tabName === &#39;term&#39;) Plotly.Plots.resize(&#39;chart-term&#39;);
+if(tabName === &#39;surf&#39;) { 
+    Plotly.Plots.resize(&#39;surf-money&#39;); 
+    Plotly.Plots.resize(&#39;surf-delta&#39;); 
+}
+
+// 4. Update Controls
+appState.activeTab = tabName;
+updateDynamicControls();
+
+};
+window.selectExpiry = function(el) {
+document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+el.classList.add('active');
+// Mock logic: Just re-render table with slightly different randoms
+renderTable(mockData.spot, appState.majorStrikes);
+};
+window.regenerateTable = function(isChecked) {
+appState.majorStrikes = isChecked;
+renderTable(mockData.spot, appState.majorStrikes);
+};
+/* ===============================
+MODULE: CONTROLLER
 ================================ */
 function initApp() {
-    renderIntradayChart();
-    renderSkewChart();
-    renderTermChart();
-    renderSurfaceCharts();
-    regenerateTable(false);
-}
+renderIntradayChart();
+renderSkewChart(appState.showMonthlySkew);
+renderTermChart();
+renderSurfaceCharts();
+// Initial UI Setup
+renderTable(mockData.spot, false);
+updateDynamicControls();
 
-/* ===============================
-   BOOTSTRAP
-================================ */
+}
+// Bootstrap
 initApp();
 </script>
 </body>
