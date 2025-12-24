@@ -3,19 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V19</title>
+    <title>IndIV Monitor V20 (Master)</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
-        /* --- THEME --- */
+        /* --- 1. THEME --- */
         :root { 
             --bg: #0b0b0b; --card: #121212; --text: #e0e0e0; --border: #252525; 
             --green: #00E676; --red: #FF5252; --orange: #FF9800; --blue: #42A5F5; 
             --gold: #FFD700; --muted: #666;
-            --heat-low: rgba(255, 255, 255, 0.02);
-            --heat-med: rgba(255, 255, 255, 0.08);
-            --heat-high: rgba(255, 255, 255, 0.15);
+            --heat-low: rgba(255, 255, 255, 0.02); --heat-med: rgba(255, 255, 255, 0.08); --heat-high: rgba(255, 255, 255, 0.15);
         }
-        
         * { box-sizing: border-box; }
         body { 
             background: var(--bg); color: var(--text); 
@@ -23,8 +20,11 @@
             margin: 0; padding: 10px; min-height: 100vh; display: flex; flex-direction: column;
         }
 
-        /* --- HEADER --- */
-        .header-row { padding: 0 10px 10px; border-bottom: 1px solid var(--border); height: 50px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+        /* --- 2. HEADER (Fixed Alignment) --- */
+        .header-row { 
+            display: flex; align-items: center; justify-content: space-between; /* FIXED */
+            padding: 0 10px 10px; border-bottom: 1px solid var(--border); height: 50px; flex-shrink: 0; 
+        }
         h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; color: #fff; }
         .sub-title { font-size: 0.9rem; font-weight: 400; color: #888; margin-left: 10px; }
         .help-btn { color: #fff; text-decoration: none; border: 1px solid #fff; padding: 5px 12px; border-radius: 4px; font-weight: 600; font-size: 12px; transition: 0.2s; background: rgba(255,255,255,0.1); }
@@ -32,15 +32,13 @@
         .status-badge { background: #1a1a1a; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; color: var(--green); font-weight: bold; font-size: 11px; margin-left: 20px; }
         @media (max-width: 600px) { .sub-title { display: none; } }
 
-        /* --- CONTAINER --- */
-        .container { gap: 15px; flex: 1; margin-top: 15px; flex-wrap: wrap; overflow: visible; display: flex; }
-        .left-panel { flex: 1 1 450px; gap: 12px; min-width: 0; display: flex; flex-direction: column; }
-        .right-panel { flex: 1 1 550px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; min-width: 0; display: flex; flex-direction: column; }
+        /* --- 3. LAYOUT (Fluid) --- */
+        .container { display: flex; gap: 15px; flex: 1; margin-top: 15px; flex-wrap: wrap; overflow: visible; }
+        .left-panel { flex: 1 1 450px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+        .right-panel { flex: 1 1 550px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; min-width: 0; }
 
-        /* --- LEFT PANEL --- */
-        .price-strip { 
-            display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--card); border: 1px solid var(--border); padding: 10px; border-radius: 4px; align-items: center;
-        }
+        /* --- 4. DATA BLOCKS (Locked) --- */
+        .price-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--card); border: 1px solid var(--border); padding: 10px; border-radius: 4px; align-items: center; }
         .p-group { display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .p-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
         .p-val { font-size: 1.4rem; font-weight: 700; color: #fff; line-height: 1; }
@@ -52,19 +50,8 @@
         .sec-title { font-size: 13px; font-weight: 800; color: #ddd; letter-spacing: 0.5px; }
         .t-week { color: var(--orange); } .t-month { color: var(--orange); } 
 
-        /* Grid */
-        .data-grid-6 { 
-            display: grid; gap: 6px;
-            grid-template-columns: 2fr 2fr 0.2fr 2.5fr 2fr 1.5fr; 
-            grid-template-rows: 65px 65px; 
-            grid-template-areas: "c_p c_iv sp std_p std_iv rnk1" "p_p p_iv sp std_p rv rnk2";
-        }
-        @media (max-width: 600px) {
-            .data-grid-6 {
-                grid-template-columns: 1fr 1fr 1fr; grid-template-rows: auto;
-                grid-template-areas: "std_p std_p std_p" "c_p p_p rnk1" "c_iv p_iv rnk2" "std_iv rv .";
-            }
-        }
+        .data-grid-6 { display: grid; gap: 6px; grid-template-columns: 2fr 2fr 0.2fr 2.5fr 2fr 1.5fr; grid-template-rows: 65px 65px; grid-template-areas: "c_p c_iv sp std_p std_iv rnk1" "p_p p_iv sp std_p rv rnk2"; }
+        @media (max-width: 600px) { .data-grid-6 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: auto; grid-template-areas: "std_p std_p std_p" "c_p p_p rnk1" "c_iv p_iv rnk2" "std_iv rv ."; } }
         .area-cp { grid-area: c_p; } .area-civ { grid-area: c_iv; } .area-pp { grid-area: p_p; } .area-piv { grid-area: p_iv; }
         .area-sp { grid-area: sp; } .area-stdp { grid-area: std_p; } .area-stdiv { grid-area: std_iv; } .area-rv { grid-area: rv; }
         .area-rnk1 { grid-area: rnk1; } .area-rnk2 { grid-area: rnk2; }
@@ -83,45 +70,33 @@
         .rank-sq { width: 10px; height: 6px; background: #333; border-radius: 1px; }
         .r-low.on { background: #00E676; } .r-mid.on { background: #FFC107; } .r-high.on { background: #FF5252; }
 
-        /* --- CHART WINDOW & CONTROLS --- */
+        /* --- 5. LEFT CHARTS (Fixed Layout) --- */
         .chart-window { background: var(--card); border: 1px solid var(--border); border-radius: 4px; display: flex; flex-direction: column; flex: 1; min-height: 250px; }
         .chart-tabs { display: flex; border-bottom: 1px solid var(--border); background: #181818; }
         .c-tab { flex: 1; text-align: center; padding: 8px; font-size: 11px; cursor: pointer; color: #888; border-right: 1px solid var(--border); font-weight: 600; }
         .c-tab:hover { color: #fff; background: #222; }
         .c-tab.active { color: #fff; background: var(--card); border-bottom: 2px solid var(--green); }
         
-        /* UNIFIED HEADER ROW */
-        .chart-controls { 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 10px; background: #1a1a1a; border-bottom: 1px solid #333; 
-            height: 35px; /* Fixed Height */
-        }
+        .chart-controls { display: flex; align-items: center; justify-content: space-between; padding: 0 10px; background: #1a1a1a; border-bottom: 1px solid #333; height: 35px; }
         .ctrl-legends { display: flex; gap: 10px; font-size: 10px; color: #aaa; align-items: center; }
         .ctrl-inputs { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #aaa; }
         .leg-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+        .leg-box { width: 8px; height: 8px; display: inline-block; margin-right: 4px; background: #333; border: 1px solid #555; }
         
-        .chart-content { position: relative; height: 220px; padding: 0; }
+        .chart-content { position: relative; height: 220px; width: 100%; }
         .chart-div { position: absolute; top:0; left:0; width: 100%; height: 100%; display: none; } 
         .chart-div.visible { display: block; }
 
-        /* --- RIGHT PANEL --- */
+        /* --- 6. RIGHT PANEL --- */
         .split-header { display: flex; min-height: 210px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
         .split-half { flex: 1 1 300px; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
         .split-half:last-child { border-right: none; }
-        
-        .panel-title { 
-            font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; 
-            padding: 8px 10px 0; display: flex; align-items: center; justify-content: space-between;
-        }
-        
-        /* Intraday Legends */
+        .panel-title { font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; padding: 8px 10px 0; display: flex; align-items: center; justify-content: space-between; }
         .legend-row { display: flex; gap: 15px; font-weight: normal; text-transform: none; }
         .leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
         .line-box { width: 20px; height: 0; border-top-style: solid; }
-        .l-thin { border-top-width: 1px; border-color: #FF9800; }
-        .l-thick { border-top-width: 3px; border-color: #FF9800; }
-        .l-dot { border-top-width: 1px; border-color: #42A5F5; border-top-style: dotted; }
-        .l-dash { border-top-width: 2px; border-color: #42A5F5; border-top-style: dashed; }
+        .l-thin { border-top-width: 1px; border-color: #FF9800; } .l-thick { border-top-width: 3px; border-color: #FF9800; }
+        .l-dot { border-top-width: 1px; border-color: #42A5F5; border-top-style: dotted; } .l-dash { border-top-width: 2px; border-color: #42A5F5; border-top-style: dashed; }
 
         .sd-container { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px; }
         .sd-header { font-size: 11px; color: var(--orange); margin-bottom: 8px; font-weight: bold; text-align: center; }
@@ -131,7 +106,6 @@
         .exp-table td { padding: 5px; border-bottom: 1px solid #222; font-weight: bold; text-align: center; }
         .range-pill { background: #222; border: 1px solid #444; padding: 2px 6px; border-radius: 3px; font-family: monospace; color: var(--gold); }
 
-        /* Toolbar */
         .table-toolbar { display: flex; height: 45px; border-bottom: 1px solid var(--border); background: #1a1a1a; align-items: center; padding: 0 10px; gap: 15px; }
         .toolbar-expiries { flex: 1; display: flex; gap: 8px; align-items: center; overflow-x: auto; white-space: nowrap; scrollbar-width: none; padding-right: 10px; height: 100%; }
         .toolbar-expiries::-webkit-scrollbar { display: none; } 
@@ -193,10 +167,8 @@
                     <div class="c-tab" onclick="switchTab('surf', this)">Volatility Surface</div>
                 </div>
                 <div class="chart-controls">
-                    <div class="ctrl-legends" id="dynamicLegends">
-                        </div>
-                    <div class="ctrl-inputs" id="dynamicInputs">
-                        </div>
+                    <div class="ctrl-legends" id="dynamicLegends"></div>
+                    <div class="ctrl-inputs" id="dynamicInputs"></div>
                 </div>
                 <div class="chart-content">
                     <div id="chart-skew" class="chart-div visible"></div>
@@ -281,6 +253,38 @@
     </div>
 
 <script>
+    // --- 1. MOCK DATA ENGINE (Robust) ---
+    const mockData = {
+        strikes: Array.from({length: 21}, (_, i) => 26000 + (i * 50)), // 26000 to 27000
+        skew: {
+            call: [13.5, 13.2, 13.0, 12.8, 12.6, 12.5, 12.4, 12.4, 12.5, 12.6, 12.8, 13.0, 13.3, 13.6, 13.9, 14.3, 14.7, 15.2, 15.8, 16.4, 17.0],
+            put: [15.5, 15.0, 14.6, 14.2, 13.9, 13.6, 13.4, 13.2, 13.0, 12.9, 12.8, 12.8, 12.9, 13.0, 13.2, 13.5, 13.9, 14.4, 15.0, 15.7, 16.5],
+            spread: [2.0, 1.8, 1.6, 1.4, 1.3, 1.1, 1.0, 0.8, 0.5, 0.3, 0.0, -0.2, -0.4, -0.6, -0.7, -0.8, -0.8, -0.8, -0.8, -0.7, -0.5]
+        },
+        skewMo: {
+            call: [14.5, 14.4, 14.3, 14.2, 14.1, 14.0, 14.0, 14.0, 14.1, 14.2, 14.3, 14.5, 14.7, 15.0, 15.3, 15.7, 16.1, 16.6, 17.1, 17.7, 18.3],
+            put: [16.0, 15.8, 15.6, 15.4, 15.2, 15.0, 14.8, 14.7, 14.6, 14.5, 14.5, 14.5, 14.6, 14.7, 14.9, 15.2, 15.5, 15.9, 16.4, 17.0, 17.7]
+        },
+        term: {
+            weekly: [12.8, 14.5, 15.2, 15.8, 16.2],
+            monthly: [14.5, 15.0, 15.5, 16.0, 16.5],
+            expiries: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '30 Jan']
+        },
+        surface: {
+            dec: [13.0, 12.8, 12.6, 12.4, 12.4, 12.5, 12.8],
+            jan: [14.5, 14.3, 14.1, 14.0, 14.1, 14.3, 14.5],
+            x: [-15, -10, -5, 0, 5, 10, 15] // Moneyness
+        },
+        intraday: {
+            time: ["09:15", "10:15", "11:15", "12:15", "13:15"],
+            wk: [12.2, 12.4, 12.1, 12.5, 12.8],
+            mo: [14.1, 14.0, 14.2, 14.3, 14.4],
+            wkRv: [10.5, 10.5, 10.5, 10.5, 10.5],
+            moRv: [11.0, 11.0, 11.0, 11.0, 11.0]
+        }
+    };
+
+    // --- 2. CONFIG & UTILS ---
     const cfg = { displayModeBar: false, responsive: true, staticPlot: false };
     const layoutBase = { 
         paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', 
@@ -288,11 +292,6 @@
         xaxis:{ showgrid:false, fixedrange: true }, yaxis:{ gridcolor:'#222', fixedrange: true },
         dragmode: false
     };
-
-    function selectExpiry(el) {
-        document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-    }
 
     function getSmartRange(dataArrays, absoluteMode = false) {
         let all = [];
@@ -305,62 +304,52 @@
     }
     const lastValText = (arr) => arr.map((v, i) => i === arr.length - 1 ? v.toFixed(1) : null);
 
-    // --- 1. INTRADAY ---
-    const wkIV = [12.2, 12.4, 12.1, 12.5, 12.8];
-    const moIV = [14.1, 14.0, 14.2, 14.3, 14.4];
-    const wkRV = [10.5,10.5,10.5,10.5,10.5];
-    const moRV = [11.0,11.0,11.0,11.0,11.0];
-    const timeLabels = ["09:15", "10:15", "11:15", "12:15", "13:15"]; // Time Labels
-    const range1 = getSmartRange([wkIV, moIV, wkRV, moRV], true);
-
+    // --- 3. CHART INITIALIZATION ---
+    
+    // CHART 1: INTRADAY (Perfect V19 Logic)
+    const rangeTrend = getSmartRange([mockData.intraday.wk, mockData.intraday.mo, mockData.intraday.wkRv, mockData.intraday.moRv], true);
     Plotly.newPlot('chart-trend', [
-        { x: timeLabels, y: wkIV, name: 'Wk IV', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkIV), textposition:'middle right' },
-        { x: timeLabels, y: moIV, name: 'Mo IV', line: { color: '#FF9800', width: 3 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(moIV), textposition:'middle right' },
-        { x: timeLabels, y: wkRV, name: 'Wk RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(wkRV), textposition:'middle right' },
-        { x: timeLabels, y: moRV, name: 'Mo RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(moRV), textposition:'middle right' }
+        { x: mockData.intraday.time, y: mockData.intraday.wk, name: 'Wk', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(mockData.intraday.wk), textposition:'middle right' },
+        { x: mockData.intraday.time, y: mockData.intraday.mo, name: 'Mo', line: { color: '#FF9800', width: 3 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(mockData.intraday.mo), textposition:'middle right' },
+        { x: mockData.intraday.time, y: mockData.intraday.wkRv, name: 'WkRV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(mockData.intraday.wkRv), textposition:'middle right' },
+        { x: mockData.intraday.time, y: mockData.intraday.moRv, name: 'MoRV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(mockData.intraday.moRv), textposition:'middle right' }
+    ], { ...layoutBase, showlegend: false, xaxis:{visible:true, fixedrange:true, color:'#666', range:[0, 5.5]}, yaxis:{gridcolor:'#222', range:rangeTrend, fixedrange:true} }, cfg);
+
+    // CHART 2: SKEW (Layering Fixed: Bar First)
+    const rangeSkew = getSmartRange([mockData.skew.call, mockData.skew.put, mockData.skewMo.call, mockData.skewMo.put]);
+    Plotly.newPlot('chart-skew', [
+        { x: mockData.strikes, y: mockData.skew.spread, name: 'Spread', type: 'bar', marker: { color: '#222' }, yaxis: 'y2', hoverinfo:'y' },
+        { x: mockData.strikes, y: mockData.skew.call, name: 'Call', line: { color: '#00E676' }, type: 'scatter', mode:'lines' },
+        { x: mockData.strikes, y: mockData.skew.put, name: 'Put', line: { color: '#FF5252' }, type: 'scatter', mode:'lines' },
+        { x: mockData.strikes, y: mockData.skewMo.call, name: 'Call Mo', line: { color: '#00E676', dash:'dot' }, type: 'scatter', visible: false },
+        { x: mockData.strikes, y: mockData.skewMo.put, name: 'Put Mo', line: { color: '#FF5252', dash:'dot' }, type: 'scatter', visible: false }
     ], { 
         ...layoutBase, showlegend: false, 
-        xaxis:{visible:true, fixedrange:true, color:'#666', range:[0, 5.5]}, // Visible X-Axis
-        yaxis:{gridcolor:'#222', range:range1, fixedrange:true} 
+        yaxis: { gridcolor:'#222', range: rangeSkew, fixedrange:true }, 
+        yaxis2: { overlaying: 'y', side: 'right', showgrid: false, fixedrange:true } 
     }, cfg);
 
-    // --- 2. SKEW ---
-    const cIV = [13.5,12.6,12.4,12.8,13.8];
-    const pIV = [14.0,13.1,12.8,13.4,14.5];
-    const cIV_mo = [14.5,14.2,14.0,14.1,14.9];
-    const pIV_mo = [15.0,14.6,14.3,14.5,15.2];
-    const r2 = getSmartRange([cIV, pIV, cIV_mo, pIV_mo]);
-
-    Plotly.newPlot('chart-skew', [
-        { x: [1,2,3,4,5], y: [0.5,0.5,0.4,-0.6,-0.7], name: 'Spread', type: 'bar', marker: { color: '#222' }, yaxis: 'y2' },
-        { x: [1,2,3,4,5], y: cIV, name: 'Call', line: { color: '#00E676' }, type: 'scatter' },
-        { x: [1,2,3,4,5], y: pIV, name: 'Put', line: { color: '#FF5252' }, type: 'scatter' },
-        { x: [1,2,3,4,5], y: cIV_mo, name: 'Call Mo', line: { color: '#00E676', dash:'dot' }, type: 'scatter', visible: false },
-        { x: [1,2,3,4,5], y: pIV_mo, name: 'Put Mo', line: { color: '#FF5252', dash:'dot' }, type: 'scatter', visible: false },
-    ], { ...layoutBase, showlegend: false, yaxis: { gridcolor:'#222', range: r2, fixedrange:true }, yaxis2: { overlaying: 'y', side: 'right', showgrid: false, fixedrange:true } }, cfg);
-
-    function toggleMonthlySkew(show) { Plotly.restyle('chart-skew', { visible: show }, [3, 4]); }
-
-    // --- 3. TERM ---
-    const termWk = [12.8, 14.5, 15.2, 15.8];
-    const termMo = [14.5, 15.0, 15.5, 16.0];
-    const r3 = getSmartRange([termWk, termMo]);
-
+    // CHART 3: TERM STRUCTURE
+    const rangeTerm = getSmartRange([mockData.term.weekly, mockData.term.monthly]);
     Plotly.newPlot('chart-term', [
-        { x: ['A','B','C','D'], y: termWk, name: 'Weekly', line: { color: '#FF9800' } },
-        { x: ['A','B','C','D'], y: termMo, name: 'Monthly', line: { color: '#42A5F5' }, visible: false }
-    ], { ...layoutBase, showlegend: false, yaxis: { gridcolor:'#222', range: r3, fixedrange:true } }, cfg);
+        { x: mockData.term.expiries, y: mockData.term.weekly, name: 'Wk', line: { color: '#FF9800' }, type: 'scatter' },
+        { x: mockData.term.expiries, y: mockData.term.monthly, name: 'Mo', line: { color: '#42A5F5' }, type: 'scatter', visible: false }
+    ], { ...layoutBase, showlegend: false, yaxis: { gridcolor:'#222', range: rangeTerm, fixedrange:true } }, cfg);
 
-    function toggleMonthlyTerm(show) { Plotly.restyle('chart-term', { visible: show }, [1]); }
-
-    // --- 4. SURFACE ---
-    const r4 = getSmartRange([[13,12.4,13.5], [14,14,15]]);
+    // CHART 4: SURFACE
+    const rangeSurf = getSmartRange([mockData.surface.dec, mockData.surface.jan]);
     Plotly.newPlot('chart-surf', [
-        { x: [-10, 0, 10], y: [13, 12.4, 13.5], name: 'Dec', line: { color: '#FF9800' } },
-        { x: [-10, 0, 10], y: [14, 14.0, 15.0], name: 'Jan', line: { color: '#42A5F5' } }
-    ], { ...layoutBase, showlegend: false, margin:{l:35, r:20, t:10, b:25}, yaxis: { gridcolor:'#222', range: r4, fixedrange:true } }, cfg);
+        { x: mockData.surface.x, y: mockData.surface.dec, name: 'Dec', line: { color: '#FF9800' } },
+        { x: mockData.surface.x, y: mockData.surface.jan, name: 'Jan', line: { color: '#42A5F5' } }
+    ], { ...layoutBase, showlegend: false, margin:{l:35, r:20, t:10, b:25}, yaxis: { gridcolor:'#222', range: rangeSurf, fixedrange:true } }, cfg);
 
-    // DYNAMIC HEADER LOGIC
+
+    // --- 4. INTERACTION LOGIC ---
+    function selectExpiry(el) {
+        document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+    }
+
     function switchTab(name, tabEl) {
         document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
         tabEl.classList.add('active');
@@ -371,29 +360,54 @@
         const inp = document.getElementById('dynamicInputs');
         
         if (name === 'skew') {
-            leg.innerHTML = `<span><span class="leg-dot" style="background:#00E676"></span>Call</span><span><span class="leg-dot" style="background:#FF5252"></span>Put</span>`;
-            inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" onchange="toggleMonthlySkew(this.checked)"> Show Monthly</label>`;
+            leg.innerHTML = `<span class="leg-box"></span>Spread <span class="leg-dot" style="background:#00E676;margin-left:8px"></span>Call <span class="leg-dot" style="background:#FF5252"></span>Put <span class="leg-dot" style="background:#888; border:1px dotted #888; margin-left:8px"></span>Mo`;
+            inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" onchange="toggleTrace('chart-skew', this.checked, [3,4])"> Show Monthly</label>`;
         } else if (name === 'term') {
-            leg.innerHTML = `<span><span class="leg-dot" style="background:#FF9800"></span>Weekly</span><span><span class="leg-dot" style="background:#42A5F5"></span>Monthly</span>`;
-            inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" onchange="toggleMonthlyTerm(this.checked)"> Show Monthly</label>`;
+            leg.innerHTML = `<span class="leg-dot" style="background:#FF9800"></span>Weekly <span class="leg-dot" style="background:#42A5F5"></span>Monthly`;
+            inp.innerHTML = `<label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" onchange="toggleTrace('chart-term', this.checked, [1])"> Show Monthly</label>`;
         } else {
-            leg.innerHTML = `<span><span class="leg-dot" style="background:#FF9800"></span>Dec</span><span><span class="leg-dot" style="background:#42A5F5"></span>Jan</span>`;
+            leg.innerHTML = `<span class="leg-dot" style="background:#FF9800"></span>Dec <span class="leg-dot" style="background:#42A5F5"></span>Jan`;
             inp.innerHTML = `<label><input type="radio" name="axis" checked> Moneyness</label><label><input type="radio" name="axis"> Delta</label>`;
         }
         window.dispatchEvent(new Event('resize'));
     }
-    // Initialize Default Tab
-    switchTab('skew', document.querySelector('.c-tab.active'));
+
+    function toggleTrace(chartId, show, traceIndices) {
+        Plotly.restyle(chartId, { visible: show }, traceIndices);
+    }
 
     function regenerateTable(majorOnly) {
         const tbody = document.getElementById("tableBody");
+        const atm = 26200;
         let rows = "";
-        for(let i=0; i<10; i++) {
-            rows += `<tr class="${i==5?'atm-row':''}"><td class="heat-low">0.003</td><td>15.4</td><td style="color:#888">-14</td><td class="c-g">0.5</td><td class="c-g">12.4</td><td class="strike-cell">${26000+(i*50)}</td><td class="c-r">12.9</td><td class="c-r">-0.4</td><td style="color:#888">-14</td><td>15.4</td><td class="heat-low">0.003</td></tr>`;
+        
+        // Mock 20 Rows
+        for(let i=-10; i<=10; i++) {
+            let k = atm + (i*50);
+            if(majorOnly && k % 100 !== 0) continue;
+            
+            let isATM = k === atm;
+            let dist = Math.abs(i);
+            // Mock Greeks
+            let gamma = isATM ? 0.0035 : (0.0035 - (dist*0.0001));
+            let vega = 15 - (dist*0.2);
+            let heatG = gamma > 0.003 ? 'heat-high' : (gamma > 0.002 ? 'heat-med' : '');
+            let heatV = vega > 14 ? 'heat-high' : (vega > 12 ? 'heat-med' : '');
+
+            rows += `
+            <tr class="${isATM ? 'atm-row' : ''}">
+                <td class="${heatG}">${gamma.toFixed(4)}</td><td class="${heatV}">${vega.toFixed(1)}</td><td style="color:#888">-14.2</td><td class="c-g">0.52</td><td class="c-g" style="font-family:monospace">12.4</td>
+                <td class="strike-cell">${k}</td>
+                <td class="c-r" style="font-family:monospace">12.9</td><td class="c-r">-0.48</td><td style="color:#888">-14.2</td><td class="${heatV}">${vega.toFixed(1)}</td><td class="${heatG}">${gamma.toFixed(4)}</td>
+            </tr>`;
         }
         tbody.innerHTML = rows;
     }
+
+    // Init
+    switchTab('skew', document.querySelector('.c-tab.active'));
     regenerateTable(true);
+
 </script>
 </body>
 </html>
