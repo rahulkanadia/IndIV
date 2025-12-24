@@ -300,25 +300,235 @@ const lastValText = (arr) => arr.map((v, i) => i === arr.length - 1 ? v.toFixed(
    MODULE: CHART – INTRADAY IV & RV
 ================================ */
 function renderIntradayChart() {
+    const traces = [
+        {
+            x: mockData.intraday.time,
+            y: mockData.intraday.wk,
+            type: 'scatter',
+            mode: 'lines+markers+text',
+            line: { color: '#FF9800', width: 1 },
+            text: lastValText(mockData.intraday.wk),
+            textposition: 'middle right'
+        },
+        {
+            x: mockData.intraday.time,
+            y: mockData.intraday.mo,
+            type: 'scatter',
+            mode: 'lines+markers+text',
+            line: { color: '#FF9800', width: 3 },
+            text: lastValText(mockData.intraday.mo),
+            textposition: 'middle right'
+        },
+        {
+            x: mockData.intraday.time,
+            y: mockData.intraday.wkRv,
+            type: 'scatter',
+            mode: 'lines+markers+text',
+            line: { color: '#42A5F5', width: 1, dash: 'dot' },
+            text: lastValText(mockData.intraday.wkRv),
+            textposition: 'middle right'
+        },
+        {
+            x: mockData.intraday.time,
+            y: mockData.intraday.moRv,
+            type: 'scatter',
+            mode: 'lines+markers+text',
+            line: { color: '#42A5F5', width: 2, dash: 'dash' },
+            text: lastValText(mockData.intraday.moRv),
+            textposition: 'middle right'
+        }
+    ];
+
     const layout = {
-        paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', 
-        font:{family:'Segoe UI', color:'#666', size:10}, margin:{t:10, b:30, l:35, r:30}, 
-        xaxis:{ showgrid:false, fixedrange: true, color:'#666' }, 
-        yaxis:{ gridcolor:'#222', fixedrange: true, range:getSmartRange([
-            mockData.intraday.wk,
-            mockData.intraday.mo,
-            mockData.intraday.wkRv,
-            mockData.intraday.moRv
-        ], true)},
-        dragmode:false,
-        showlegend:false
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { family: 'Segoe UI', color: '#666', size: 10 },
+        margin: { t: 10, b: 30, l: 35, r: 30 },
+        xaxis: { showgrid: false, fixedrange: true, color: '#666' },
+        yaxis: {
+            gridcolor: '#222',
+            fixedrange: true,
+            range: getSmartRange([
+                mockData.intraday.wk,
+                mockData.intraday.mo,
+                mockData.intraday.wkRv,
+                mockData.intraday.moRv
+            ], true)
+        },
+        dragmode: false,
+        showlegend: false
     };
-    Plotly.newPlot('chart-trend', [
-        { x: mockData.intraday.time, y: mockData.intraday.wk, line:{color:'#FF9800',width:1}, type:'scatter', mode:'lines+markers+text', text:lastValText(mockData.intraday.wk) },
-        { x: mockData.intraday.time, y: mockData.intraday.mo, line:{color:'#FF9800',width:3}, type:'scatter', mode:'lines+markers+text', text:lastValText(mockData.intraday.mo) },
-        { x: mockData.intraday.time, y: mockData.intraday.wkRv, line:{color:'#42A5F5',width:1,dash:'dot'}, type:'scatter', mode:'lines+markers+text', text:lastValText(mockData.intraday.wkRv) },
-        { x: mockData.intraday.time, y: mockData.intraday.moRv, line:{color:'#42A5F5',width:2,dash:'dash'}, type:'scatter', mode:'lines+markers+text', text:lastValText(mockData.intraday.moRv) }
-    ], layout, PLOTLY_CONFIG);
+
+    const config = {
+        displayModeBar: false,
+        responsive: true,
+        staticPlot: false
+    };
+
+    Plotly.newPlot('chart-trend', traces, layout, config);
+}
+
+function renderSkewChart() {
+    const traces = [
+        {
+            x: mockData.strikes,
+            y: mockData.skew.spread,
+            type: 'bar',
+            marker: { color: '#222', opacity: 0.3 },
+            yaxis: 'y2',
+            hoverinfo: 'y'
+        },
+        {
+            x: mockData.strikes,
+            y: mockData.skew.call,
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#00E676' }
+        },
+        {
+            x: mockData.strikes,
+            y: mockData.skew.put,
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#FF5252' }
+        },
+        {
+            x: mockData.strikes,
+            y: mockData.skewMo.call,
+            type: 'scatter',
+            line: { color: '#00E676', dash: 'dot' }
+        },
+        {
+            x: mockData.strikes,
+            y: mockData.skewMo.put,
+            type: 'scatter',
+            line: { color: '#FF5252', dash: 'dot' }
+        }
+    ];
+
+    const layout = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { family: 'Segoe UI', color: '#666', size: 10 },
+        margin: { t: 10, b: 20, l: 30, r: 40 },
+        xaxis: { showgrid: false, fixedrange: true },
+        yaxis: {
+            gridcolor: '#222',
+            fixedrange: true,
+            range: getSmartRange([
+                mockData.skew.call,
+                mockData.skew.put,
+                mockData.skewMo.call
+            ])
+        },
+        yaxis2: {
+            overlaying: 'y',
+            side: 'right',
+            showgrid: false,
+            fixedrange: true
+        },
+        dragmode: false,
+        showlegend: false
+    };
+
+    const config = {
+        displayModeBar: false,
+        responsive: true,
+        staticPlot: false
+    };
+
+    Plotly.newPlot('chart-skew', traces, layout, config);
+}
+
+function renderTermChart() {
+    const traces = [
+        {
+            x: mockData.term.expiries,
+            y: mockData.term.weekly,
+            type: 'scatter',
+            line: { color: '#FF9800' }
+        },
+        {
+            x: mockData.term.expiries,
+            y: mockData.term.monthly,
+            type: 'scatter',
+            line: { color: '#42A5F5' }
+        }
+    ];
+
+    const layout = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { family: 'Segoe UI', color: '#666', size: 10 },
+        margin: { t: 10, b: 20, l: 30, r: 40 },
+        xaxis: { showgrid: false, fixedrange: true },
+        yaxis: {
+            gridcolor: '#222',
+            fixedrange: true,
+            range: getSmartRange([
+                mockData.term.weekly,
+                mockData.term.monthly
+            ])
+        },
+        dragmode: false,
+        showlegend: false
+    };
+
+    const config = {
+        displayModeBar: false,
+        responsive: true,
+        staticPlot: false
+    };
+
+    Plotly.newPlot('chart-term', traces, layout, config);
+}
+
+function renderSurfaceCharts() {
+    Plotly.newPlot(
+        'surf-money',
+        [{
+            z: mockData.surfMoney.z,
+            x: mockData.surfMoney.x,
+            y: mockData.surfMoney.y,
+            type: 'heatmap',
+            colorscale: 'Viridis',
+            showscale: false
+        }],
+        {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Segoe UI', color: '#666', size: 10 },
+            margin: { t: 20, b: 20, l: 30, r: 10 },
+            xaxis: { tickfont: { size: 9 }, color: '#888', fixedrange: true },
+            yaxis: { tickfont: { size: 9 }, color: '#888', fixedrange: true },
+            title: { text: 'IV vs Moneyness', font: { size: 10 }, y: 0.95 },
+            dragmode: false
+        },
+        { displayModeBar: false, responsive: true, staticPlot: false }
+    );
+
+    Plotly.newPlot(
+        'surf-delta',
+        [{
+            z: mockData.surfDelta.z,
+            x: mockData.surfDelta.x,
+            y: mockData.surfDelta.y,
+            type: 'heatmap',
+            colorscale: 'Plasma',
+            showscale: false
+        }],
+        {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Segoe UI', color: '#666', size: 10 },
+            margin: { t: 20, b: 20, l: 30, r: 10 },
+            xaxis: { tickfont: { size: 9 }, color: '#888', fixedrange: true },
+            yaxis: { tickfont: { size: 9 }, color: '#888', fixedrange: true },
+            title: { text: 'IV vs Delta', font: { size: 10 }, y: 0.95 },
+            dragmode: false
+        },
+        { displayModeBar: false, responsive: true, staticPlot: false }
+    );
 }
 
 /* ===============================
@@ -326,7 +536,10 @@ function renderIntradayChart() {
 ================================ */
 function initApp() {
     renderIntradayChart();
-    /* other render calls executed here, identical order & behaviour */
+    renderSkewChart();
+    renderTermChart();
+    renderSurfaceCharts();
+    regenerateTable(false);
 }
 
 /* ===============================
