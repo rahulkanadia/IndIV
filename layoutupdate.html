@@ -216,7 +216,7 @@
             <div class="split-header">
                 <div class="split-half">
                     <span class="panel-title">
-                        IV & RV
+                        Intraday IV & RV Trend
                         <div class="legend-row">
                             <div class="leg-item"><div class="line-box l-thin"></div>Wk</div>
                             <div class="leg-item"><div class="line-box l-thick"></div>Mo</div>
@@ -397,20 +397,21 @@ function renderIntradayChart() {
     const yWkRv = mapToFullAxis(mockData.intraday.time, mockData.intraday.wkRv);
     const yMoRv = mapToFullAxis(mockData.intraday.time, mockData.intraday.moRv);
 
+    // Added connectgaps: true to all traces to ensure lines connect across nulls
     const traces = [
-        { x: fullTimeAxis, y: yWk, name: 'Weekly IV', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yWk), textposition:'middle right' },
-        { x: fullTimeAxis, y: yMo, name: 'Monthly IV', line: { color: '#FF9800', width: 3 }, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yMo), textposition:'middle right' },
-        { x: fullTimeAxis, y: yWkRv, name: 'Weekly RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yWkRv), textposition:'middle right' },
-        { x: fullTimeAxis, y: yMoRv, name: 'Monthly RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yMoRv), textposition:'middle right' }
+        { x: fullTimeAxis, y: yWk, name: 'Weekly IV', line: { color: '#FF9800', width: 1 }, connectgaps: true, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yWk), textposition:'middle right' },
+        { x: fullTimeAxis, y: yMo, name: 'Monthly IV', line: { color: '#FF9800', width: 3 }, connectgaps: true, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yMo), textposition:'middle right' },
+        { x: fullTimeAxis, y: yWkRv, name: 'Weekly RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, connectgaps: true, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yWkRv), textposition:'middle right' },
+        { x: fullTimeAxis, y: yMoRv, name: 'Monthly RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, connectgaps: true, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yMoRv), textposition:'middle right' }
     ];
 
     const range = getSmartRange([mockData.intraday.wk, mockData.intraday.mo, mockData.intraday.wkRv, mockData.intraday.moRv], true);
 
     const layout = {
         ...LAYOUT_2D,
-        title: { text: 'Intraday IV & RV Trend', font: {size: 11, color: '#888'}, x: 0.5 },
+        // Removed internal title to prevent duplicate with HTML header
         showlegend: false,
-        margin: { t: 25, b: 30, l: 35, r: 50 }, // Increased right margin for labels
+        margin: { t: 25, b: 50, l: 35, r: 50 }, // Increased bottom margin (b) to 50 to prevent X-axis label clip
         yaxis: { ...LAYOUT_2D.yaxis, range: range }
     };
 
