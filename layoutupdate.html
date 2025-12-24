@@ -356,17 +356,52 @@ function getSmartRange(dataArrays, absoluteMode = false) {
     const pad = (maxV - minV) * 0.1; 
     return [minV - (pad||1.0), maxV + (pad||1.0)];
 }
-const lastValText = (arr) => arr.map((v, i) => i === arr.length - 1 ? v.toFixed(1) : null);
+// Note: We are no longer using the generic lastValText for Intraday since it needs sparsity handling
 
 /* ===============================
    MODULE: CHART – INTRADAY IV & RV
 ================================ */
 function renderIntradayChart() {
+    // 1. Generate Full Time Axis (09:15 -> 15:30)
+    const fullTimeAxis = [];
+    let h = 9, m = 15;
+    while (h < 15 || (h === 15 && m <= 30)) {
+        fullTimeAxis.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+        m += 15;
+        if (m === 60) { m = 0; h++; }
+    }
+
+    // 2. Helper to map existing dense data to full sparse axis
+    const mapToFullAxis = (existingTimes, existingVals) => {
+        return fullTimeAxis.map(t => {
+            const idx = existingTimes.indexOf(t);
+            return idx !== -1 ? existingVals[idx] : null;
+        });
+    };
+
+    // 3. Helper to generate text array (only show value on last valid point)
+    const generateLastValText = (sparseData) => {
+        // Find last non-null index
+        let lastIdx = -1;
+        for(let i=sparseData.length-1; i>=0; i--) {
+            if(sparseData[i] !== null && sparseData[i] !== undefined) {
+                lastIdx = i;
+                break;
+            }
+        }
+        return sparseData.map((v, i) => i === lastIdx ? v.toFixed(1) : null);
+    };
+
+    const yWk = mapToFullAxis(mockData.intraday.time, mockData.intraday.wk);
+    const yMo = mapToFullAxis(mockData.intraday.time, mockData.intraday.mo);
+    const yWkRv = mapToFullAxis(mockData.intraday.time, mockData.intraday.wkRv);
+    const yMoRv = mapToFullAxis(mockData.intraday.time, mockData.intraday.moRv);
+
     const traces = [
-        { x: mockData.intraday.time, y: mockData.intraday.wk, name: 'Wk', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(mockData.intraday.wk), textposition:'middle right' },
-        { x: mockData.intraday.time, y: mockData.intraday.mo, name: 'Mo', line: { color: '#FF9800', width: 3 }, type: 'scatter', mode:'lines+markers+text', text: lastValText(mockData.intraday.mo), textposition:'middle right' },
-        { x: mockData.intraday.time, y: mockData.intraday.wkRv, name: 'WkRV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(mockData.intraday.wkRv), textposition:'middle right' },
-        { x: mockData.intraday.time, y: mockData.intraday.moRv, name: 'MoRV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter', mode:'lines+markers+text', text: lastValText(mockData.intraday.moRv), textposition:'middle right' }
+        { x: fullTimeAxis, y: yWk, name: 'Weekly IV', line: { color: '#FF9800', width: 1 }, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yWk), textposition:'middle right' },
+        { x: fullTimeAxis, y: yMo, name: 'Monthly IV', line: { color: '#FF9800', width: 3 }, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yMo), textposition:'middle right' },
+        { x: fullTimeAxis, y: yWkRv, name: 'Weekly RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yWkRv), textposition:'middle right' },
+        { x: fullTimeAxis, y: yMoRv, name: 'Monthly RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yMoRv), textposition:'middle right' }
     ];
 
     const range = getSmartRange([mockData.intraday.wk, mockData.intraday.mo, mockData.intraday.wkRv, mockData.intraday.moRv], true);
@@ -375,6 +410,7 @@ function renderIntradayChart() {
         ...LAYOUT_2D,
         title: { text: 'Intraday IV & RV Trend', font: {size: 11, color: '#888'}, x: 0.5 },
         showlegend: false,
+        margin: { t: 25, b: 30, l: 35, r: 50 }, // Increased right margin for labels
         yaxis: { ...LAYOUT_2D.yaxis, range: range }
     };
 
