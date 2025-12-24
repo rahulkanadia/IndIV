@@ -334,60 +334,97 @@ const lastValText = (arr) => arr.map((v, i) => i === arr.length - 1 ? v.toFixed(
    MODULE: CHART – INTRADAY IV & RV
 ================================ */
 function renderIntradayChart() {
+    // --- FULL MARKET SESSION TIME AXIS (09:15 → 15:30, 15-min) ---
+    const fullTimeAxis = [];
+    let h = 9, m = 15;
+    while (!(h === 15 && m === 45)) {
+        fullTimeAxis.push(
+            `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+        );
+        m += 15;
+        if (m === 60) {
+            m = 0;
+            h++;
+        }
+    }
+
+    // --- MAP EXISTING DATA ONTO FULL AXIS ---
+    const mapToFullAxis = (times, values) =>
+        fullTimeAxis.map(t => {
+            const idx = times.indexOf(t);
+            return idx !== -1 ? values[idx] : null;
+        });
+
+    const wkIV  = mapToFullAxis(mockData.intraday.time, mockData.intraday.wk);
+    const moIV  = mapToFullAxis(mockData.intraday.time, mockData.intraday.mo);
+    const wkRV  = mapToFullAxis(mockData.intraday.time, mockData.intraday.wkRv);
+    const moRV  = mapToFullAxis(mockData.intraday.time, mockData.intraday.moRv);
+
     const traces = [
         {
-            x: mockData.intraday.time,
-            y: mockData.intraday.wk,
+            x: fullTimeAxis,
+            y: wkIV,
+            name: 'Weekly IV',
             type: 'scatter',
             mode: 'lines+markers+text',
             line: { color: '#FF9800', width: 1 },
-            text: lastValText(mockData.intraday.wk),
+            text: lastValText(wkIV),
             textposition: 'middle right'
         },
         {
-            x: mockData.intraday.time,
-            y: mockData.intraday.mo,
+            x: fullTimeAxis,
+            y: moIV,
+            name: 'Monthly IV',
             type: 'scatter',
             mode: 'lines+markers+text',
             line: { color: '#FF9800', width: 3 },
-            text: lastValText(mockData.intraday.mo),
+            text: lastValText(moIV),
             textposition: 'middle right'
         },
         {
-            x: mockData.intraday.time,
-            y: mockData.intraday.wkRv,
+            x: fullTimeAxis,
+            y: wkRV,
+            name: 'Weekly RV',
             type: 'scatter',
             mode: 'lines+markers+text',
             line: { color: '#42A5F5', width: 1, dash: 'dot' },
-            text: lastValText(mockData.intraday.wkRv),
+            text: lastValText(wkRV),
             textposition: 'middle right'
         },
         {
-            x: mockData.intraday.time,
-            y: mockData.intraday.moRv,
+            x: fullTimeAxis,
+            y: moRV,
+            name: 'Monthly RV',
             type: 'scatter',
             mode: 'lines+markers+text',
             line: { color: '#42A5F5', width: 2, dash: 'dash' },
-            text: lastValText(mockData.intraday.moRv),
+            text: lastValText(moRV),
             textposition: 'middle right'
         }
     ];
 
     const layout = {
+        title: {
+            text: 'Intraday IV & RV Trend',
+            font: { size: 11, color: '#888' },
+            x: 0.5
+        },
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         font: { family: 'Segoe UI', color: '#666', size: 10 },
-        margin: { t: 10, b: 30, l: 35, r: 30 },
-        xaxis: { showgrid: false, fixedrange: true, color: '#666' },
+        margin: { t: 25, b: 30, l: 35, r: 30 },
+        xaxis: {
+            showgrid: false,
+            fixedrange: true,
+            color: '#666'
+        },
         yaxis: {
             gridcolor: '#222',
             fixedrange: true,
-            range: getSmartRange([
-                mockData.intraday.wk,
-                mockData.intraday.mo,
-                mockData.intraday.wkRv,
-                mockData.intraday.moRv
-            ], true)
+            range: getSmartRange(
+                [mockData.intraday.wk, mockData.intraday.mo, mockData.intraday.wkRv, mockData.intraday.moRv],
+                true
+            )
         },
         dragmode: false,
         showlegend: false
@@ -404,17 +441,22 @@ function renderIntradayChart() {
 
 function renderSkewChart() {
     const traces = [
+        // --- BAR: SKEW (MUST BE FIRST → BACK LAYER) ---
         {
             x: mockData.strikes,
             y: mockData.skew.spread,
+            name: 'Skew',
             type: 'bar',
-            marker: { color: '#222', opacity: 0.3 },
+            marker: { color: '#222', opacity: 0.5 },
             yaxis: 'y2',
             hoverinfo: 'y'
         },
+
+        // --- WEEKLY LINES ---
         {
             x: mockData.strikes,
             y: mockData.skew.call,
+            name: 'Weekly ATM Call',
             type: 'scatter',
             mode: 'lines',
             line: { color: '#00E676' }
@@ -422,20 +464,27 @@ function renderSkewChart() {
         {
             x: mockData.strikes,
             y: mockData.skew.put,
+            name: 'Weekly ATM Put',
             type: 'scatter',
             mode: 'lines',
             line: { color: '#FF5252' }
         },
+
+        // --- MONTHLY LINES ---
         {
             x: mockData.strikes,
             y: mockData.skewMo.call,
+            name: 'Monthly ATM Call',
             type: 'scatter',
+            mode: 'lines',
             line: { color: '#00E676', dash: 'dot' }
         },
         {
             x: mockData.strikes,
             y: mockData.skewMo.put,
+            name: 'Monthly ATM Put',
             type: 'scatter',
+            mode: 'lines',
             line: { color: '#FF5252', dash: 'dot' }
         }
     ];
@@ -479,14 +528,20 @@ function renderTermChart() {
         {
             x: mockData.term.expiries,
             y: mockData.term.weekly,
+            name: 'Weekly IV',
             type: 'scatter',
-            line: { color: '#FF9800' }
+            mode: 'lines+markers',
+            line: { color: '#FF9800', width: 2 },
+            marker: { size: 5 }
         },
         {
             x: mockData.term.expiries,
             y: mockData.term.monthly,
+            name: 'Monthly IV',
             type: 'scatter',
-            line: { color: '#42A5F5' }
+            mode: 'lines+markers',
+            line: { color: '#42A5F5', width: 2 },
+            marker: { size: 5 }
         }
     ];
 
