@@ -1,137 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>IndIV Monitor V25</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IndIV Monitor</title>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 
 <style>
-/* ================= LOCKED THEME ================= */
-:root{
-  --bg:#0b0b0b;--card:#121212;--text:#e0e0e0;--border:#252525;
-  --green:#00E676;--red:#FF5252;--orange:#FF9800;--blue:#42A5F5;
-  --muted:#666;
+/* =========================
+   GLOBAL THEME (LOCKED)
+========================= */
+:root {
+  --bg:#0b0b0b; --card:#121212; --border:#252525;
+  --text:#e0e0e0; --muted:#666;
+  --green:#00E676; --red:#FF5252;
+  --orange:#FF9800; --blue:#42A5F5;
 }
-*{box-sizing:border-box}
-body{
-  background:var(--bg);color:var(--text);
-  font-family:Segoe UI,Roboto,Arial,sans-serif;
-  margin:0;padding:10px;
+* { box-sizing:border-box; }
+body {
+  margin:0; padding:10px;
+  background:var(--bg); color:var(--text);
+  font-family:Segoe UI, Roboto, Arial, sans-serif;
 }
 
-/* ================= HEADER (LOCKED) ================= */
-.header-row{
-  display:flex;justify-content:space-between;align-items:center;
+/* =========================
+   HEADER_BAR (LOCKED)
+========================= */
+.header-row {
+  display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid var(--border); padding-bottom:10px;
+}
+.header-right { display:flex; gap:15px; align-items:center; }
+.help-btn {
+  border:1px solid #fff; color:#fff; padding:5px 12px;
+  border-radius:4px; text-decoration:none; font-size:12px;
+}
+.status-badge { color:var(--green); font-size:11px; }
+
+/* =========================
+   MAIN LAYOUT (LOCKED)
+========================= */
+.container {
+  display:flex; gap:15px; margin-top:15px;
+}
+.left-panel {
+  flex:1 1 45%; display:flex; flex-direction:column; gap:15px;
+}
+.right-panel {
+  flex:1 1 55%; display:flex; flex-direction:column;
+  background:var(--card); border:1px solid var(--border);
+}
+
+/* =========================
+   PRICE_STRIP (LOCKED)
+========================= */
+.price-strip {
+  display:grid; grid-template-columns:1fr 1fr 1fr;
+  background:var(--card); border:1px solid var(--border);
+  padding:10px;
+}
+.p-group { text-align:center; }
+
+/* =========================
+   SUMMARY GRIDS (LOCKED)
+========================= */
+.section-header { border-bottom:1px solid var(--border); }
+.data-grid {
+  display:grid; grid-template-columns:repeat(5,1fr);
+  gap:6px;
+}
+.d-box {
+  background:var(--card); border:1px solid var(--border);
+  text-align:center; padding:5px;
+}
+
+/* =========================
+   CHART WINDOW (MODULAR)
+========================= */
+.chart-window {
+  background:var(--card);
+  border:1px solid var(--border);
+  display:flex; flex-direction:column;
+  height:420px;
+}
+.chart-tabs { display:flex; }
+.c-tab {
+  flex:1; text-align:center; padding:8px;
+  font-size:11px; cursor:pointer;
+}
+.c-tab.active { border-bottom:2px solid var(--green); }
+.chart-content { flex:1; position:relative; }
+.chart-div {
+  position:absolute; inset:0; display:none;
+}
+.chart-div.visible { display:block; }
+
+/* =========================
+   GREEKS_TABLE (LOCKED)
+========================= */
+.table-wrapper { flex:1; overflow:auto; }
+table { width:100%; border-collapse:collapse; }
+th, td {
   border-bottom:1px solid var(--border);
-  padding:6px 10px;height:50px
-}
-.header-left{display:flex;align-items:baseline}
-h1{margin:0;font-size:1.3rem;color:#fff}
-.sub-title{font-size:.9rem;color:#888;margin-left:10px}
-.header-right{display:flex;gap:15px;align-items:center}
-.help-btn{
-  border:1px solid #fff;color:#fff;text-decoration:none;
-  padding:5px 12px;border-radius:4px;font-size:12px;font-weight:600
-}
-.status-badge{font-size:11px;color:var(--green);border:1px solid #333;padding:4px 10px}
-
-/* ================= LAYOUT ================= */
-.container{
-  display:flex;gap:15px;margin-top:15px
-}
-.left-panel{
-  flex:1 1 45%;display:flex;flex-direction:column;gap:12px
-}
-.right-panel{
-  flex:1 1 55%;background:var(--card);
-  border:1px solid var(--border);border-radius:6px;
-  display:flex;flex-direction:column;overflow:hidden
+  padding:4px; font-size:11px; text-align:center;
 }
 
-/* ================= PRICE STRIP (LOCKED) ================= */
-.price-strip{
-  display:grid;grid-template-columns:1fr 1fr 1fr;
-  background:var(--card);border:1px solid var(--border);
-  padding:10px;border-radius:4px
-}
-.p-group{text-align:center}
-.p-label{font-size:10px;color:var(--muted)}
-.p-val{font-size:1.4rem;font-weight:700}
-.p-change{font-size:.8rem}
-.up{color:var(--green)}.down{color:var(--red)}
-.asset-select{
-  background:#222;color:#fff;border:1px solid #444;
-  padding:6px;border-radius:4px
-}
-
-/* ================= SECTIONS (LOCKED) ================= */
-.section-header{border-bottom:2px solid #222;padding-bottom:4px}
-.sec-title{font-size:13px;font-weight:800;color:#ddd}
-.t-week,.t-month{color:var(--orange)}
-
-/* ================= SUMMARY GRID (LOCKED) ================= */
-.data-grid-6{
-  display:grid;gap:6px;
-  grid-template-columns:2fr 2fr .3fr 2.5fr 2fr 1.5fr;
-  grid-template-rows:65px 65px
-}
-.d-box{
-  background:var(--card);border:1px solid var(--border);
-  padding:4px;text-align:center
-}
-
-/* ================= CHART WINDOW ================= */
-.chart-window{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:4px;display:flex;flex-direction:column;
-  height:380px
-}
-.chart-tabs{
-  display:flex;border-bottom:1px solid var(--border)
-}
-.c-tab{
-  flex:1;text-align:center;padding:8px;font-size:11px;
-  cursor:pointer;color:#888
-}
-.c-tab.active{
-  color:#fff;border-bottom:2px solid var(--green)
-}
-.chart-controls{
-  display:flex;justify-content:space-between;
-  padding:6px 10px;font-size:10px;color:#aaa;
-  border-bottom:1px solid var(--border)
-}
-.chart-content{flex:1;position:relative}
-.chart-div{
-  position:absolute;top:0;left:0;width:100%;height:100%;
-  display:none
-}
-.chart-div.visible{display:block}
-
-/* ================= RIGHT PANEL (LOCKED) ================= */
-.split-header{display:flex;border-bottom:1px solid var(--border)}
-.split-half{flex:1;padding:10px;border-right:1px solid var(--border)}
-.split-half:last-child{border-right:none}
-.table-toolbar{border-bottom:1px solid var(--border);padding:6px}
-.table-wrapper{flex:1;overflow-y:auto}
-.quote-ticker{
-  height:30px;border-top:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-style:italic
+/* =========================
+   QUOTE_TICKER (LOCKED)
+========================= */
+.quote-ticker {
+  text-align:center; font-size:11px;
+  border-top:1px solid var(--border);
+  padding:6px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- ================= HEADER (LOCKED) ================= -->
+<!-- ================= HEADER_BAR ================= -->
 <div class="header-row">
-  <div class="header-left">
-    <h1>IndIV <span class="sub-title">Volatility monitor for Indian markets</span></h1>
-  </div>
+  <h2>IndIV <span style="color:#888;font-size:13px">Volatility Monitor</span></h2>
   <div class="header-right">
-    <a class="help-btn" href="#">How to use?</a>
+    <a href="#" class="help-btn">How to use?</a>
     <div class="status-badge">● LIVE DATA</div>
   </div>
 </div>
@@ -141,155 +132,113 @@ h1{margin:0;font-size:1.3rem;color:#fff}
 <!-- ================= LEFT PANEL ================= -->
 <div class="left-panel">
 
-<!-- PRICE STRIP -->
+<!-- PRICE_STRIP -->
 <div class="price-strip">
-  <div class="p-group">
-    <div class="p-label">SPOT</div>
-    <div class="p-val">26150</div>
-    <div class="p-change up">+45</div>
-  </div>
-  <div class="p-group">
-    <div class="p-label">ASSET</div>
-    <select class="asset-select"><option>NIFTY 50</option></select>
-  </div>
-  <div class="p-group">
-    <div class="p-label">FUTURES</div>
-    <div class="p-val">26187</div>
-    <div class="p-change up">+37</div>
-  </div>
+  <div class="p-group">Spot<br><b>26150</b></div>
+  <div class="p-group">Asset<br><b>NIFTY</b></div>
+  <div class="p-group">Futures<br><b>26190</b></div>
 </div>
 
-<!-- WEEKLY (LOCKED STRUCTURE) -->
-<div>
-  <div class="section-header"><span class="sec-title t-week">WEEKLY</span></div>
-  <div class="data-grid-6">
-    <div class="d-box">ATM CALL</div>
-    <div class="d-box">CALL IV</div>
-    <div></div>
-    <div class="d-box">STRADDLE</div>
-    <div class="d-box">STR IV</div>
-    <div class="d-box">IVR</div>
-    <div class="d-box">ATM PUT</div>
-    <div class="d-box">PUT IV</div>
-    <div class="d-box">RV</div>
-    <div class="d-box">IVP</div>
-  </div>
+<!-- WEEKLY_HEADER -->
+<div class="section-header">WEEKLY</div>
+<div class="data-grid">
+  <div class="d-box">Call<br>145</div>
+  <div class="d-box">Call IV<br>12.4%</div>
+  <div class="d-box">Straddle<br>285</div>
+  <div class="d-box">Put IV<br>13.1%</div>
+  <div class="d-box">Put<br>139</div>
 </div>
 
-<!-- CHART WINDOW -->
+<!-- CHARTS -->
 <div class="chart-window">
-  <div class="chart-tabs">
-    <div class="c-tab active" onclick="showChart('trend',this)">IV & RV Trend</div>
-    <div class="c-tab" onclick="showChart('skew',this)">Vol Skew</div>
-    <div class="c-tab" onclick="showChart('term',this)">Term Structure</div>
-  </div>
-  <div class="chart-controls">
-    <div id="chartLegend"></div>
-    <div id="chartControls"></div>
-  </div>
-  <div class="chart-content">
-    <div id="chart-trend" class="chart-div visible"></div>
-    <div id="chart-skew" class="chart-div"></div>
-    <div id="chart-term" class="chart-div"></div>
-  </div>
+
+<div class="chart-tabs">
+  <div class="c-tab active" onclick="switchChart('trend',this)">IV & RV Trend</div>
+  <div class="c-tab" onclick="switchChart('skew',this)">Vol Skew</div>
+  <div class="c-tab" onclick="switchChart('term',this)">Term</div>
 </div>
 
-<!-- MONTHLY (LOCKED STRUCTURE) -->
-<div>
-  <div class="section-header"><span class="sec-title t-month">MONTHLY</span></div>
-  <div class="data-grid-6">
-    <div class="d-box">ATM CALL</div>
-    <div class="d-box">CALL IV</div>
-    <div></div>
-    <div class="d-box">STRADDLE</div>
-    <div class="d-box">STR IV</div>
-    <div class="d-box">IVR</div>
-    <div class="d-box">ATM PUT</div>
-    <div class="d-box">PUT IV</div>
-    <div class="d-box">RV</div>
-    <div class="d-box">IVP</div>
-  </div>
+<div class="chart-content">
+  <div id="chart-trend" class="chart-div visible"></div>
+  <div id="chart-skew" class="chart-div"></div>
+  <div id="chart-term" class="chart-div"></div>
+</div>
+</div>
+
+<!-- MONTHLY_HEADER -->
+<div class="section-header">MONTHLY</div>
+<div class="data-grid">
+  <div class="d-box">Call<br>310</div>
+  <div class="d-box">Call IV<br>14.2%</div>
+  <div class="d-box">Straddle<br>595</div>
+  <div class="d-box">Put IV<br>14.8%</div>
+  <div class="d-box">Put<br>285</div>
 </div>
 
 </div>
 
-<!-- ================= RIGHT PANEL (LOCKED) ================= -->
+<!-- ================= RIGHT PANEL ================= -->
 <div class="right-panel">
-  <div class="split-header">
-    <div class="split-half">EXPECTED MOVE PANEL</div>
-    <div class="split-half">EXPECTED RANGE</div>
-  </div>
-  <div class="table-toolbar">EXPIRY TOOLBAR</div>
-  <div class="table-wrapper">GREEKS TABLE</div>
-  <div class="quote-ticker">"He who has a why to live can bear almost any how."</div>
+
+<!-- EXPECTED_MOVE_PANEL -->
+<div style="padding:10px;border-bottom:1px solid var(--border)">
+  Expected Move Panel
 </div>
 
+<!-- EXPIRY_TOOLBAR -->
+<div style="padding:8px;border-bottom:1px solid var(--border)">
+  Expiry Toolbar
+</div>
+
+<!-- GREEKS_TABLE -->
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Γ</th><th>Vega</th><th>Θ</th><th>Δ</th><th>Strike</th><th>Δ</th><th>Θ</th><th>Vega</th><th>Γ</th></tr>
+</thead>
+<tbody>
+<tr><td>0.003</td><td>14</td><td>-12</td><td>0.52</td><td>26200</td><td>-0.48</td><td>-12</td><td>14</td><td>0.003</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="quote-ticker">
+"He who has a why to live can bear almost any how."
+</div>
+
+</div>
 </div>
 
 <script>
-/* ================= MOCK DATA ================= */
-const timeAxis = ["09:15","10:15","11:15","12:15","13:15","14:15","15:15"];
-const wkIV=[12.2,12.4,12.1,12.5,12.8,13.0,12.9];
-const moIV=[14.1,14.0,14.2,14.3,14.4,14.5,14.6];
-const wkRV=[10.5,10.5,10.5,10.5,10.5,10.5,10.5];
-const moRV=[11.0,11.0,11.0,11.0,11.0,11.0,11.0];
+/* =================
+   CHART MODULES
+================= */
 
-/* ================= CHART MODULES ================= */
-function renderTrend(){
-  Plotly.newPlot("chart-trend",[
-    {x:timeAxis,y:wkIV,name:"Weekly IV",mode:"lines+markers"},
-    {x:timeAxis,y:moIV,name:"Monthly IV",mode:"lines+markers"},
-    {x:timeAxis,y:wkRV,name:"Weekly RV",mode:"lines",line:{dash:"dot"}},
-    {x:timeAxis,y:moRV,name:"Monthly RV",mode:"lines",line:{dash:"dash"}}
-  ],{
-    title:"Intraday IV & RV Trend",
-    margin:{t:30,l:40,r:20,b:30},
-    paper_bgcolor:"rgba(0,0,0,0)",
-    plot_bgcolor:"rgba(0,0,0,0)",
-    xaxis:{fixedrange:true},
-    yaxis:{fixedrange:true}
-  },{displayModeBar:false,responsive:true});
+function switchChart(name, el){
+  document.querySelectorAll('.c-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.chart-div').forEach(c=>c.classList.remove('visible'));
+  document.getElementById('chart-'+name).classList.add('visible');
 }
 
-function renderSkew(){
-  Plotly.newPlot("chart-skew",[
-    {x:[-5,0,5],y:[13,12.5,14],type:"bar",opacity:.5,name:"Skew"},
-    {x:[-5,0,5],y:[12.5,12.4,13],mode:"lines",name:"Weekly ATM Call"},
-    {x:[-5,0,5],y:[13.5,12.8,14],mode:"lines",name:"Weekly ATM Put"},
-    {x:[-5,0,5],y:[13.5,13.2,14.2],mode:"lines",line:{dash:"dot"},name:"Monthly ATM Call"},
-    {x:[-5,0,5],y:[14,13.5,14.8],mode:"lines",line:{dash:"dot"},name:"Monthly ATM Put"}
-  ],{
-    margin:{t:20,l:40,r:20,b:30},
-    paper_bgcolor:"rgba(0,0,0,0)",
-    plot_bgcolor:"rgba(0,0,0,0)",
-    barmode:"overlay"
-  },{displayModeBar:false,responsive:true});
-}
+Plotly.newPlot('chart-trend',[{
+  x:['09:15','10:15','11:15','12:15','13:15'],
+  y:[12.2,12.4,12.1,12.5,12.8],
+  name:'Weekly IV',
+  line:{color:'#FF9800'}
+}],{margin:{t:20},title:'Intraday IV & RV Trend'},{displayModeBar:false});
 
-function renderTerm(){
-  Plotly.newPlot("chart-term",[
-    {x:["W1","W2","W3","W4","M1"],y:[12.8,13.5,14.2,14.8,15.2],mode:"lines+markers",name:"Weekly"},
-    {x:["W1","W2","W3","W4","M1"],y:[14.5,15,15.5,16,16.5],mode:"lines+markers",name:"Monthly"}
-  ],{
-    margin:{t:20,l:40,r:20,b:30},
-    paper_bgcolor:"rgba(0,0,0,0)",
-    plot_bgcolor:"rgba(0,0,0,0)"
-  },{displayModeBar:false,responsive:true});
-}
+Plotly.newPlot('chart-skew',[{
+  x:[-10,-5,0,5,10],
+  y:[14,13,12.8,13,14],
+  name:'Weekly ATM Call'
+}],{margin:{t:20},title:'Volatility Skew'},{displayModeBar:false});
 
-/* ================= TAB CONTROL ================= */
-function showChart(id,el){
-  document.querySelectorAll(".c-tab").forEach(t=>t.classList.remove("active"));
-  el.classList.add("active");
-  document.querySelectorAll(".chart-div").forEach(c=>c.classList.remove("visible"));
-  document.getElementById("chart-"+id).classList.add("visible");
-  window.dispatchEvent(new Event("resize"));
-}
-
-/* ================= INIT ================= */
-renderTrend();
-renderSkew();
-renderTerm();
+Plotly.newPlot('chart-term',[{
+  x:['Dec','Jan','Feb'],
+  y:[12.8,14.5,15.5],
+  name:'Weekly'
+}],{margin:{t:20},title:'Term Structure'},{displayModeBar:false});
 </script>
 
 </body>
