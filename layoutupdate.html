@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IndIV — Volatility Monitor</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+<style>
+/* =========================================================
+   GLOBAL THEME (LOCKED)
+========================================================= */
+:root {
+  --bg:#0b0b0b; --card:#121212; --text:#e0e0e0; --border:#252525;
+  --green:#00E676; --red:#FF5252; --orange:#FF9800; --blue:#42A5F5;
+  --muted:#666;
+}
+body {
+  background:var(--bg); color:var(--text);
+  font-family:system-ui,Segoe UI,Roboto;
+  margin:0; padding:10px;
+}
+
+/* =========================================================
+   LOCKED SECTIONS — DO NOT MODIFY
+========================================================= */
+
+/* ---------- HEADER BAR ---------- */
+.header-bar {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px; border-bottom:1px solid var(--border);
+}
+.header-bar h1 { margin:0; font-size:20px; }
+
+/* ---------- PRICE STRIP ---------- */
+.price-strip {
+  display:grid; grid-template-columns:1fr 1fr 1fr;
+  background:var(--card); border:1px solid var(--border);
+  margin-top:10px; padding:10px;
+}
+
+/* ---------- WEEKLY / MONTHLY SUMMARY GRIDS ---------- */
+.section { margin-top:15px; }
+.section-header { font-weight:bold; color:var(--orange); margin-bottom:6px; }
+.summary-grid {
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:6px;
+}
+.box {
+  background:var(--card); border:1px solid var(--border);
+  padding:6px; text-align:center;
+}
+
+/* ---------- EXPECTED MOVE PANEL ---------- */
+.expected-move {
+  background:var(--card); border:1px solid var(--border);
+  padding:10px; margin-top:10px;
+}
+
+/* ---------- EXPIRY TOOLBAR ---------- */
+.expiry-toolbar {
+  display:flex; gap:6px; margin-top:10px;
+}
+.expiry-btn {
+  padding:4px 10px; background:#222; border:1px solid #444;
+  color:#ccc; font-size:11px;
+}
+
+/* ---------- GREEKS TABLE ---------- */
+.greeks-table {
+  margin-top:10px; background:var(--card); border:1px solid var(--border);
+  overflow:auto;
+}
+.greeks-table table {
+  width:100%; border-collapse:collapse; font-size:11px;
+}
+.greeks-table th, .greeks-table td {
+  border-bottom:1px solid #222; padding:4px; text-align:center;
+}
+
+/* ---------- QUOTE TICKER ---------- */
+.quote-ticker {
+  margin-top:10px; padding:6px;
+  background:#080808; border-top:1px solid var(--border);
+  font-style:italic; text-align:center;
+}
+
+/* =========================================================
+   CHART CONTAINER (UNLOCKED)
+========================================================= */
+.chart-window {
+  background:var(--card);
+  border:1px solid var(--border);
+  margin-top:15px;
+  padding:8px;
+}
+.chart-title {
+  font-size:12px; font-weight:bold; margin-bottom:4px;
+}
+.chart-box {
+  width:100%; height:260px;
+}
+.legend-row {
+  font-size:10px; color:#aaa; display:flex; gap:12px;
+  margin-bottom:4px;
+}
+.legend-item { display:flex; align-items:center; gap:4px; }
+.legend-line { width:14px; height:0; border-top-width:2px; border-top-style:solid; }
+</style>
+</head>
+
+<body>
+
+<!-- ======================================================
+     LOCKED UI
+====================================================== -->
+
+<div class="header-bar">
+  <h1>IndIV — NIFTY</h1>
+  <span style="color:var(--green)">● LIVE</span>
+</div>
+
+<div class="price-strip">
+  <div>Spot<br><b>26150</b></div>
+  <div>Asset<br><b>NIFTY</b></div>
+  <div>Futures<br><b>26187</b></div>
+</div>
+
+<div class="section">
+  <div class="section-header">WEEKLY (26 DEC)</div>
+  <div class="summary-grid">
+    <div class="box">Call<br>145</div>
+    <div class="box">Call IV<br>12.4%</div>
+    <div class="box">Straddle<br>284</div>
+    <div class="box">Str IV<br>12.8%</div>
+    <div class="box">IVR 45</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">MONTHLY (29 JAN)</div>
+  <div class="summary-grid">
+    <div class="box">Call<br>310</div>
+    <div class="box">Call IV<br>14.2%</div>
+    <div class="box">Straddle<br>595</div>
+    <div class="box">Str IV<br>14.5%</div>
+    <div class="box">IVR 52</div>
+  </div>
+</div>
+
+<div class="expected-move">
+  Expected Move Panel (Locked)
+</div>
+
+<div class="expiry-toolbar">
+  <div class="expiry-btn">26 Dec</div>
+  <div class="expiry-btn">02 Jan</div>
+  <div class="expiry-btn">09 Jan</div>
+</div>
+
+<div class="greeks-table">
+<table>
+<thead><tr><th>Γ</th><th>Vega</th><th>Θ</th><th>Δ</th><th>Strike</th><th>Δ</th><th>Θ</th><th>Vega</th><th>Γ</th></tr></thead>
+<tbody>
+<tr><td>0.003</td><td>14</td><td>-12</td><td>0.5</td><td>26200</td><td>-0.5</td><td>-12</td><td>14</td><td>0.003</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="quote-ticker">“Volatility is the market speaking.”</div>
+
+<!-- ======================================================
+     CHART MODULES (INDEPENDENT)
+====================================================== -->
+
+<!-- ================= IV–RV INTRADAY TREND ================= -->
+<div class="chart-window">
+  <div class="chart-title">Intraday IV & RV Trend</div>
+  <div class="legend-row">
+    <div class="legend-item"><span class="legend-line" style="border-color:var(--orange)"></span>Weekly IV</div>
+    <div class="legend-item"><span class="legend-line" style="border-color:var(--orange);border-top-width:3px"></span>Monthly IV</div>
+    <div class="legend-item"><span class="legend-line" style="border-color:var(--blue);border-top-style:dotted"></span>Weekly RV</div>
+    <div class="legend-item"><span class="legend-line" style="border-color:var(--blue);border-top-style:dashed"></span>Monthly RV</div>
+  </div>
+  <div id="chartTrend" class="chart-box"></div>
+</div>
+
+<!-- ================= VOLATILITY SKEW ================= -->
+<div class="chart-window">
+  <div class="chart-title">Volatility Skew</div>
+  <div class="legend-row">
+    <div class="legend-item"><span class="legend-line" style="border-color:#666"></span>Skew</div>
+    <div class="legend-item"><span class="legend-line" style="border-color:var(--green)"></span>Wk Call</div>
+    <div class="legend-item"><span class="legend-line" style="border-color:var(--red)"></span>Wk Put</div>
+    <div class="legend-item"><span class="legend-line" style="border-color:var(--green);border-top-style:dotted"></span>Mo Call</div>
+    <div class="legend-item"><span class="legend-line" style="border-color:var(--red);border-top-style:dotted"></span>Mo Put</div>
+  </div>
+  <div id="chartSkew" class="chart-box"></div>
+</div>
+
+<!-- ================= TERM STRUCTURE ================= -->
+<div class="chart-window">
+  <div class="chart-title">Term Structure</div>
+  <div class="legend-row">
+    <div class="legend-item"><span class="legend-line" style="border-color:var(--orange)"></span>Weekly</div>
+    <div class="legend-item"><span class="legend-line" style="border-color:var(--blue)"></span>Monthly</div>
+  </div>
+  <div id="chartTerm" class="chart-box"></div>
+</div>
+
+<script>
+/* =========================================================
+   CHART MODULE 1: IV–RV TREND (INDEPENDENT)
+========================================================= */
+Plotly.newPlot("chartTrend", [
+  { x:["09:15","10:15","11:15","12:15","13:15"],
+    y:[12.2,12.4,12.1,12.5,12.8],
+    type:"scatter", mode:"lines+markers",
+    line:{color:"#FF9800",width:1} },
+
+  { x:["09:15","10:15","11:15","12:15","13:15"],
+    y:[14.1,14.0,14.2,14.3,14.4],
+    type:"scatter", mode:"lines+markers",
+    line:{color:"#FF9800",width:3} },
+
+  { x:["09:15","10:15","11:15","12:15","13:15"],
+    y:[10.5,10.5,10.5,10.5,10.5],
+    type:"scatter", mode:"lines",
+    line:{color:"#42A5F5",dash:"dot"} },
+
+  { x:["09:15","10:15","11:15","12:15","13:15"],
+    y:[11,11,11,11,11],
+    type:"scatter", mode:"lines",
+    line:{color:"#42A5F5",dash:"dash"} }
+], {
+  paper_bgcolor:"transparent",
+  plot_bgcolor:"transparent",
+  xaxis:{fixedrange:true},
+  yaxis:{fixedrange:true,gridcolor:"#222"},
+  showlegend:false,
+  margin:{t:10,l:40,r:20,b:30}
+});
+
+/* =========================================================
+   CHART MODULE 2: VOLATILITY SKEW
+========================================================= */
+Plotly.newPlot("chartSkew", [
+  {
+    x:[-5,-4,-3,-2,-1,0,1,2,3,4,5],
+    y:[2,1.5,1,0.5,0.2,0,-0.2,-0.4,-0.6,-0.8,-1],
+    type:"bar", marker:{color:"#888",opacity:0.5}
+  },
+  {
+    x:[-5,-4,-3,-2,-1,0,1,2,3,4,5],
+    y:[13.5,13.2,13,12.8,12.6,12.5,12.4,12.4,12.5,12.6,12.8],
+    type:"scatter", line:{color:"#00E676"}
+  },
+  {
+    x:[-5,-4,-3,-2,-1,0,1,2,3,4,5],
+    y:[15.5,15,14.6,14.2,13.9,13.6,13.4,13.2,13,12.9,12.8],
+    type:"scatter", line:{color:"#FF5252"}
+  }
+], {
+  paper_bgcolor:"transparent",
+  plot_bgcolor:"transparent",
+  barmode:"overlay",
+  xaxis:{fixedrange:true},
+  yaxis:{fixedrange:true,gridcolor:"#222"},
+  showlegend:false,
+  margin:{t:10,l:40,r:20,b:30}
+});
+
+/* =========================================================
+   CHART MODULE 3: TERM STRUCTURE
+========================================================= */
+Plotly.newPlot("chartTerm", [
+  {
+    x:["26 Dec","02 Jan","09 Jan","16 Jan","30 Jan"],
+    y:[12.8,14.5,15.2,15.8,16.2],
+    type:"scatter", line:{color:"#FF9800"}
+  },
+  {
+    x:["26 Dec","02 Jan","09 Jan","16 Jan","30 Jan"],
+    y:[14.5,15.0,15.5,16.0,16.5],
+    type:"scatter", line:{color:"#42A5F5"}
+  }
+], {
+  paper_bgcolor:"transparent",
+  plot_bgcolor:"transparent",
+  xaxis:{fixedrange:true},
+  yaxis:{fixedrange:true,gridcolor:"#222"},
+  showlegend:false,
+  margin:{t:10,l:40,r:20,b:30}
+});
+</script>
+
+</body>
+</html>
