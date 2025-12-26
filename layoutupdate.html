@@ -371,7 +371,19 @@ function renderIntradayChart() {
         if (m === 60) { m = 0; h++; }
     }
 
-    // 2. Helper to map existing dense data to full sparse axis
+    // 2. Automated Scalable X-Axis Tick Generation
+    // Logic: Start Time + All Full Hours + End Time
+    const generateTicks = () => {
+        const ticks = ["09:15"]; 
+        for (let i = 10; i <= 15; i++) {
+            ticks.push(`${i}:00`);
+        }
+        ticks.push("15:30"); 
+        return ticks;
+    };
+    const autoTicks = generateTicks();
+
+    // 3. Helper to map existing dense data to full sparse axis
     const mapToFullAxis = (existingTimes, existingVals) => {
         return fullTimeAxis.map(t => {
             const idx = existingTimes.indexOf(t);
@@ -379,9 +391,8 @@ function renderIntradayChart() {
         });
     };
 
-    // 3. Helper to generate text array (only show value on last valid point)
+    // 4. Helper to generate text array (only show value on last valid point)
     const generateLastValText = (sparseData) => {
-        // Find last non-null index
         let lastIdx = -1;
         for(let i=sparseData.length-1; i>=0; i--) {
             if(sparseData[i] !== null && sparseData[i] !== undefined) {
@@ -397,7 +408,24 @@ function renderIntradayChart() {
     const yWkRv = mapToFullAxis(mockData.intraday.time, mockData.intraday.wkRv);
     const yMoRv = mapToFullAxis(mockData.intraday.time, mockData.intraday.moRv);
 
-    // Added connectgaps: true to all traces to ensure lines connect across nulls
+    // 5. Dynamic Legend Update (Forces DOM update to match requirements)
+    const updateStaticLegends = () => {
+        const legendItems = document.querySelectorAll('.right-panel .legend-row .leg-item');
+        if(legendItems.length >= 4) {
+            const labels = ["Weekly IV", "Monthly IV", "Weekly RV", "Monthly RV"];
+            legendItems.forEach((item, index) => {
+                if(labels[index]) {
+                    // Keep the color box (first child), update the text
+                    const icon = item.firstElementChild;
+                    item.innerHTML = ''; 
+                    item.appendChild(icon); 
+                    item.append(' ' + labels[index]); 
+                }
+            });
+        }
+    };
+    updateStaticLegends();
+
     const traces = [
         { x: fullTimeAxis, y: yWk, name: 'Weekly IV', line: { color: '#FF9800', width: 1 }, connectgaps: true, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yWk), textposition:'middle right' },
         { x: fullTimeAxis, y: yMo, name: 'Monthly IV', line: { color: '#FF9800', width: 3 }, connectgaps: true, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yMo), textposition:'middle right' },
@@ -407,9 +435,6 @@ function renderIntradayChart() {
 
     const range = getSmartRange([mockData.intraday.wk, mockData.intraday.mo, mockData.intraday.wkRv, mockData.intraday.moRv], true);
 
-    // SPECIFIC X-AXIS TICKS FOR INTRADAY
-    const specificTicks = ["09:15", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "15:30"];
-
     const layout = {
         ...LAYOUT_2D,
         showlegend: false,
@@ -418,9 +443,9 @@ function renderIntradayChart() {
         xaxis: {
             ...LAYOUT_2D.xaxis,
             tickmode: 'array',
-            tickvals: specificTicks,
-            ticktext: specificTicks,
-            tickangle: 0 // FORCE HORIZONTAL
+            tickvals: autoTicks, // Uses automated logic
+            ticktext: autoTicks,
+            tickangle: 0 // Forces horizontal orientation
         }
     };
 
