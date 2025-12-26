@@ -77,58 +77,60 @@
         </div>
     </div>
 
-    <script type="module">
-        import { mockData } from './frontend/mockdata.js';
-        import { renderPriceStrip } from './frontend/components/price-strip/price-strip.js';
-        import { renderMarketGrid } from './frontend/components/market-grid/market-grid.js';
+<script type="module">
+    import { mockData } from './frontend/mockdata.js';
+    import { renderPriceStrip } from './frontend/components/price-strip/price-strip.js';
+    import { renderMarketGrid } from './frontend/components/market-grid/market-grid.js';
+    
+    // IMPORT UPDATE LEGEND FUNCTIONS
+    import { renderIntradayChart } from './frontend/components/charts/intraday-iv-rv/chart-intraday.js';
+    import { renderSkewChart, updateLegend as updateSkewLegend } from './frontend/components/charts/volatility-skew/chart-skew.js';
+    import { renderTermChart, updateLegend as updateTermLegend } from './frontend/components/charts/term-structure/chart-term.js';
+    import { renderSurfaceCharts, updateLegend as updateSurfaceLegend } from './frontend/components/charts/volatility-surface/chart-surface.js';
+    
+    import { renderSDTable } from './frontend/components/tables/sd-table/sd-table.js';
+    import { renderGreeksTable } from './frontend/components/tables/greeks-table/greeks-table.js';
+
+    // 1. Render Static UI
+    renderPriceStrip('price-strip-container', mockData);
+    renderMarketGrid('weekly-grid-container', 'WEEKLY', mockData.gridWeekly, 't-week');
+    renderMarketGrid('monthly-grid-container', 'MONTHLY', mockData.gridMonthly, 't-month');
+    renderSDTable('sd-table-container', mockData);
+    renderGreeksTable('greeks-table-container', mockData);
+
+    // 2. Render Charts
+    renderIntradayChart('chart-trend');
+    renderSkewChart('chart-skew', true);
+    renderTermChart('chart-term', true); 
+    renderSurfaceCharts('surf-money', 'surf-delta');
+
+    // 3. Tab Switching Logic
+    window.switchTab = (targetId) => {
+        // Style Active Tab
+        document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`[data-target="${targetId}"]`).classList.add('active');
         
-        // Import 'updateLegend' along with render functions
-        import { renderIntradayChart, updateLegend as updateIntradayLegend } from './frontend/components/charts/intraday-iv-rv/chart-intraday.js';
-        import { renderSkewChart, updateLegend as updateSkewLegend } from './frontend/components/charts/volatility-skew/chart-skew.js';
-        import { renderTermChart, updateLegend as updateTermLegend } from './frontend/components/charts/term-structure/chart-term.js';
-        import { renderSurfaceCharts, updateLegend as updateSurfaceLegend } from './frontend/components/charts/volatility-surface/chart-surface.js';
+        // Toggle Chart Visibility
+        document.querySelectorAll('.chart-div').forEach(d => d.classList.remove('visible'));
+        const target = document.getElementById('chart-' + targetId);
+        if(target) target.classList.add('visible');
         
-        import { renderSDTable } from './frontend/components/tables/sd-table/sd-table.js';
-        import { renderGreeksTable } from './frontend/components/tables/greeks-table/greeks-table.js';
+        // FORCE LEGEND UPDATE BASED ON TAB
+        if(targetId === 'skew') updateSkewLegend(true);
+        if(targetId === 'term') updateTermLegend(true);
+        if(targetId === 'surf') updateSurfaceLegend();
+        
+        window.dispatchEvent(new Event('resize'));
+    };
 
-        // 1. Render Static UI
-        renderPriceStrip('price-strip-container', mockData);
-        renderMarketGrid('weekly-grid-container', 'WEEKLY', mockData.gridWeekly, 't-week');
-        renderMarketGrid('monthly-grid-container', 'MONTHLY', mockData.gridMonthly, 't-month');
-        renderSDTable('sd-table-container', mockData);
-        renderGreeksTable('greeks-table-container', mockData);
+    document.querySelectorAll('.c-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => window.switchTab(e.target.dataset.target));
+    });
+    
+    // Initial Legend Load
+    updateSkewLegend(true);
 
-        // 2. Render Charts (Initial Load)
-        renderIntradayChart('chart-trend');
-        renderSkewChart('chart-skew', true);
-        renderTermChart('chart-term', true); 
-        renderSurfaceCharts('surf-money', 'surf-delta');
-
-        // 3. Tab Switching Logic (Fixes Legend Issue)
-        window.switchTab = (targetId) => {
-            // Update Tab Styles
-            document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
-            document.querySelector(`[data-target="${targetId}"]`).classList.add('active');
-            
-            // Toggle Chart Visibility
-            document.querySelectorAll('.chart-div').forEach(d => d.classList.remove('visible'));
-            const target = document.getElementById('chart-' + targetId);
-            if(target) target.classList.add('visible');
-            
-            // Update Legends dynamically based on active tab
-            if(targetId === 'skew') updateSkewLegend(true);
-            if(targetId === 'term') updateTermLegend(true);
-            if(targetId === 'surf') updateSurfaceLegend();
-            
-            // Resize Plotly
-            window.dispatchEvent(new Event('resize'));
-        };
-
-        // Attach Listeners
-        document.querySelectorAll('.c-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => window.switchTab(e.target.dataset.target));
-        });
-    </script>
+</script>
 
 </body>
 </html>
