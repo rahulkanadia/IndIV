@@ -218,10 +218,10 @@
                     <span class="panel-title">
                         Intraday IV & RV Trend
                         <div class="legend-row">
-                            <div class="leg-item"><div class="line-box l-thin"></div>Wk</div>
-                            <div class="leg-item"><div class="line-box l-thick"></div>Mo</div>
-                            <div class="leg-item"><div class="line-box l-dot"></div>WkRV</div>
-                            <div class="leg-item"><div class="line-box l-dash"></div>MoRV</div>
+                            <div class="leg-item"><div class="line-box l-thin"></div>Weekly IV</div>
+                            <div class="leg-item"><div class="line-box l-thick"></div>Monthly IV</div>
+                            <div class="leg-item"><div class="line-box l-dot"></div>Weekly RV</div>
+                            <div class="leg-item"><div class="line-box l-dash"></div>Monthly RV</div>
                         </div>
                     </span>
                     <div id="chart-trend" style="width:100%; height:100%"></div>
@@ -407,12 +407,21 @@ function renderIntradayChart() {
 
     const range = getSmartRange([mockData.intraday.wk, mockData.intraday.mo, mockData.intraday.wkRv, mockData.intraday.moRv], true);
 
+    // SPECIFIC X-AXIS TICKS FOR INTRADAY
+    const specificTicks = ["09:15", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "15:30"];
+
     const layout = {
         ...LAYOUT_2D,
-        // Removed internal title to prevent duplicate with HTML header
         showlegend: false,
-        margin: { t: 25, b: 50, l: 35, r: 50 }, // Increased bottom margin (b) to 50 to prevent X-axis label clip
-        yaxis: { ...LAYOUT_2D.yaxis, range: range }
+        margin: { t: 25, b: 50, l: 35, r: 50 },
+        yaxis: { ...LAYOUT_2D.yaxis, range: range },
+        xaxis: {
+            ...LAYOUT_2D.xaxis,
+            tickmode: 'array',
+            tickvals: specificTicks,
+            ticktext: specificTicks,
+            tickangle: 0 // FORCE HORIZONTAL
+        }
     };
 
     Plotly.newPlot('chart-trend', traces, layout, PLOTLY_CONFIG);
