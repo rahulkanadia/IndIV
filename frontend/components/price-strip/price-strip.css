@@ -81,7 +81,7 @@
     color: #fff; 
     border: 1px solid #444; 
     border-radius: 4px; 
-    font-size: 14px; 
+    font-size: 18px; 
     font-weight: bold; 
     cursor: pointer; 
     outline: none;
@@ -89,6 +89,14 @@
     /* Center Text */
     text-align: center;
     text-align-last: center;
+}
+
+.asset-select option { 
+    font-family: var(--font-main);
+    font-size: 18px;
+    background-color: #222;
+    color: #fff;
+    padding: 10px;
 }
 
 .asset-select:hover { border-color: var(--muted); }
