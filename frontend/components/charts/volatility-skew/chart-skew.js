@@ -3,8 +3,6 @@ import { mockData } from '../../../mockdata.js';
 const LAYOUT_CLEAN = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI', color: '#666', size: 10 },
-    xaxis: { showgrid: false, fixedrange: true },
-    yaxis: { gridcolor: '#222', fixedrange: true },
     dragmode: false
 };
 
@@ -13,11 +11,9 @@ function getSmartRange(dataArrays) {
     dataArrays.forEach(arr => all.push(...arr));
     const minV = Math.min(...all);
     const maxV = Math.max(...all);
-    const pad = (maxV - minV) * 0.1; 
-    return [minV - (pad||1.0), maxV + (pad||1.0)];
+    return [minV - 1.0, maxV + 1.0];
 }
 
-// PUBLIC LEGEND UPDATER
 export function updateLegend(showMonthly) {
     const leg = document.getElementById('dynamicLegends');
     const inp = document.getElementById('dynamicInputs');
@@ -40,7 +36,7 @@ export function updateLegend(showMonthly) {
 
 export function renderSkewChart(containerId, showMonthly) {
     const traces = [
-        // 1. BAR TRACE FIRST (Bottom Layer)
+        // 1. BAR TRACE (Assigned to y2)
         { 
             x: mockData.strikes, 
             y: mockData.skew.spread, 
@@ -50,7 +46,7 @@ export function renderSkewChart(containerId, showMonthly) {
             yaxis: 'y2', 
             hoverinfo: 'y' 
         },
-        // 2. LINES (Top Layer)
+        // 2. LINE TRACES (Assigned to y - Primary)
         { x: mockData.strikes, y: mockData.skew.call, name: 'Wk Call', line: { color: '#00E676', width: 2 }, type: 'scatter', mode: 'lines' },
         { x: mockData.strikes, y: mockData.skew.put, name: 'Wk Put', line: { color: '#FF5252', width: 2 }, type: 'scatter', mode: 'lines' }
     ];
@@ -67,14 +63,32 @@ export function renderSkewChart(containerId, showMonthly) {
     const layout = {
         ...LAYOUT_CLEAN,
         showlegend: false,
-        margin: { t: 10, b: 20, l: 30, r: 40 },
-        yaxis: { ...LAYOUT_CLEAN.yaxis, range: range },
-        xaxis: { ...LAYOUT_CLEAN.xaxis, tickfont: { color: '#fff', size: 10 } },
-        yaxis2: { overlaying: 'y', side: 'right', showgrid: false, fixedrange: true, tickfont: { color: '#888', size: 9 } } 
+        margin: { t: 10, b: 30, l: 30, r: 40 },
+        xaxis: { 
+            showgrid: false, 
+            fixedrange: true, 
+            // FIX: White X-Axis Labels
+            tickfont: { color: '#fff', size: 10 } 
+        },
+        // FIX: LAYERING TRICK
+        // To make Lines (y) appear ON TOP of Bars (y2), 
+        // y must "overlay" y2.
+        yaxis2: { 
+            side: 'right', 
+            showgrid: false, 
+            fixedrange: true,
+            overlaying: null, // y2 is the Base Layer
+            tickfont: { color: '#888', size: 9 }
+        },
+        yaxis: { 
+            gridcolor: '#222', 
+            fixedrange: true, 
+            range: range,
+            overlaying: 'y2', // y is the Top Layer
+            side: 'left'
+        }
     };
 
     Plotly.newPlot(containerId, traces, layout, { displayModeBar: false, responsive: true });
-    
-    // Initial legend render
     updateLegend(showMonthly);
 }
