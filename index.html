@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndIV Monitor V25 (Modular)</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <link rel="stylesheet" href="global.css">
+
+    <link rel="stylesheet" href="components/price-strip/price-strip.css">
+    <link rel="stylesheet" href="components/market-grid/market-grid.css">
+    <link rel="stylesheet" href="components/charts/intraday/chart-intraday.css">
+    <link rel="stylesheet" href="components/charts/skew/chart-skew.css">
+    <link rel="stylesheet" href="components/charts/term-structure/chart-term.css">
+    <link rel="stylesheet" href="components/charts/surface/chart-surface.css">
+    <link rel="stylesheet" href="components/tables/sd-table/sd-table.css">
+    <link rel="stylesheet" href="components/tables/greeks-table/table.css">
+</head>
+<body>
+
+    <div class="header-row">
+        <div class="header-left"><h1>IndIV <span class="sub-title">Volatility monitor for Indian markets</span></h1></div>
+        <div class="header-right"><a href="#" class="help-btn">How to use?</a><div class="status-badge">● LIVE DATA</div></div>
+    </div>
+
+    <div class="container">
+        <div class="left-panel">
+            <div id="price-strip-container"></div>
+
+            <div id="weekly-grid-container"></div>
+
+            <div class="chart-window">
+                <div class="chart-tabs">
+                    <div class="c-tab active" data-target="skew">Volatility Skew</div>
+                    <div class="c-tab" data-target="term">Term Structure</div>
+                    <div class="c-tab" data-target="surf">Volatility Surface</div>
+                </div>
+                <div class="chart-controls">
+                    <div class="ctrl-legends" id="dynamicLegends"></div>
+                    <div class="ctrl-inputs" id="dynamicInputs"></div>
+                </div>
+                <div class="chart-content">
+                    <div id="chart-skew" class="chart-div visible"></div>
+                    <div id="chart-term" class="chart-div"></div>
+                    <div id="chart-surf" class="chart-div">
+                        <div id="surf-money" class="surf-half"></div>
+                        <div id="surf-delta" class="surf-half"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="monthly-grid-container"></div>
+        </div>
+
+        <div class="right-panel">
+            <div class="split-header">
+                <div class="split-half">
+                    <span class="panel-title">
+                        Intraday IV & RV Trend
+                        <div class="legend-row">
+                            <div class="leg-item"><div class="line-box" style="border-top:1px solid #FF9800"></div>Weekly IV</div>
+                            <div class="leg-item"><div class="line-box" style="border-top:3px solid #FF9800"></div>Monthly IV</div>
+                            <div class="leg-item"><div class="line-box" style="border-top:1px dotted #42A5F5"></div>Weekly RV</div>
+                            <div class="leg-item"><div class="line-box" style="border-top:2px dashed #42A5F5"></div>Monthly RV</div>
+                        </div>
+                    </span>
+                    <div id="chart-trend" style="width:100%; height:100%"></div>
+                </div>
+                <div class="split-half">
+                    <div id="sd-table-container"></div>
+                </div>
+            </div>
+
+            <div id="greeks-table-container"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { renderPriceStrip } from './components/price-strip/price-strip.js';
+        import { renderMarketGrid } from './components/market-grid/market-grid.js';
+        import { renderIntradayChart } from './components/charts/intraday/chart-intraday.js';
+        import { renderSkewChart } from './components/charts/skew/chart-skew.js';
+        import { renderTermChart } from './components/charts/term-structure/chart-term.js';
+        import { renderSurfaceCharts } from './components/charts/surface/chart-surface.js';
+        import { renderSDTable } from './components/tables/sd-table/sd-table.js';
+        import { renderGreeksTable } from './components/tables/greeks-table/table.js';
+        import { mockData } from './mockData.js';
+
+        // 1. Render Static Components
+        renderPriceStrip('price-strip-container', mockData);
+        
+        // Reusing the grid component logic
+        renderMarketGrid('weekly-grid-container', 'WEEKLY', mockData.gridWeekly, 't-week');
+        renderMarketGrid('monthly-grid-container', 'MONTHLY', mockData.gridMonthly, 't-month');
+
+        renderSDTable('sd-table-container', mockData);
+        renderGreeksTable('greeks-table-container', mockData);
+
+        // 2. Render Charts
+        renderIntradayChart('chart-trend');
+        renderSkewChart('chart-skew', true); // Default Show Monthly = true
+        renderTermChart('chart-term', true); 
+        renderSurfaceCharts('surf-money', 'surf-delta');
+
+        // 3. Tab Logic (Simple Global Handler)
+        window.switchTab = (targetId) => {
+            document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`[data-target="${targetId}"]`).classList.add('active');
+            
+            document.querySelectorAll('.chart-div').forEach(d => d.classList.remove('visible'));
+            const target = document.getElementById('chart-' + targetId);
+            if(target) target.classList.add('visible');
+            
+            // Resize trigger for Plotly
+            window.dispatchEvent(new Event('resize'));
+        };
+
+        document.querySelectorAll('.c-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => window.switchTab(e.target.dataset.target));
+        });
+
+    </script>
+</body>
+</html>
