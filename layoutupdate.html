@@ -281,7 +281,7 @@ const PLOTLY_CONFIG = { displayModeBar: false, responsive: true, staticPlot: fal
 const LAYOUT_2D = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI', color: '#666', size: 10 },
-    margin: { t: 15, b: 15, l: 15, r: 20 },
+    margin: { t: 10, b: 30, l: 35, r: 30 },
     xaxis: { showgrid: false, fixedrange: true, color: '#666' },
     yaxis: { gridcolor: '#222', fixedrange: true },
     dragmode: false
@@ -290,7 +290,7 @@ const LAYOUT_2D = {
 const LAYOUT_CLEAN = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI', color: '#666', size: 10 },
-    margin: { t: 15, b: 15, l: 15, r: 20 },
+    margin: { t: 10, b: 20, l: 30, r: 40 },
     xaxis: { showgrid: false, fixedrange: true },
     yaxis: { gridcolor: '#222', fixedrange: true },
     dragmode: false
@@ -299,7 +299,7 @@ const LAYOUT_CLEAN = {
 const LAYOUT_CONTOUR = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI', color: '#666', size: 10 },
-    margin: { t: 15, b: 15, l: 15, r: 15 },
+    margin: { t: 20, b: 20, l: 30, r: 10 },
     xaxis: { title: '', tickfont: {size: 9}, color: '#888', fixedrange: true },
     yaxis: { title: '', tickfont: {size: 9}, color: '#888', fixedrange: true },
     dragmode: false
@@ -438,7 +438,7 @@ function renderIntradayChart() {
     const layout = {
         ...LAYOUT_2D,
         showlegend: false,
-        margin: { t: 20, b: 20, l: 20, r: 20 },
+        margin: { t: 25, b: 50, l: 35, r: 50 },
         yaxis: { ...LAYOUT_2D.yaxis, range: range },
         xaxis: {
             ...LAYOUT_2D.xaxis,
@@ -451,6 +451,7 @@ function renderIntradayChart() {
 
     Plotly.newPlot('chart-trend', traces, layout, PLOTLY_CONFIG);
 }
+
 
 /* ===============================
    MODULE: CHART – VOLATILITY SKEW
