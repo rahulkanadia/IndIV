@@ -1,6 +1,4 @@
-/* /IndIV/global.css */
-
-/* 1. LOCKED THEME VARIABLES */
+/* --- 1. LOCKED THEME VARIABLES --- */
 :root { 
     --bg: #0b0b0b; 
     --card: #121212; 
@@ -34,7 +32,7 @@ body {
     display: flex; flex-direction: column;
 }
 
-/* 2. MAIN LAYOUT GRID */
+/* --- 2. HEADER LAYOUT --- */
 .header-row { 
     display: flex; align-items: center; justify-content: space-between; 
     padding: 0 10px 10px; border-bottom: 1px solid var(--border); 
@@ -59,7 +57,7 @@ h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; colo
 
 @media (max-width: 600px) { .sub-title { display: none; } }
 
-/* 3. SPLIT PANEL SYSTEM */
+/* --- 3. PAGE CONTAINER & PANELS --- */
 .container { 
     display: flex; gap: 15px; flex: 1; margin-top: 15px; 
     flex-wrap: wrap; overflow: visible; 
@@ -73,7 +71,27 @@ h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; colo
     border-radius: 6px; overflow: hidden; min-width: 0; 
 }
 
-/* 4. UTILITIES */
+/* Right Panel Split (Top Charts / SD Table) */
+.split-header { display: flex; min-height: 210px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.split-half { flex: 1 1 300px; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
+.split-half:last-child { border-right: none; }
+
+/* Panel Titles */
+.panel-title { 
+    font-size: 10px; 
+    color: #fff; /* White & Bold Title */
+    font-weight: bold; 
+    text-transform: uppercase; 
+    padding: 8px 10px 0; 
+    display: flex; align-items: center; justify-content: space-between; 
+}
+
+/* Legend Utilities */
+.legend-row { display: flex; gap: 15px; font-weight: normal; text-transform: none; }
+.leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
+.line-box { width: 20px; height: 0; border-top-style: solid; }
+
+/* --- 4. UTILITIES --- */
 .up { color: var(--green); } 
 .down { color: var(--red); }
 .c-g { color: var(--green); } 
