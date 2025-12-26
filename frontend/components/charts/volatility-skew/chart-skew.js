@@ -17,6 +17,27 @@ function getSmartRange(dataArrays) {
     return [minV - (pad||1.0), maxV + (pad||1.0)];
 }
 
+// PUBLIC LEGEND UPDATER
+export function updateLegend(showMonthly) {
+    const leg = document.getElementById('dynamicLegends');
+    const inp = document.getElementById('dynamicInputs');
+    if(!leg || !inp) return;
+
+    leg.innerHTML = `
+        <div class="leg-item" style="display:flex; align-items:center"><div class="line-box" style="border:none; background:#333; height:10px; width:10px; opacity:0.5"></div>Skew</div>
+        <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#00E676; border-top-style:solid"></div>Weekly ATM Call</div>
+        <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#FF5252; border-top-style:solid"></div>Weekly ATM Put</div>
+        <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#00E676; border-top-style:dotted"></div>Monthly ATM Call</div>
+        <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#FF5252; border-top-style:dotted"></div>Monthly ATM Put</div>
+    `;
+    inp.innerHTML = '';
+    const lbl = document.createElement('label');
+    lbl.style.display = 'flex'; lbl.style.alignItems = 'center'; lbl.style.gap = '4px'; lbl.style.cursor = 'pointer';
+    lbl.innerHTML = `<input type="checkbox" ${showMonthly ? 'checked' : ''}> Show Monthly`;
+    lbl.querySelector('input').onchange = (e) => renderSkewChart('chart-skew', e.target.checked);
+    inp.appendChild(lbl);
+}
+
 export function renderSkewChart(containerId, showMonthly) {
     const traces = [
         // 1. BAR TRACE FIRST (Bottom Layer)
@@ -29,21 +50,9 @@ export function renderSkewChart(containerId, showMonthly) {
             yaxis: 'y2', 
             hoverinfo: 'y' 
         },
-        // 2. LINE TRACES AFTER (Top Layer)
-        { 
-            x: mockData.strikes, 
-            y: mockData.skew.call, 
-            name: 'Wk Call', 
-            line: { color: '#00E676', width: 2 }, 
-            type: 'scatter', mode: 'lines' 
-        },
-        { 
-            x: mockData.strikes, 
-            y: mockData.skew.put, 
-            name: 'Wk Put', 
-            line: { color: '#FF5252', width: 2 }, 
-            type: 'scatter', mode: 'lines' 
-        }
+        // 2. LINES (Top Layer)
+        { x: mockData.strikes, y: mockData.skew.call, name: 'Wk Call', line: { color: '#00E676', width: 2 }, type: 'scatter', mode: 'lines' },
+        { x: mockData.strikes, y: mockData.skew.put, name: 'Wk Put', line: { color: '#FF5252', width: 2 }, type: 'scatter', mode: 'lines' }
     ];
 
     if (showMonthly) {
@@ -60,29 +69,13 @@ export function renderSkewChart(containerId, showMonthly) {
         showlegend: false,
         margin: { t: 10, b: 20, l: 30, r: 40 },
         yaxis: { ...LAYOUT_CLEAN.yaxis, range: range },
+        // WHITE X-AXIS LABELS
+        xaxis: { ...LAYOUT_CLEAN.xaxis, tickfont: { color: '#fff', size: 10 } },
         yaxis2: { overlaying: 'y', side: 'right', showgrid: false, fixedrange: true } 
     };
 
     Plotly.newPlot(containerId, traces, layout, { displayModeBar: false, responsive: true });
-
-    // Update Legends via DOM (Injects into the shared control bar)
-    const leg = document.getElementById('dynamicLegends');
-    const inp = document.getElementById('dynamicInputs');
     
-    // Only update if the 'skew' tab is active to avoid overwriting other tabs
-    if(leg && inp && document.querySelector('[data-target="skew"].active')) {
-        leg.innerHTML = `
-            <div class="leg-item" style="display:flex; align-items:center"><div class="line-box" style="border:none; background:#333; height:10px; width:10px; opacity:0.5"></div>Skew</div>
-            <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#00E676; border-top-style:solid"></div>Weekly ATM Call</div>
-            <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#FF5252; border-top-style:solid"></div>Weekly ATM Put</div>
-            <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#00E676; border-top-style:dotted"></div>Monthly ATM Call</div>
-            <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#FF5252; border-top-style:dotted"></div>Monthly ATM Put</div>
-        `;
-        inp.innerHTML = '';
-        const lbl = document.createElement('label');
-        lbl.style.display = 'flex'; lbl.style.alignItems = 'center'; lbl.style.gap = '4px'; lbl.style.cursor = 'pointer';
-        lbl.innerHTML = `<input type="checkbox" ${showMonthly ? 'checked' : ''}> Show Monthly`;
-        lbl.querySelector('input').onchange = (e) => renderSkewChart(containerId, e.target.checked);
-        inp.appendChild(lbl);
-    }
+    // Initial legend render
+    updateLegend(showMonthly);
 }
