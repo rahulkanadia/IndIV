@@ -73,7 +73,7 @@
     background-color: #222;
 
     /* 3. Dimensions & Alignment */
-    height: 30px; /* Matches the visual height of p-val */
+    height: 48px; /* Matches the visual height of p-val */
     width: 90%; 
     padding: 0 25px 0 10px; /* Right padding makes room for arrow */
     
