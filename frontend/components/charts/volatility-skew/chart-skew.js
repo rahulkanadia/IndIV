@@ -69,9 +69,8 @@ export function renderSkewChart(containerId, showMonthly) {
         showlegend: false,
         margin: { t: 10, b: 20, l: 30, r: 40 },
         yaxis: { ...LAYOUT_CLEAN.yaxis, range: range },
-        // WHITE X-AXIS LABELS
         xaxis: { ...LAYOUT_CLEAN.xaxis, tickfont: { color: '#fff', size: 10 } },
-        yaxis2: { overlaying: 'y', side: 'right', showgrid: false, fixedrange: true } 
+        yaxis2: { overlaying: 'y', side: 'right', showgrid: false, fixedrange: true, tickfont: { color: '#888', size: 9 } } 
     };
 
     Plotly.newPlot(containerId, traces, layout, { displayModeBar: false, responsive: true });
