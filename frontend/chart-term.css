@@ -1,2 +1,60 @@
-/* Reuses styles from chart-skew.css if loaded, but good practice to have its own file */
-/* Specific overrides for Term Structure can go here */
+/* --- CONTAINER LAYOUT (Self-Contained) --- */
+.chart-window { 
+    background: var(--card); 
+    border: 1px solid var(--border); 
+    border-radius: 4px; 
+    display: flex; 
+    flex-direction: column; 
+    flex: 1; 
+    min-height: 350px; 
+}
+
+/* Tabs */
+.chart-tabs { 
+    display: flex; 
+    border-bottom: 1px solid var(--border); 
+    background: #181818; 
+}
+.c-tab { 
+    flex: 1; 
+    text-align: center; 
+    padding: 8px; 
+    font-size: 11px; 
+    cursor: pointer; 
+    color: #888; 
+    border-right: 1px solid var(--border); 
+    font-weight: 600; 
+}
+.c-tab:hover { color: #fff; background: #222; }
+.c-tab.active { 
+    color: #fff; 
+    background: var(--card); 
+    border-bottom: 2px solid var(--green); 
+}
+
+/* Controls & Content Area */
+.chart-controls { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 0 10px; 
+    background: #1a1a1a; 
+    border-bottom: 1px solid #333; 
+    height: 35px; 
+}
+.ctrl-legends { display: flex; gap: 12px; font-size: 10px; color: #aaa; align-items: center; }
+.ctrl-inputs { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #aaa; }
+
+.chart-content { position: relative; flex: 1; width: 100%; overflow: hidden; }
+.chart-div { position: absolute; top:0; left:0; width: 100%; height: 100%; display: none; } 
+.chart-div.visible { display: block; }
+
+/* --- LEGEND STYLES (Specific to Term Structure) --- */
+/* Uses dot markers instead of lines, but structure is shared */
+.leg-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+}
