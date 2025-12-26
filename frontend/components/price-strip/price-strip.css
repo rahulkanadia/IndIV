@@ -43,7 +43,7 @@
     background: #222; color: #fff; border: 1px solid #444; 
     padding: 0 10px; 
     /* FIX: Height adjusted to match the 1.4rem + line-height of p-val */
-    height: 32px; 
+    height: 36px; 
     border-radius: 4px; font-size: 14px; font-weight: bold; 
     cursor: pointer; text-align: center; width: 90%; 
     outline: none;
