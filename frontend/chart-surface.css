@@ -1,0 +1,4 @@
+/* Surface-specific layout logic */
+#chart-surf.visible { display: flex !important; width: 100%; height: 100%; }
+.surf-half { flex: 1; height: 100%; position: relative; min-width: 0; border-right: 1px solid #222; }
+.surf-half:last-child { border-right: none; }
