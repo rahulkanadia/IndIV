@@ -8,14 +8,14 @@ const LAYOUT_CONTOUR = {
     dragmode: false
 };
 
-// PUBLIC LEGEND UPDATER
+// EXPORT LEGEND UPDATE
 export function updateLegend() {
     const leg = document.getElementById('dynamicLegends');
     const inp = document.getElementById('dynamicInputs');
     if(!leg || !inp) return;
 
     leg.innerHTML = `<span style="color:#00E676; margin-right:10px">Moneyness (X) vs Expiry (Y)</span> | <span style="color:#FF9800; margin-left:10px">Delta (X) vs Expiry (Y)</span>`;
-    inp.innerHTML = '<span style="font-size:10px; color:#666; font-style:italic">Heatmap of Implied Volatility</span>';
+    inp.innerHTML = '';
 }
 
 export function renderSurfaceCharts(containerId1, containerId2) {
@@ -24,8 +24,9 @@ export function renderSurfaceCharts(containerId1, containerId2) {
         type: 'heatmap', colorscale: 'Viridis', showscale: false 
     }], { 
         ...LAYOUT_CONTOUR, 
-        margin: { t: 20, b: 20, l: 30, r: 10 },
-        title: {text: 'IV vs Moneyness', font:{size:10, color:'#666'}, y:0.95} 
+        // FIX: Increased top margin to prevent title overlap
+        margin: { t: 40, b: 20, l: 30, r: 10 },
+        title: {text: 'IV vs Moneyness', font:{size:10, color:'#666'}, y: 0.98} 
     }, { displayModeBar: false, responsive: true });
 
     Plotly.newPlot(containerId2, [{ 
@@ -33,7 +34,8 @@ export function renderSurfaceCharts(containerId1, containerId2) {
         type: 'heatmap', colorscale: 'Plasma', showscale: false 
     }], { 
         ...LAYOUT_CONTOUR, 
-        margin: { t: 20, b: 20, l: 30, r: 10 },
-        title: {text: 'IV vs Delta', font:{size:10, color:'#666'}, y:0.95} 
+        // FIX: Increased top margin
+        margin: { t: 40, b: 20, l: 30, r: 10 },
+        title: {text: 'IV vs Delta', font:{size:10, color:'#666'}, y: 0.98} 
     }, { displayModeBar: false, responsive: true });
 }
