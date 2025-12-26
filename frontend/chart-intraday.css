@@ -1,2 +1,28 @@
 /* Intraday Chart Container */
-#chart-trend { width: 100%; height: 100%; }
+#chart-trend { 
+    width: 100%; 
+    height: 100%; 
+    min-height: 200px; /* Ensure visibility if container collapses */
+}
+
+/* --- INDEPENDENT LEGEND STYLES --- */
+/* These match the specific HTML injected into the header for this chart */
+.leg-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 6px; 
+    font-size: 11px; 
+    color: #aaa; 
+}
+
+.line-box { 
+    width: 20px; 
+    height: 0; 
+    border-top-style: solid; 
+}
+
+/* Specific variants used in Intraday Legend */
+.l-thin { border-top-width: 1px; }
+.l-thick { border-top-width: 3px; }
+.l-dot { border-top-width: 1px; border-top-style: dotted; }
+.l-dash { border-top-width: 2px; border-top-style: dashed; }
