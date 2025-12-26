@@ -78,42 +78,35 @@
     </div>
 
     <script type="module">
-        // Import Data
         import { mockData } from './frontend/mockdata.js';
-
-        // Import UI Components
         import { renderPriceStrip } from './frontend/components/price-strip/price-strip.js';
         import { renderMarketGrid } from './frontend/components/market-grid/market-grid.js';
         
-        // Import Chart Components
-        import { renderIntradayChart } from './frontend/components/charts/intraday-iv-rv/chart-intraday.js';
-        import { renderSkewChart } from './frontend/components/charts/volatility-skew/chart-skew.js';
-        import { renderTermChart } from './frontend/components/charts/term-structure/chart-term.js';
-        import { renderSurfaceCharts } from './frontend/components/charts/volatility-surface/chart-surface.js';
+        // Import 'updateLegend' along with render functions
+        import { renderIntradayChart, updateLegend as updateIntradayLegend } from './frontend/components/charts/intraday-iv-rv/chart-intraday.js';
+        import { renderSkewChart, updateLegend as updateSkewLegend } from './frontend/components/charts/volatility-skew/chart-skew.js';
+        import { renderTermChart, updateLegend as updateTermLegend } from './frontend/components/charts/term-structure/chart-term.js';
+        import { renderSurfaceCharts, updateLegend as updateSurfaceLegend } from './frontend/components/charts/volatility-surface/chart-surface.js';
         
-        // Import Table Components
         import { renderSDTable } from './frontend/components/tables/sd-table/sd-table.js';
         import { renderGreeksTable } from './frontend/components/tables/greeks-table/greeks-table.js';
 
-        // --- 1. RENDER STATIC UI ---
+        // 1. Render Static UI
         renderPriceStrip('price-strip-container', mockData);
-        
-        // Reuse MarketGrid Logic for Weekly and Monthly
         renderMarketGrid('weekly-grid-container', 'WEEKLY', mockData.gridWeekly, 't-week');
         renderMarketGrid('monthly-grid-container', 'MONTHLY', mockData.gridMonthly, 't-month');
-
         renderSDTable('sd-table-container', mockData);
         renderGreeksTable('greeks-table-container', mockData);
 
-        // --- 2. RENDER CHARTS ---
+        // 2. Render Charts (Initial Load)
         renderIntradayChart('chart-trend');
-        renderSkewChart('chart-skew', true); // Default Show Monthly = true
+        renderSkewChart('chart-skew', true);
         renderTermChart('chart-term', true); 
         renderSurfaceCharts('surf-money', 'surf-delta');
 
-        // --- 3. GLOBAL TAB LOGIC ---
+        // 3. Tab Switching Logic (Fixes Legend Issue)
         window.switchTab = (targetId) => {
-            // Update Tab Styling
+            // Update Tab Styles
             document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
             document.querySelector(`[data-target="${targetId}"]`).classList.add('active');
             
@@ -122,15 +115,20 @@
             const target = document.getElementById('chart-' + targetId);
             if(target) target.classList.add('visible');
             
-            // Force Plotly Resize (Fixes hidden chart rendering issues)
+            // Update Legends dynamically based on active tab
+            if(targetId === 'skew') updateSkewLegend(true);
+            if(targetId === 'term') updateTermLegend(true);
+            if(targetId === 'surf') updateSurfaceLegend();
+            
+            // Resize Plotly
             window.dispatchEvent(new Event('resize'));
         };
 
-        // Attach Click Listeners to Tabs
+        // Attach Listeners
         document.querySelectorAll('.c-tab').forEach(tab => {
             tab.addEventListener('click', (e) => window.switchTab(e.target.dataset.target));
         });
-
     </script>
+
 </body>
 </html>
