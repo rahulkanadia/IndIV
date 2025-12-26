@@ -8,9 +8,10 @@
     width: 100%;
     background: var(--card); 
     border: 1px solid var(--border); 
-    padding: 12px 10px; /* Slight increase in V-padding */
+    padding: 10px; 
     border-radius: 4px; 
-    align-items: end; /* Align items to the bottom baseline */
+    /* FIX: Align everything to the top so labels line up perfectly */
+    align-items: flex-start;
     box-sizing: border-box;
 }
 
@@ -18,25 +19,35 @@
     display: flex; 
     flex-direction: column; 
     align-items: center; 
-    justify-content: flex-end; /* Push content to bottom */
+    /* Justify Start ensures labels are always at top */
+    justify-content: flex-start;
     text-align: center;
     height: 100%; 
 }
 
-/* Specific fix for the middle group (Asset Select) */
-.p-group:nth-child(2) {
-    justify-content: center; /* Center the dropdown vertically */
-    padding-bottom: 2px; /* Micro-adjustment to align with font baseline */
+.p-label { 
+    font-size: 10px; color: var(--muted); text-transform: uppercase; 
+    letter-spacing: 1px; margin-bottom: 6px; /* consistent spacing */
+    white-space: nowrap; 
 }
 
-/* ... (Keep Labels and Values styles same) ... */
+.p-val { 
+    font-size: 1.4rem; font-weight: 700; color: #fff; line-height: 1.1; 
+}
+
+.p-change { 
+    font-size: 0.85rem; font-weight: 500; margin-top: 4px; white-space: nowrap;
+}
 
 .asset-select { 
     background: #222; color: #fff; border: 1px solid #444; 
     padding: 0 10px; 
-    height: 26px; /* Matches the visual height of the Value + Change text block */
-    border-radius: 4px; font-size: 13px; font-weight: bold; 
+    /* FIX: Height adjusted to match the 1.4rem + line-height of p-val */
+    height: 32px; 
+    border-radius: 4px; font-size: 14px; font-weight: bold; 
     cursor: pointer; text-align: center; width: 90%; 
     outline: none;
+    /* Center text in dropdown */
+    display: flex; align-items: center; justify-content: center;
 }
 .asset-select:hover { border-color: var(--muted); }
