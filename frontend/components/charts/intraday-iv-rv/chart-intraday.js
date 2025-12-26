@@ -73,7 +73,6 @@ export function renderIntradayChart(containerId) {
 
     const layout = {
         ...LAYOUT_2D,
-        title: { text: 'Intraday IV & RV', font: {size: 11, color: '#888'}, x: 0.5 }, // UPDATED TITLE
         showlegend: false,
         margin: { t: 10, b: 25, l: 35, r: 50 }, // REDUCED MARGINS
         yaxis: { ...LAYOUT_2D.yaxis, range: range },
