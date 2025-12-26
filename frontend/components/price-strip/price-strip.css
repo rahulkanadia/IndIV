@@ -1,53 +1,95 @@
-/* Container Wrapper */
-#price-strip-container { width: 100%; display: block; }
+/* Container Wrapper - Ensures full width availability */
+#price-strip-container {
+    width: 100%;
+    display: block;
+}
 
+/* The Main Grid */
 .price-strip { 
     display: grid; 
-    grid-template-columns: 1fr 1fr 1fr; 
+    grid-template-columns: 1fr 1fr 1fr; /* Equal columns */
     gap: 10px;
     width: 100%;
     background: var(--card); 
     border: 1px solid var(--border); 
-    padding: 10px; 
+    padding: 12px 10px; 
     border-radius: 4px; 
-    /* FIX: Align everything to the top so labels line up perfectly */
+    /* CRITICAL: Aligns the top of all columns so labels line up */
     align-items: flex-start;
     box-sizing: border-box;
 }
 
+/* Column Groups */
 .p-group { 
     display: flex; 
     flex-direction: column; 
     align-items: center; 
-    /* Justify Start ensures labels are always at top */
-    justify-content: flex-start;
+    justify-content: flex-start; /* Push content to top */
     text-align: center;
     height: 100%; 
 }
 
+/* Labels (SPOT PRICE, ASSET, etc.) */
 .p-label { 
-    font-size: 10px; color: var(--muted); text-transform: uppercase; 
-    letter-spacing: 1px; margin-bottom: 6px; /* consistent spacing */
+    font-size: 10px; 
+    color: var(--muted); 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    margin-bottom: 6px; /* Consistent spacing below label */
     white-space: nowrap; 
+    line-height: 1;
 }
 
+/* Value Numbers (26,150.00) */
 .p-val { 
-    font-size: 1.4rem; font-weight: 700; color: #fff; line-height: 1.1; 
+    font-size: 1.4rem; 
+    font-weight: 700; 
+    color: #fff; 
+    line-height: 1; /* Tight line height for alignment */
+    height: 30px; /* Force height to match dropdown */
+    display: flex;
+    align-items: center;
 }
 
+/* Change Percentages (+0.17%) */
 .p-change { 
-    font-size: 0.85rem; font-weight: 500; margin-top: 4px; white-space: nowrap;
+    font-size: 0.85rem; 
+    font-weight: 500; 
+    margin-top: 4px; 
+    white-space: nowrap;
 }
 
+/* The Dropdown Box */
 .asset-select { 
-    background: #222; color: #fff; border: 1px solid #444; 
-    padding: 0 10px; 
-    /* FIX: Height adjusted to match the 1.4rem + line-height of p-val */
-    height: 48px; 
-    border-radius: 4px; font-size: 14px; font-weight: bold; 
-    cursor: pointer; text-align: center; width: 90%; 
+    /* 1. Reset Browser Styles to unlock Height */
+    -webkit-appearance: none;
+    appearance: none;
+    
+    /* 2. Custom Background Arrow (Required after reset) */
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 8px;
+    background-color: #222;
+
+    /* 3. Dimensions & Alignment */
+    height: 30px; /* Matches the visual height of p-val */
+    width: 90%; 
+    padding: 0 25px 0 10px; /* Right padding makes room for arrow */
+    
+    /* 4. Text Styling */
+    color: #fff; 
+    border: 1px solid #444; 
+    border-radius: 4px; 
+    font-size: 14px; 
+    font-weight: bold; 
+    cursor: pointer; 
     outline: none;
-    /* Center text in dropdown */
-    display: flex; align-items: center; justify-content: center;
+    
+    /* Center Text */
+    text-align: center;
+    text-align-last: center;
 }
+
 .asset-select:hover { border-color: var(--muted); }
+.asset-select:focus { border-color: var(--blue); }
