@@ -21,6 +21,8 @@ export const mockData = {
     },
     
     // For Surface Charts
+
+    // 1. Existing Monthly Data (Default)
     surfMoney: { 
         z: [[13,12.5,13],[14,14,15],[15,15.5,16]], 
         x: ['-10%', 'ATM', '+10%'], 
@@ -31,6 +33,18 @@ export const mockData = {
         x: ['20D', '50D', '80D'], 
         y: ['Dec', 'Jan', 'Feb'] 
     }, 
+
+    // 2. NEW Weekly Data (For the Toggle)
+    surfMoneyWk: { 
+        z: [[12.5, 12.0, 12.8], [13.2, 13.5, 13.8], [13.8, 14.0, 14.5]], 
+        x: ['-10%', 'ATM', '+10%'], 
+        y: ['26 Dec', '02 Jan', '09 Jan'] 
+    },
+    surfDeltaWk: { 
+        z: [[13.0, 12.2, 13.5], [13.5, 13.0, 14.0], [14.2, 13.8, 14.8]], 
+        x: ['20D', '50D', '80D'], 
+        y: ['26 Dec', '02 Jan', '09 Jan'] 
+    },
     
     // For Intraday Chart
     intraday: {
