@@ -1,116 +1,81 @@
 /* --- 1. TABS ROW (1x3 GRID) --- */
 .tabs-container {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr; /* Strict equal columns */
+    grid-template-columns: 1fr 1fr 1fr;
     width: 100%;
     margin-bottom: 0; 
     z-index: 5; 
     position: relative;
-    background: #000; /* Dark background behind tabs */
+    background: #000;
 }
 
 .tab-btn {
-    /* FLAT RECTANGLE LOOK */
     width: 100%;
     padding: 8px 0;
-    
-    /* No rounded corners requested */
     border-radius: 0; 
-    border: none; /* No borders by default */
-    border-bottom: 1px solid #222; /* Divider from content */
-    border-right: 1px solid #1a1a1a; /* Subtle separator */
-    
+    border: none;
+    border-bottom: 1px solid #222;
+    border-right: 1px solid #1a1a1a;
     font-size: 11px;
     font-weight: 600;
     color: #666;
-    background: #0e0e0e; /* Slightly darker than content */
+    background: #0e0e0e;
     cursor: pointer;
     transition: 0.2s;
+    text-transform: uppercase; /* Match button style */
 }
 
-.tab-btn:hover {
-    color: #bbb;
-    background: #151515;
-}
-
+.tab-btn:hover { color: #bbb; background: #151515; }
 .tab-btn.active {
-    /* Merge with Content Box */
     background: #151515; 
     color: var(--blue);
-    border-bottom: 1px solid #151515; /* Remove bottom border to merge */
-    border-top: 2px solid var(--blue); /* Highlight top */
+    border-bottom: 1px solid #151515;
+    border-top: 2px solid var(--blue);
 }
+.tab-btn:last-child { border-right: none; }
 
-/* Remove border from last tab */
-.tab-btn:last-child {
-    border-right: none;
-}
-
-/* --- 2. MAIN PANEL (The Box) --- */
+/* --- 2. MAIN PANEL (Wrapper) --- */
 .dashboard-wrapper {
     width: 100%;
-    height: 35vh;
-    min-height: 300px;
+    /* Remove fixed height to allow footer to expand naturally */
+    /* Maintain min-height for chart stability */
+    min-height: 380px; 
     display: flex;
     flex-direction: column;
     
     background: #151515;
     border: 1px solid #222;
-    border-top: none; /* Tabs handle the top border visual */
+    border-top: none;
     border-radius: 0 0 6px 6px; 
     margin-bottom: 20px;
     position: relative;
     z-index: 1;
 }
 
-/* --- 3. HEADER (Grid Layout) --- */
+/* --- 3. HEADER (Controls) --- */
 .dashboard-controls {
     display: grid;
-    /* 3 COLUMNS: [Left Inputs] [Center Toggle] [Right Legends] */
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    
-    height: 40px;
+    height: 44px; /* Slightly taller for better spacing */
     padding: 0 15px;
-    background: #151515; /* Matches Panel Body */
-    border-bottom: 1px solid #1f1f1f; /* Very subtle separator */
+    background: #151515;
+    border-bottom: 1px solid #1f1f1f;
 }
 
-/* Column Alignment */
-#dynamicInputs {
-    justify-self: start; 
-    display: flex;
-    align-items: center;
-    height: 100%;
-    width: 100%;
-}
-
-#dynamicCenterControls {
-    justify-self: center; 
-    display: flex;
-    align-items: center;
-    height: 100%;
-}
-
-#dynamicLegends {
-    justify-self: end; 
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 15px;
-    height: 100%;
-    width: 100%;
-    font-size: 11px;
-}
+#dynamicInputs { justify-self: start; display: flex; align-items: center; width: 100%; }
+#dynamicCenterControls { justify-self: center; display: flex; align-items: center; }
+#dynamicLegends { justify-self: end; display: flex; align-items: center; justify-content: flex-end; gap: 15px; width: 100%; font-size: 11px; }
 
 /* --- 4. CHART STACK --- */
 .chart-stack {
     display: grid;
     grid-template-areas: "stack"; 
-    flex: 1;
+    width: 100%;
+    height: 35vh; /* Fixed height for the chart area specifically */
+    min-height: 300px;
     position: relative;
     overflow: hidden; 
-    background: transparent; 
 }
 
 .chart-layer {
@@ -122,28 +87,47 @@
     pointer-events: none;
     transition: opacity 0.15s;
 }
+.chart-layer.active { opacity: 1; z-index: 10; pointer-events: all; }
 
-.chart-layer.active {
-    opacity: 1;
-    z-index: 10;
-    pointer-events: all;
-}
+/* Surface Split */
+.surface-split { display: flex; width: 100%; height: 100%; }
+.surface-half { flex: 1; height: 100%; min-width: 0; border-right: 1px solid #222; }
+.surface-half:last-child { border-right: none; }
 
-/* --- 5. SURFACE SPLIT --- */
-.surface-split {
-    display: flex;
-    width: 100%;
-    height: 100%;
-}
-.surface-half {
-    flex: 1; 
-    height: 100%;
-    min-width: 0;
-    border-right: 1px solid #222; 
-}
-.surface-half:last-child {
-    border-right: none;
-}
-
-/* UTILS */
 .full-chart { width: 100%; height: 100%; }
+
+/* --- 5. STRATEGY FOOTER (New) --- */
+.dashboard-footer {
+    padding: 12px 15px;
+    background: #111;
+    border-top: 1px solid #222;
+    font-size: 12px;
+    color: #888;
+    line-height: 1.4;
+    min-height: 50px; /* Ensure visual balance */
+}
+
+.footer-title {
+    color: #bbb;
+    font-weight: 700;
+    margin-right: 6px;
+    text-transform: uppercase;
+    font-size: 10px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+/* --- 6. SHARED BUTTON STYLE (For Consistency) --- */
+.chart-toggle-btn {
+    border: none;
+    width: 90px;        /* Fixed Width for alignment */
+    height: 24px;       /* Fixed Height */
+    border-radius: 4px;
+    font-size: 10px;    /* Slightly smaller for uppercase */
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    transition: 0.2s;
+    text-transform: uppercase; /* ALL CAPS */
+    letter-spacing: 0.5px;
+}
