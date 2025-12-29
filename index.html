@@ -7,13 +7,11 @@
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 
     <link rel="stylesheet" href="frontend/global.css">
+    <link rel="stylesheet" href="frontend/components/charts/chart-dashboard/chart-dashboard.css">
 
     <link rel="stylesheet" href="frontend/components/price-strip/price-strip.css">
     <link rel="stylesheet" href="frontend/components/market-grid/market-grid.css">
     <link rel="stylesheet" href="frontend/components/charts/intraday-iv-rv/chart-intraday.css">
-    <link rel="stylesheet" href="frontend/components/charts/volatility-skew/chart-skew.css">
-    <link rel="stylesheet" href="frontend/components/charts/term-structure/chart-term.css">
-    <link rel="stylesheet" href="frontend/components/charts/volatility-surface/chart-surface.css">
     <link rel="stylesheet" href="frontend/components/tables/sd-table/sd-table.css">
     <link rel="stylesheet" href="frontend/components/tables/greeks-table/greeks-table.css">
 </head>
@@ -30,40 +28,7 @@
             <div id="price-strip-container"></div>
             <div id="weekly-grid-container"></div>
 
-            <div class="dashboard-container">
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; margin-top: 10px;">
-                    <div class="tabs">
-                        <button class="tab-btn active" onclick="switchTab('skew', this)">Skew</button>
-                        <button class="tab-btn" onclick="switchTab('term', this)">Term Structure</button>
-                        <button class="tab-btn" onclick="switchTab('surface', this)">Vol Surface</button>
-                    </div>
-
-                    <div style="display: flex; gap: 15px; align-items: center;">
-                        <div id="dynamicLegends" style="display: flex; gap: 15px;"></div>
-                        <div id="dynamicInputs"></div>
-                    </div>
-                </div>
-
-                <div class="chart-wrapper">
-                    
-                    <div id="skew-content" class="tab-content active">
-                        <div id="chart-skew" class="chart-box"></div>
-                    </div>
-
-                    <div id="term-content" class="tab-content">
-                        <div id="chart-term" class="chart-box"></div>
-                    </div>
-
-                    <div id="surface-content" class="tab-content">
-                        <div style="display: flex; height: 100%; gap: 10px;">
-                            <div id="surf-money" style="flex: 1;"></div>
-                            <div id="surf-delta" style="flex: 1;"></div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
+            <div id="main-chart-dashboard"></div>
             <div id="monthly-grid-container"></div>
         </div>
 
@@ -73,10 +38,10 @@
                     <span class="panel-title">
                         Intraday IV & RV
                         <div class="legend-row">
-                            <div class="leg-item"><div class="line-box" style="border-top:1px solid #FF9800; width: 10px;"></div>Weekly IV</div>
-                            <div class="leg-item"><div class="line-box" style="border-top:3px solid #FF9800; width: 10px;"></div>Monthly IV</div>
-                            <div class="leg-item"><div class="line-box" style="border-top:1px dotted #42A5F5; width: 10px;"></div>Weekly RV</div>
-                            <div class="leg-item"><div class="line-box" style="border-top:2px dashed #42A5F5; width: 10px;"></div>Monthly RV</div>
+                            <div class="leg-item"><div class="line-box" style="border-top:1px solid #FF9800; width: 10px;"></div>Wk IV</div>
+                            <div class="leg-item"><div class="line-box" style="border-top:3px solid #FF9800; width: 10px;"></div>Mo IV</div>
+                            <div class="leg-item"><div class="line-box" style="border-top:1px dotted #42A5F5; width: 10px;"></div>Wk RV</div>
+                            <div class="leg-item"><div class="line-box" style="border-top:2px dashed #42A5F5; width: 10px;"></div>Mo RV</div>
                         </div>
                     </span>
                     <div id="chart-trend" style="width:100%; height:100%"></div>
@@ -94,85 +59,30 @@
     import { mockData } from './frontend/mockdata.js';
     import { renderPriceStrip } from './frontend/components/price-strip/price-strip.js';
     import { renderMarketGrid } from './frontend/components/market-grid/market-grid.js';
+    
+    // IMPORT THE NEW DASHBOARD CONTROLLER
+    import { renderChartDashboard } from './frontend/components/charts/chart-dashboard/chart-dashboard.js';
 
-    // Chart Renderers
     import { renderIntradayChart } from './frontend/components/charts/intraday-iv-rv/chart-intraday.js';
-    import { renderSkewChart, updateLegend as updateSkewLegend } from './frontend/components/charts/volatility-skew/chart-skew.js';
-    import { renderTermChart, updateLegend as updateTermLegend } from './frontend/components/charts/term-structure/chart-term.js';
-    import { renderSurfaceCharts, updateLegend as updateSurfaceLegend } from './frontend/components/charts/volatility-surface/chart-surface.js';
-
     import { renderSDTable } from './frontend/components/tables/sd-table/sd-table.js';
     import { renderGreeksTable } from './frontend/components/tables/greeks-table/greeks-table.js';
 
-    // --- 1. INITIALIZE DASHBOARD (Run Once) ---
+    // --- INITIALIZE ---
     function init() {
         console.log("Initializing Dashboard...");
 
-        // Static Components
         renderPriceStrip('price-strip-container', mockData);
         renderMarketGrid('weekly-grid-container', 'WEEKLY', mockData.gridWeekly, 't-week');
         renderMarketGrid('monthly-grid-container', 'MONTHLY', mockData.gridMonthly, 't-month');
+        
+        // --- RENDER MODULAR DASHBOARD ---
+        renderChartDashboard('main-chart-dashboard');
+
+        renderIntradayChart('chart-trend');
         renderSDTable('sd-table-container', mockData);
         renderGreeksTable('greeks-table-container', mockData);
-
-        // Intraday Chart
-        renderIntradayChart('chart-trend');
-
-        // --- RENDER ALL MAIN CHARTS NOW (Eager Loading) ---
-        // We render everything into their divs immediately.
-        // Since CSS hides 'term' and 'surface', user won't see them yet.
-        
-        // 1. Skew (Default Visible) - Pass 'false' to start clean (no Monthly line)
-        renderSkewChart('chart-skew', false);
-        updateSkewLegend(false); 
-
-        // 2. Term Structure (Hidden)
-        renderTermChart('chart-term', false);
-
-        // 3. Surface (Hidden)
-        renderSurfaceCharts('surf-money', 'surf-delta');
     }
 
-    // --- 2. TAB SWITCHING LOGIC ---
-    window.switchTab = (tabName, btnElement) => {
-        
-        // A. Update Button Styles
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        if(btnElement) btnElement.classList.add('active');
-
-        // B. Hide All Content
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-        // C. Activate Target & Restore Legend
-        if (tabName === 'skew') {
-            document.getElementById('skew-content').classList.add('active');
-            updateSkewLegend(false);
-            fixPlotlySize('chart-skew');
-        } 
-        else if (tabName === 'term') {
-            document.getElementById('term-content').classList.add('active');
-            updateTermLegend(false);
-            fixPlotlySize('chart-term');
-        } 
-        else if (tabName === 'surface') {
-            document.getElementById('surface-content').classList.add('active');
-            updateSurfaceLegend();
-            // Surface has two charts to resize
-            fixPlotlySize('surf-money');
-            fixPlotlySize('surf-delta');
-        }
-    };
-
-    // --- HELPER: Fix Plotly Sizing on Un-hide ---
-    function fixPlotlySize(containerId) {
-        // requestAnimationFrame ensures this runs AFTER the CSS 'display: block' has applied.
-        // This tells Plotly: "The container is visible now, snap to the correct dimensions."
-        requestAnimationFrame(() => {
-            Plotly.Plots.resize(containerId);
-        });
-    }
-
-    // Start App
     init();
 
 </script>
