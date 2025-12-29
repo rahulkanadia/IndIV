@@ -5,7 +5,9 @@ const LAYOUT_BASE = {
     plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI', color: '#fff', size: 10 },
     dragmode: false,
-    margin: { t: 20, b: 30, l: 40, r: 20 }
+    margin: { t: 20, b: 30, l: 40, r: 20 },
+    // disable animation transitions globally for this layout
+    transition: { duration: 0 } 
 };
 
 export function updateLegend(showMonthly) {
@@ -36,33 +38,30 @@ export function renderTermChart(containerId, showMonthly) {
         );
     }
 
-    // 1. GET GLOBAL RANGE (Ensures Min/Max match Skew Chart)
+    // 1. Calculate Range BEFORE layout definition
     const globalRange = getGlobalIVRange();
 
     const layout = {
         ...LAYOUT_BASE,
         showlegend: false,
-        
-        xaxis: { 
-            showgrid: false, 
-            fixedrange: true, 
-            tickfont: { color: '#fff', size: 10 } 
-        },
-        
+        xaxis: { showgrid: false, fixedrange: true, tickfont: { color: '#fff', size: 10 } },
         yaxis: { 
             gridcolor: '#222', 
             fixedrange: true,
             
-            // 2. STRICT SCALING
+            // 2. EXPLICITLY SET RANGE (Stops the jump)
             range: globalRange,
-            autorange: false,
-            dtick: 1.0,           // Forces 1.0 step size (11, 12, 13...)
+            autorange: false,     // Crucial: Tells Plotly "Do not guess"
+            dtick: 1.0,           
+            
+            tickformat: '.1f',
             ticks: 'outside',
             ticklen: 8,
-            tickcolor: 'rgba(0,0,0,0)', // Invisible padding
+            tickcolor: 'rgba(0,0,0,0)',
             tickfont: { color: '#fff', size: 10 }
         }
     };
 
-    Plotly.newPlot(containerId, traces, layout, { displayModeBar: false, responsive: true });
+    // 3. Just use react (faster/simpler than newPlot for updates)
+    Plotly.react(containerId, traces, layout, { displayModeBar: false, responsive: true });
 }
