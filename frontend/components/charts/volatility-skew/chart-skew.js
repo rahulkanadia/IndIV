@@ -63,7 +63,7 @@ export function renderSkewChart(containerId, showMonthly) {
     const layout = {
         ...LAYOUT_CLEAN,
         showlegend: false,
-        margin: { t: 20, b: 30, l: 20, r: 40 },
+        margin: { t: 20, b: 30, l: 40, r: 40 },
         xaxis: { 
             showgrid: false, 
             fixedrange: true, 
@@ -87,7 +87,8 @@ export function renderSkewChart(containerId, showMonthly) {
             fixedrange: true, 
             range: range,
             overlaying: 'y2', // y is the Top Layer
-            side: 'left'
+            side: 'left',
+            standoff: 5
         }
     };
 
