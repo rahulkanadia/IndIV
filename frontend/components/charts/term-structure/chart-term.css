@@ -29,7 +29,7 @@
 .c-tab.active { 
     color: #fff; 
     background: var(--card); 
-    border-bottom: 2px solid var(--green); 
+    border-bottom: 2px solid var(--blue); 
 }
 
 /* Controls & Content Area */
