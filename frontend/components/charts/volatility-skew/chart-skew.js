@@ -63,7 +63,7 @@ export function renderSkewChart(containerId, showMonthly) {
     const layout = {
         ...LAYOUT_CLEAN,
         showlegend: false,
-        margin: { t: 20, b: 30, l: 20, r: 20 },
+        margin: { t: 20, b: 30, l: 20, r: 40 },
         xaxis: { 
             showgrid: false, 
             fixedrange: true, 
@@ -78,6 +78,8 @@ export function renderSkewChart(containerId, showMonthly) {
             showgrid: false, 
             fixedrange: true,
             overlaying: null, // y2 is the Base Layer
+            tickformat: '.1f',
+            standoff: 5,
             tickfont: { color: '#888', size: 9 }
         },
         yaxis: { 
