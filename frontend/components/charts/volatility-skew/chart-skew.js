@@ -63,7 +63,7 @@ export function renderSkewChart(containerId, showMonthly) {
     const layout = {
         ...LAYOUT_CLEAN,
         showlegend: false,
-        margin: { t: 10, b: 30, l: 30, r: 40 },
+        margin: { t: 20, b: 20, l: 20, r: 20 },
         xaxis: { 
             showgrid: false, 
             fixedrange: true, 
