@@ -5,8 +5,8 @@ let isWeeklyMode = false;
 const LAYOUT_CONTOUR = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI', color: '#666', size: 10 },
-    xaxis: { title: '', tickfont: {size: 9}, color: '#888', fixedrange: true },
-    yaxis: { title: '', tickfont: {size: 9}, color: '#888', fixedrange: true },
+    xaxis: { title: '', tickfont: {size: 9}, color: '#fff', fixedrange: true },
+    yaxis: { title: '', tickfont: {size: 9}, color: '#fff', fixedrange: true },
     dragmode: false
 };
 
