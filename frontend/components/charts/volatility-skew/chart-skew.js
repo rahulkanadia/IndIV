@@ -63,29 +63,34 @@ export function renderSkewChart(containerId, showMonthly) {
     const layout = {
         ...LAYOUT_CLEAN,
         showlegend: false,
-        margin: { t: 20, b: 30, l: 40, r: 40 },
+        // These margins are fine, they just ensure labels aren't cut off at the edge of the screen
+        margin: { t: 20, b: 30, l: 40, r: 40 }, 
+        
         xaxis: { 
             showgrid: false, 
             fixedrange: true, 
             tickfont: { color: '#fff', size: 10 } 
         },
+        
+        // --- RIGHT AXIS (BARS) ---
         yaxis2: { 
             side: 'right', 
             showgrid: false, 
             fixedrange: true,
             overlaying: null, 
             
-            // --- ALIGNMENT FIX ---
-            tickformat: '+.1f',  // Crucial: Makes positive numbers same width as negative numbers
+            // 1. ALIGNMENT: Forces sign (+/-) on all numbers. 
+            // Even in standard fonts, this aligns decimals much better than mixed formats.
+            tickformat: '+.1f',
             
-            // --- SPACING FIX ---
-            ticks: 'outside',    // Activates spacing calculation
-            ticklen: 0,          // Hides the tick mark line
-            standoff: 10,        // Pushes text 10px away
+            // 2. SPACING: We add 3 spaces BEFORE the text to push it Right
+            tickprefix: '   ', 
             
             tickfont: { color: '#888', size: 9 },
             automargin: true
         },
+        
+        // --- LEFT AXIS (LINES) ---
         yaxis: { 
             gridcolor: '#222', 
             fixedrange: true, 
@@ -93,10 +98,13 @@ export function renderSkewChart(containerId, showMonthly) {
             overlaying: 'y2', 
             side: 'left',
             
-            // --- SPACING FIX (Left Side) ---
-            ticks: 'outside',
-            ticklen: 0,
-            standoff: 10
+            // 1. ALIGNMENT: Standard 1 decimal format
+            tickformat: '.1f',
+            
+            // 2. SPACING: We add 3 spaces AFTER the text to push it Left
+            ticksuffix: '   ',
+            
+            tickfont: { color: '#666', size: 10 }
         }
     };
 
