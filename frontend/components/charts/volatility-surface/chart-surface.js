@@ -64,6 +64,7 @@ export function updateLegend() {
     const currentLabel = isWeeklyMode ? "WEEKLY" : "MONTHLY";
 
     // 3. LAYOUT GRID: [Left Label] [Center Button] [Right Label]
+    // 3. RENDER WITH TEXT SURROUNDING THE BUTTON
     leg.innerHTML = `
         <div style="display:grid; grid-template-columns: 1fr auto 1fr; width:100%; align-items:center;">
             
@@ -71,10 +72,14 @@ export function updateLegend() {
                 <span style="color:#00E676; font-weight:bold; font-size:11px;">Moneyness vs Expiry</span>
             </div>
             
-            <div style="text-align:center;">
+            <div style="display:flex; align-items:center; justify-content:center; gap: 8px; font-size: 10px; color: #888;">
+                <span>Click this button</span>
+                
                 <button id="surf-toggle-btn" style="${btnBase} ${currentStyle}">
                     ${currentLabel}
                 </button>
+                
+                <span>to change expiries</span>
             </div>
             
             <div style="text-align:right;">
