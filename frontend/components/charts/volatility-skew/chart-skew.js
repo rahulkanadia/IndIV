@@ -78,9 +78,10 @@ export function renderSkewChart(containerId, showMonthly) {
             showgrid: false, 
             fixedrange: true,
             overlaying: null, // y2 is the Base Layer
-            tickformat: '.1f',
-            standoff: 5,
-            tickfont: { color: '#888', size: 9 }
+            tickformat: '+.1f',
+            standoff: 10,
+            tickfont: { color: '#888', size: 9 },
+            automargin: true
         },
         yaxis: { 
             gridcolor: '#222', 
@@ -88,7 +89,7 @@ export function renderSkewChart(containerId, showMonthly) {
             range: range,
             overlaying: 'y2', // y is the Top Layer
             side: 'left',
-            standoff: 5
+            standoff: 10
         }
     };
 
