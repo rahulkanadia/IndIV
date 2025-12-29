@@ -1,113 +1,106 @@
-/* 1. MAIN CONTAINER (The Bordered Box) */
+/* --- 1. TABS ROW (Sits on top of the box) --- */
+.tabs-container {
+    display: flex;
+    gap: 4px;
+    padding-left: 10px; /* Align with box padding */
+    margin-bottom: -1px; /* Overlap with box border */
+    z-index: 5; /* Sit above the box */
+    position: relative;
+}
+
+.tab-btn {
+    /* Shape */
+    padding: 6px 16px;
+    border-radius: 6px 6px 0 0; /* Top corners rounded only */
+    border: 1px solid transparent;
+    
+    /* Text */
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    background: #111; /* Darker than header */
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.tab-btn:hover {
+    color: #ccc;
+    background: #1a1a1a;
+}
+
+.tab-btn.active {
+    /* Active State: Merges with the Header below */
+    background: #1a1a1a; 
+    color: var(--blue);
+    border: 1px solid #222;
+    border-bottom: 1px solid #1a1a1a; /* Hide bottom border to merge */
+}
+
+/* --- 2. MAIN PANEL (The Box) --- */
 .dashboard-wrapper {
     width: 100%;
-    /* Auto height based on content (charts fill 35vh) */
+    height: 35vh;
+    min-height: 300px;
     display: flex;
     flex-direction: column;
     
     background: #151515;
     border: 1px solid #222;
     border-radius: 6px;
-    overflow: hidden;
+    /* Important: We moved top-left radius to the tabs logic, 
+       but keeping it here is fine if tabs have margin */
     margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
 }
 
-/* 2. CONTROL HEADER (Buttons + Toggles + Legends) */
+/* --- 3. HEADER (Grid Layout for Centering) --- */
 .dashboard-controls {
-    display: flex;
+    display: grid;
+    /* 3 COLUMNS: [Left Inputs] [Center Toggle] [Right Legends] */
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    gap: 15px; /* Space between groups */
     
-    height: 44px; /* Fixed height row */
-    padding: 0 10px;
-    background: #1a1a1a;
+    height: 40px;
+    padding: 0 15px;
+    background: #1a1a1a; /* Matches Active Tab */
     border-bottom: 1px solid #222;
 }
 
-/* 3. CHART BUTTON GROUP */
-.tabs {
-    display: flex;
-    gap: 4px; /* Tiny gap between buttons */
-    /* Remove default border/padding from global.css tabs */
-    border: none;
-    background: transparent;
-    padding: 0;
-}
-
-.tab-btn {
-    /* FIXED DIMENSIONS */
-    width: 110px;      /* Consistent width for all titles */
-    height: 26px;      /* Single height fixed */
-    
-    /* Text Styling */
-    font-size: 11px;
-    font-weight: 600;
-    white-space: nowrap; /* Prevent wrapping */
-    
-    /* Reset Global Styles if needed */
-    border-radius: 4px;
-    border: 1px solid transparent; /* Prepare for active state */
-    background: rgba(255,255,255,0.05);
-    color: #888;
-}
-
-.tab-btn:hover {
-    background: rgba(255,255,255,0.1);
-    color: #ccc;
-}
-
-.tab-btn.active {
-    background: #252525;
-    border-color: #333;
-    color: var(--blue);
-}
-
-/* 4. TOGGLE / INPUT SECTION (Next to buttons) */
-/* This container holds the Monthly/Weekly toggle/buttons */
+/* Column Alignment */
 #dynamicInputs {
+    justify-self: start; /* Left */
     display: flex;
     align-items: center;
-    height: 26px; /* MATCHES BUTTON HEIGHT EXACTLY */
-}
-
-/* Force inputs inside to match height */
-#dynamicInputs button, 
-#dynamicInputs label {
     height: 100%;
-    display: flex;
-    align-items: center;
-    font-size: 11px;
-    padding: 0 10px;
-    border-radius: 4px;
-    cursor: pointer;
 }
 
-/* 5. LEGEND SECTION (Fills Right Space) */
-#dynamicLegends {
-    flex: 1; /* Takes all remaining space */
+#dynamicCenterControls {
+    justify-self: center; /* Center */
     display: flex;
-    justify-content: flex-end; /* Align items to the right */
+    align-items: center;
+    height: 100%;
+}
+
+#dynamicLegends {
+    justify-self: end; /* Right */
+    display: flex;
     align-items: center;
     gap: 15px;
-    height: 26px; /* Matches height for vertical centering */
+    height: 100%;
     font-size: 11px;
 }
 
-/* 6. CHART BODY (Fills remaining space) */
+/* --- 4. CHART STACK --- */
 .chart-stack {
     display: grid;
     grid-template-areas: "stack"; 
-    width: 100%;
-    
-    /* Responsive Vertical Height */
-    height: 35vh;
-    min-height: 300px;
-    
+    flex: 1;
     position: relative;
+    overflow: hidden; 
     background: transparent; 
 }
 
-/* Layers (Standard Stacking) */
 .chart-layer {
     grid-area: stack;
     width: 100%;
@@ -124,7 +117,21 @@
     pointer-events: all;
 }
 
+/* --- 5. SURFACE SPLIT (Strict 50/50) --- */
+.surface-split {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+.surface-half {
+    flex: 1; /* Forces 50% width */
+    height: 100%;
+    min-width: 0;
+    border-right: 1px solid #222; /* Optional separator line */
+}
+.surface-half:last-child {
+    border-right: none;
+}
+
 /* UTILS */
 .full-chart { width: 100%; height: 100%; }
-.surface-split { display: flex; width: 100%; height: 100%; }
-.surface-half { flex: 1; height: 100%; min-width: 0; }
