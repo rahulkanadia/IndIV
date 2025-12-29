@@ -2,64 +2,70 @@ import { mockData } from '../../../mockdata.js';
 
 let isWeeklyMode = false;
 
-const LAYOUT_CONTOUR = {
-    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { family: 'Segoe UI', color: '#666', size: 10 },
-    
-    // --- FIX 1: FORCE CATEGORY AXES ---
-    // This tells Plotly "Don't treat '20D' as a date or number. It's just a label."
-    xaxis: { 
-        type: 'category', 
-        title: '', 
-        tickfont: {size: 9}, 
-        color: '#fff', 
-        fixedrange: true 
-    },
-    yaxis: { 
-        type: 'category', 
-        title: '', 
-        tickfont: {size: 9}, 
-        color: '#fff', 
-        fixedrange: true 
-    },
-    dragmode: false
-};
+// Helper to flatten 2D array and find min/max for color scaling
+function getZRange(zMatrix) {
+    const flat = zMatrix.flat();
+    const min = Math.min(...flat);
+    const max = Math.max(...flat);
+    return [min, max];
+}
 
 function refreshCharts() {
     const moneyData = isWeeklyMode ? mockData.surfMoneyWk : mockData.surfMoney;
     const deltaData = isWeeklyMode ? mockData.surfDeltaWk : mockData.surfDelta;
 
-    // 1. Plot Moneyness (Left)
-    Plotly.react('surf-money', [{ 
-        z: moneyData.z, 
-        x: moneyData.x, 
-        y: moneyData.y, 
-        type: 'heatmap', 
-        colorscale: 'Viridis', 
-        showscale: false 
-    }], { 
-        ...LAYOUT_CONTOUR, 
-        margin: { t: 20, b: 30, l: 40, r: 20 },
-    }, { displayModeBar: false, responsive: true });
-
-
-    // 2. Plot Delta (Right)
-    Plotly.react('surf-delta', [{ 
-        z: deltaData.z, 
-        x: deltaData.x, 
-        y: deltaData.y, 
-        type: 'heatmap', 
-        colorscale: 'Plasma', 
+    // --- CHART 1: MONEYNESS (Left) ---
+    const [mMin, mMax] = getZRange(moneyData.z);
+    
+    const traceMoney = {
+        type: 'heatmap',
+        z: moneyData.z,
+        x: moneyData.x,
+        y: moneyData.y,
+        colorscale: 'Viridis',
         showscale: false,
-        
-        // --- FIX 2: HELP PLOTLY WITH DATA GAPS ---
-        // (Optional safety net, though 'category' axis usually solves it)
-        zsmooth: false,
-        connectgaps: false
-    }], { 
-        ...LAYOUT_CONTOUR, 
+        // FORCE COLOR RANGE
+        zmin: mMin,
+        zmax: mMax
+    };
+
+    const layoutMoney = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
         margin: { t: 20, b: 30, l: 40, r: 20 },
-    }, { displayModeBar: false, responsive: true });
+        font: { family: 'Segoe UI', color: '#666', size: 10 },
+        xaxis: { type: 'category', tickfont: {color: '#fff', size: 9}, fixedrange: true },
+        yaxis: { type: 'category', tickfont: {color: '#fff', size: 9}, fixedrange: true }
+    };
+
+    Plotly.newPlot('surf-money', [traceMoney], layoutMoney, { displayModeBar: false, responsive: true });
+
+
+    // --- CHART 2: DELTA (Right) ---
+    const [dMin, dMax] = getZRange(deltaData.z);
+
+    const traceDelta = {
+        type: 'heatmap',
+        z: deltaData.z,
+        x: deltaData.x,
+        y: deltaData.y,
+        colorscale: 'Plasma',
+        showscale: false,
+        // FORCE COLOR RANGE (Crucial Fix)
+        zmin: dMin,
+        zmax: dMax
+    };
+
+    const layoutDelta = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        margin: { t: 20, b: 30, l: 40, r: 20 },
+        font: { family: 'Segoe UI', color: '#666', size: 10 },
+        xaxis: { type: 'category', tickfont: {color: '#fff', size: 9}, fixedrange: true },
+        yaxis: { type: 'category', tickfont: {color: '#fff', size: 9}, fixedrange: true }
+    };
+
+    Plotly.newPlot('surf-delta', [traceDelta], layoutDelta, { displayModeBar: false, responsive: true });
 }
 
 export function updateLegend() {
@@ -67,47 +73,25 @@ export function updateLegend() {
     const inp = document.getElementById('dynamicInputs');
     if(!leg || !inp) return;
 
-    // Reset Container
-    inp.innerHTML = '';
     inp.style.display = 'none'; 
     leg.style.width = '100%';   
     leg.style.flex = '1';
 
-    // Button Styling
-    const btnBase = `
-        border: none;
-        width: 80px;           
-        padding: 4px 0;        
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.2s;
-        text-align: center;
-        outline: none;
-    `;
-
-    const styleMonthly = `background: rgba(66, 165, 245, 0.2); color: #42A5F5;`;
-    const styleWeekly  = `background: rgba(255, 82, 82, 0.2);  color: #FF5252;`;
-
-    const currentStyle = isWeeklyMode ? styleWeekly : styleMonthly;
+    // Simple Toggle Button Logic
     const currentLabel = isWeeklyMode ? "WEEKLY" : "MONTHLY";
+    const currentStyle = isWeeklyMode 
+        ? "background: rgba(255, 82, 82, 0.2); color: #FF5252;" 
+        : "background: rgba(66, 165, 245, 0.2); color: #42A5F5;";
 
     leg.innerHTML = `
-        <div style="display:grid; grid-template-columns: 1fr auto 1fr; width:100%; align-items:center;">
-            <div style="text-align:left;">
-                <span style="color:#00E676; font-weight:bold; font-size:11px;">Moneyness vs Expiry</span>
-            </div>
-            <div style="display:flex; align-items:center; justify-content:center; gap: 8px; font-size: 10px; color: #888;">
-                <span>Click this button</span>
-                <button id="surf-toggle-btn" style="${btnBase} ${currentStyle}">
-                    ${currentLabel}
-                </button>
-                <span>to change expiries</span>
-            </div>
-            <div style="text-align:right;">
-                <span style="color:#FF9800; font-weight:bold; font-size:11px;">Delta vs Expiry</span>
-            </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+            <span style="color:#00E676; font-weight:bold; font-size:11px;">Moneyness</span>
+            
+            <button id="surf-toggle-btn" style="border:none; padding:4px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:11px; ${currentStyle}">
+                ${currentLabel}
+            </button>
+            
+            <span style="color:#FF9800; font-weight:bold; font-size:11px;">Delta</span>
         </div>
     `;
 
