@@ -1,6 +1,6 @@
 import { mockData } from '../../../mockdata.js';
 
-let isWeeklyMode = false;
+let isWeeklyMode = false; // Default Weekly for Surface? Or Monthly? Keeping Weekly for now.
 
 const LAYOUT_CONTOUR = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
@@ -39,33 +39,28 @@ export function updateLegend() {
     const ctr = document.getElementById('dynamicCenterControls');
     if(!leg || !inp || !ctr) return;
 
-    // 1. LEFT TITLE (Replaces Inputs)
-    inp.innerHTML = `
-        <span style="color:#00E676; font-weight:bold; font-size:11px;">
-            Moneyness vs. Implied Volatility
-        </span>
-    `;
+    ctr.innerHTML = ''; // Clear Center
 
-    // 2. RIGHT TITLE (Replaces Legends)
-    leg.innerHTML = `
-        <span style="color:#FF9800; font-weight:bold; font-size:11px;">
-            Delta vs. Implied Volatility
-        </span>
-    `;
-
-    // 3. CENTER CONTROL (Toggle with FIXED WIDTH)
+    // 1. LEFT: TOGGLE BUTTON
     const currentLabel = isWeeklyMode ? "WEEKLY" : "MONTHLY";
     const currentStyle = isWeeklyMode 
         ? "background: rgba(255, 82, 82, 0.2); color: #FF5252; border: 1px solid rgba(255,82,82,0.3);" 
         : "background: rgba(66, 165, 245, 0.2); color: #42A5F5; border: 1px solid rgba(66,165,245,0.3);";
 
-    // Added width: 90px to fix size jumping
-    ctr.innerHTML = `
+    inp.innerHTML = `
         <div style="display:flex; align-items:center; gap: 8px; font-size: 10px; color: #888;">
-            <span>Click to change</span>
             <button id="surf-toggle-btn" style="border:none; width:90px; height:24px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:11px; outline:none; transition:0.2s; ${currentStyle}">
                 ${currentLabel}
             </button>
+            <span>Mode Selection</span>
+        </div>
+    `;
+
+    // 2. RIGHT: HELP TEXT
+    leg.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+             <span style="color:#aaa; font-size:10px;">Moneyness & Delta Maps</span>
+             <span style="color:#666; font-size:9px;">Deeper the red, higher the PoP on sell</span>
         </div>
     `;
 
