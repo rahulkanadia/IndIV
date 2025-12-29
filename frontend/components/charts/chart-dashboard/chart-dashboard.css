@@ -1,4 +1,4 @@
-/* --- 1. TABS ROW (1x3 GRID) --- */
+/* --- 1. TABS ROW --- */
 .tabs-container {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -7,8 +7,10 @@
     z-index: 5; 
     position: relative;
     background: #000;
+    flex-shrink: 0; /* Prevent tabs from squashing */
 }
 
+/* (Tab Button styles remain unchanged...) */
 .tab-btn {
     width: 100%;
     padding: 8px 0;
@@ -22,9 +24,8 @@
     background: #0e0e0e;
     cursor: pointer;
     transition: 0.2s;
-    text-transform: uppercase; /* Match button style */
+    text-transform: uppercase;
 }
-
 .tab-btn:hover { color: #bbb; background: #151515; }
 .tab-btn.active {
     background: #151515; 
@@ -34,12 +35,17 @@
 }
 .tab-btn:last-child { border-right: none; }
 
-/* --- 2. MAIN PANEL (Wrapper) --- */
+
+/* --- 2. MAIN PANEL (The Box) --- */
 .dashboard-wrapper {
     width: 100%;
-    /* Remove fixed height to allow footer to expand naturally */
-    /* Maintain min-height for chart stability */
-    min-height: 380px; 
+    
+    /* CHANGE: FLEX GROW instead of Fixed Height */
+    flex: 1;                 /* Fill all remaining space in Left Panel */
+    height: auto;            /* Disable fixed height */
+    min-height: 0;           /* Allow shrinking if needed */
+    margin-bottom: 0;        /* REMOVED GAP below chart */
+    
     display: flex;
     flex-direction: column;
     
@@ -47,7 +53,6 @@
     border: 1px solid #222;
     border-top: none;
     border-radius: 0 0 6px 6px; 
-    margin-bottom: 20px;
     position: relative;
     z-index: 1;
 }
@@ -57,7 +62,8 @@
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    height: 44px; /* Slightly taller for better spacing */
+    height: 44px;
+    flex-shrink: 0; /* Prevent header from shrinking */
     padding: 0 15px;
     background: #151515;
     border-bottom: 1px solid #1f1f1f;
@@ -67,13 +73,18 @@
 #dynamicCenterControls { justify-self: center; display: flex; align-items: center; }
 #dynamicLegends { justify-self: end; display: flex; align-items: center; justify-content: flex-end; gap: 15px; width: 100%; font-size: 11px; }
 
+
 /* --- 4. CHART STACK --- */
 .chart-stack {
     display: grid;
     grid-template-areas: "stack"; 
     width: 100%;
-    height: 35vh; /* Fixed height for the chart area specifically */
-    min-height: 300px;
+    
+    /* CHANGE: Fill the Wrapper */
+    flex: 1; 
+    height: 100%; 
+    min-height: 0;
+    
     position: relative;
     overflow: hidden; 
 }
@@ -96,7 +107,8 @@
 
 .full-chart { width: 100%; height: 100%; }
 
-/* --- 5. STRATEGY FOOTER (New) --- */
+
+/* --- 5. STRATEGY FOOTER --- */
 .dashboard-footer {
     padding: 12px 15px;
     background: #111;
@@ -104,30 +116,21 @@
     font-size: 12px;
     color: #888;
     line-height: 1.4;
-    min-height: 50px; /* Ensure visual balance */
+    flex-shrink: 0; /* Prevent footer from shrinking */
+    min-height: 50px;
 }
 
-.footer-title {
-    color: #bbb;
-    font-weight: 700;
-    margin-right: 6px;
-    text-transform: uppercase;
-    font-size: 10px;
-    display: block;
-    margin-bottom: 4px;
-}
-
-/* --- 6. SHARED BUTTON STYLE (For Consistency) --- */
+/* --- 6. SHARED BUTTON STYLE --- */
 .chart-toggle-btn {
     border: none;
-    width: 90px;        /* Fixed Width for alignment */
-    height: 24px;       /* Fixed Height */
+    width: 90px;
+    height: 24px;
     border-radius: 4px;
-    font-size: 10px;    /* Slightly smaller for uppercase */
+    font-size: 10px;
     font-weight: 700;
     cursor: pointer;
     outline: none;
     transition: 0.2s;
-    text-transform: uppercase; /* ALL CAPS */
+    text-transform: uppercase;
     letter-spacing: 0.5px;
 }
