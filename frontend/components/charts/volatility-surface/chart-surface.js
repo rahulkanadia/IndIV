@@ -19,7 +19,7 @@ function refreshCharts() {
         type: 'heatmap', colorscale: 'Viridis', showscale: false 
     }], { 
         ...LAYOUT_CONTOUR, 
-        margin: { t: 40, b: 40, l: 40, r: 10 },
+        margin: { t: 40, b: 30, l: 40, r: 10 },
         title: {text: 'IV vs Moneyness', font:{size:10, color:'#666'}, y: 0.98} 
     }, { displayModeBar: false, responsive: true });
 
@@ -28,7 +28,7 @@ function refreshCharts() {
         type: 'heatmap', colorscale: 'Plasma', showscale: false 
     }], { 
         ...LAYOUT_CONTOUR, 
-        margin: { t: 40, b: 40, l: 40, r: 10 },
+        margin: { t: 40, b: 30, l: 40, r: 10 },
         title: {text: 'IV vs Delta', font:{size:10, color:'#666'}, y: 0.98} 
     }, { displayModeBar: false, responsive: true });
 }
