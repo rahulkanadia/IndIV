@@ -10,10 +10,31 @@ const LAYOUT_CONTOUR = {
     dragmode: false
 };
 
+// --- NEW HELPER: Auto-fixes "Sideways" Data ---
+function transposeIfNeeded(dataObj) {
+    const z = dataObj.z;
+    const xLen = dataObj.x.length;
+    const yLen = dataObj.y.length;
+
+    // Case 1: Perfect Match (Rows == Y-Axis Length)
+    if (z.length === yLen) return z;
+
+    // Case 2: Mismatch detected (Likely Rotated)
+    // If we have as many rows as the X-axis (Columns), we need to flip it.
+    if (z.length === xLen) {
+        // "Transpose" logic: Flip rows and columns
+        return z[0].map((_, colIndex) => z.map(row => row[colIndex]));
+    }
+
+    // Return original if ambiguous (e.g. 3x3 matrix)
+    return z;
+}
+
 function refreshCharts() {
     const moneyData = isWeeklyMode ? mockData.surfMoneyWk : mockData.surfMoney;
     const deltaData = isWeeklyMode ? mockData.surfDeltaWk : mockData.surfDelta;
 
+    // 1. Plot Moneyness (Left)
     Plotly.react('surf-money', [{ 
         z: moneyData.z, x: moneyData.x, y: moneyData.y, 
         type: 'heatmap', colorscale: 'Viridis', showscale: false 
@@ -22,9 +43,18 @@ function refreshCharts() {
         margin: { t: 20, b: 30, l: 40, r: 20 },
     }, { displayModeBar: false, responsive: true });
 
+
+    // 2. Plot Delta (Right) - WITH FIX
+    // We run the helper to ensure Z aligns with Y-axis
+    const correctedZ = transposeIfNeeded(deltaData);
+
     Plotly.react('surf-delta', [{ 
-        z: deltaData.z, x: deltaData.x, y: deltaData.y, 
-        type: 'heatmap', colorscale: 'Plasma', showscale: false 
+        z: correctedZ, 
+        x: deltaData.x, 
+        y: deltaData.y, 
+        type: 'heatmap', 
+        colorscale: 'Plasma', 
+        showscale: false 
     }], { 
         ...LAYOUT_CONTOUR, 
         margin: { t: 20, b: 30, l: 40, r: 20 },
@@ -38,15 +68,15 @@ export function updateLegend() {
 
     // 1. CLEAR RIGHT CONTAINER AND FORCE LEFT CONTAINER TO FULL WIDTH
     inp.innerHTML = '';
-    inp.style.display = 'none'; // Remove from flow
-    leg.style.width = '100%';   // Take full space
+    inp.style.display = 'none'; 
+    leg.style.width = '100%';   
     leg.style.flex = '1';
 
-    // 2. BUTTON STYLING (Fixed Width + Filled Background + No Border)
+    // 2. BUTTON STYLING
     const btnBase = `
         border: none;
-        width: 80px;           /* Fixed width prevents shifting */
-        padding: 4px 0;        /* Vertical padding */
+        width: 80px;           
+        padding: 4px 0;        
         border-radius: 4px;
         font-size: 11px;
         font-weight: bold;
@@ -56,15 +86,13 @@ export function updateLegend() {
         outline: none;
     `;
 
-    // Faint Blue Fill vs Faint Red Fill
     const styleMonthly = `background: rgba(66, 165, 245, 0.2); color: #42A5F5;`;
     const styleWeekly  = `background: rgba(255, 82, 82, 0.2);  color: #FF5252;`;
 
     const currentStyle = isWeeklyMode ? styleWeekly : styleMonthly;
     const currentLabel = isWeeklyMode ? "WEEKLY" : "MONTHLY";
 
-    // 3. LAYOUT GRID: [Left Label] [Center Button] [Right Label]
-    // 3. RENDER WITH TEXT SURROUNDING THE BUTTON
+    // 3. RENDER LEGEND
     leg.innerHTML = `
         <div style="display:grid; grid-template-columns: 1fr auto 1fr; width:100%; align-items:center;">
             
@@ -74,11 +102,9 @@ export function updateLegend() {
             
             <div style="display:flex; align-items:center; justify-content:center; gap: 8px; font-size: 10px; color: #888;">
                 <span>Click this button</span>
-                
                 <button id="surf-toggle-btn" style="${btnBase} ${currentStyle}">
                     ${currentLabel}
                 </button>
-                
                 <span>to change expiries</span>
             </div>
             
