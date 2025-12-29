@@ -1,26 +1,33 @@
-/* --- 1. TABS ROW (Sits on top of the box) --- */
+/* --- 1. TABS ROW (Full Width & Connected) --- */
 .tabs-container {
     display: flex;
-    gap: 4px;
-    padding-left: 10px; /* Align with box padding */
-    margin-bottom: -1px; /* Overlap with box border */
-    z-index: 5; /* Sit above the box */
+    width: 100%;       /* Full width */
+    gap: 1px;          /* Minimal gap between tabs */
+    padding: 0;        /* Remove padding to align with edges */
+    margin-bottom: -1px; 
+    z-index: 5; 
     position: relative;
 }
 
 .tab-btn {
+    /* FILL SPACE EQUALLY */
+    flex: 1;           
+    text-align: center;
+    justify-content: center;
+    
     /* Shape */
-    padding: 6px 16px;
-    border-radius: 6px 6px 0 0; /* Top corners rounded only */
+    padding: 8px 0;    /* Vertical padding only */
+    border-radius: 6px 6px 0 0; 
     border: 1px solid transparent;
     
     /* Text */
     font-size: 11px;
     font-weight: 600;
     color: #888;
-    background: #111; /* Darker than header */
+    background: #111; 
     cursor: pointer;
     transition: 0.2s;
+    white-space: nowrap; /* Prevent text wrapping */
 }
 
 .tab-btn:hover {
@@ -29,11 +36,10 @@
 }
 
 .tab-btn.active {
-    /* Active State: Merges with the Header below */
     background: #1a1a1a; 
     color: var(--blue);
     border: 1px solid #222;
-    border-bottom: 1px solid #1a1a1a; /* Hide bottom border to merge */
+    border-bottom: 1px solid #1a1a1a; 
 }
 
 /* --- 2. MAIN PANEL (The Box) --- */
@@ -46,15 +52,13 @@
     
     background: #151515;
     border: 1px solid #222;
-    border-radius: 6px;
-    /* Important: We moved top-left radius to the tabs logic, 
-       but keeping it here is fine if tabs have margin */
+    border-radius: 0 0 6px 6px; /* Bottom corners only */
     margin-bottom: 20px;
     position: relative;
     z-index: 1;
 }
 
-/* --- 3. HEADER (Grid Layout for Centering) --- */
+/* --- 3. HEADER (Grid Layout) --- */
 .dashboard-controls {
     display: grid;
     /* 3 COLUMNS: [Left Inputs] [Center Toggle] [Right Legends] */
@@ -63,31 +67,34 @@
     
     height: 40px;
     padding: 0 15px;
-    background: #1a1a1a; /* Matches Active Tab */
+    background: #1a1a1a; 
     border-bottom: 1px solid #222;
 }
 
 /* Column Alignment */
 #dynamicInputs {
-    justify-self: start; /* Left */
+    justify-self: start; /* Extreme Left */
     display: flex;
     align-items: center;
     height: 100%;
+    width: 100%;
 }
 
 #dynamicCenterControls {
-    justify-self: center; /* Center */
+    justify-self: center; /* Exact Center */
     display: flex;
     align-items: center;
     height: 100%;
 }
 
 #dynamicLegends {
-    justify-self: end; /* Right */
+    justify-self: end; /* Extreme Right */
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 15px;
     height: 100%;
+    width: 100%;
     font-size: 11px;
 }
 
@@ -117,17 +124,17 @@
     pointer-events: all;
 }
 
-/* --- 5. SURFACE SPLIT (Strict 50/50) --- */
+/* --- 5. SURFACE SPLIT --- */
 .surface-split {
     display: flex;
     width: 100%;
     height: 100%;
 }
 .surface-half {
-    flex: 1; /* Forces 50% width */
+    flex: 1; 
     height: 100%;
     min-width: 0;
-    border-right: 1px solid #222; /* Optional separator line */
+    border-right: 1px solid #222; 
 }
 .surface-half:last-child {
     border-right: none;
