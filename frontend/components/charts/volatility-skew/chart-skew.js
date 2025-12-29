@@ -6,6 +6,29 @@ const LAYOUT_CLEAN = {
     dragmode: false
 };
 
+// --- NEW HELPER: Generates Manual Ticks & Strings ---
+function generateManualTicks(dataArr, step) {
+    const min = Math.floor(Math.min(...dataArr));
+    const max = Math.ceil(Math.max(...dataArr));
+    
+    let vals = [];
+    let text = [];
+    
+    // Generate ticks from min to max by step (e.g., 0.5)
+    for (let i = min; i <= max; i += step) {
+        // Fix float precision issues (e.g. 0.3000004)
+        const val = parseFloat(i.toFixed(1)); 
+        vals.push(val);
+        
+        // Format: Sign + 1 Decimal + Leading Spaces for Padding
+        // Example: "   +1.0" or "   -0.5"
+        const sign = val > 0 ? '+' : (val === 0 ? ' ' : ''); // Align 0 with +
+        const str = `   ${sign}${val.toFixed(1)}`; 
+        text.push(str);
+    }
+    return { vals, text };
+}
+
 function getSmartRange(dataArrays) {
     let all = [];
     dataArrays.forEach(arr => all.push(...arr));
@@ -18,6 +41,11 @@ export function updateLegend(showMonthly) {
     const leg = document.getElementById('dynamicLegends');
     const inp = document.getElementById('dynamicInputs');
     if(!leg || !inp) return;
+
+    // Reset Layout
+    inp.style.display = 'flex'; 
+    leg.style.width = 'auto';
+    leg.style.flex = 'initial';
 
     leg.innerHTML = `
         <div class="leg-item" style="display:flex; align-items:center"><div class="line-box" style="border:none; background:#333; height:10px; width:10px; opacity:0.5"></div>Skew</div>
@@ -36,7 +64,6 @@ export function updateLegend(showMonthly) {
 
 export function renderSkewChart(containerId, showMonthly) {
     const traces = [
-        // 1. BAR TRACE (Assigned to y2)
         { 
             x: mockData.strikes, 
             y: mockData.skew.spread, 
@@ -46,7 +73,6 @@ export function renderSkewChart(containerId, showMonthly) {
             yaxis: 'y2', 
             hoverinfo: 'y' 
         },
-        // 2. LINE TRACES (Assigned to y - Primary)
         { x: mockData.strikes, y: mockData.skew.call, name: 'Wk Call', line: { color: '#00E676', width: 2 }, type: 'scatter', mode: 'lines' },
         { x: mockData.strikes, y: mockData.skew.put, name: 'Wk Put', line: { color: '#FF5252', width: 2 }, type: 'scatter', mode: 'lines' }
     ];
@@ -60,10 +86,13 @@ export function renderSkewChart(containerId, showMonthly) {
 
     const range = getSmartRange([mockData.skew.call, mockData.skew.put, mockData.skewMo.call]);
 
+    // --- GENERATE MANUAL TICKS FOR Y2 ---
+    // Step 0.5 ensures we get -1.0, -0.5, 0.0, +0.5, etc.
+    const y2Ticks = generateManualTicks(mockData.skew.spread, 0.5);
+
     const layout = {
         ...LAYOUT_CLEAN,
         showlegend: false,
-        // These margins are fine, they just ensure labels aren't cut off at the edge of the screen
         margin: { t: 20, b: 30, l: 40, r: 40 }, 
         
         xaxis: { 
@@ -72,25 +101,23 @@ export function renderSkewChart(containerId, showMonthly) {
             tickfont: { color: '#fff', size: 10 } 
         },
         
-        // --- RIGHT AXIS (BARS) ---
+        // --- RIGHT AXIS (MANUAL OVERRIDE) ---
         yaxis2: { 
             side: 'right', 
             showgrid: false, 
             fixedrange: true,
             overlaying: null, 
             
-            // 1. ALIGNMENT: Forces sign (+/-) on all numbers. 
-            // Even in standard fonts, this aligns decimals much better than mixed formats.
-            tickformat: '+.1f',
-            
-            // 2. SPACING: We add 3 spaces BEFORE the text to push it Right
-            tickprefix: '   ', 
+            // 1. FORCE MANUAL TICKS
+            tickmode: 'array',
+            tickvals: y2Ticks.vals,  // e.g. [0.5, 1.0]
+            ticktext: y2Ticks.text,  // e.g. ["   +0.5", "   +1.0"] (Includes Spacing!)
             
             tickfont: { color: '#888', size: 9 },
             automargin: true
         },
         
-        // --- LEFT AXIS (LINES) ---
+        // --- LEFT AXIS ---
         yaxis: { 
             gridcolor: '#222', 
             fixedrange: true, 
@@ -98,12 +125,11 @@ export function renderSkewChart(containerId, showMonthly) {
             overlaying: 'y2', 
             side: 'left',
             
-            // 1. ALIGNMENT: Standard 1 decimal format
+            // Keep left axis simple/automatic as it was working
             tickformat: '.1f',
-            
-            // 2. SPACING: We add 3 spaces AFTER the text to push it Left
-            ticksuffix: '   ',
-            
+            ticks: 'outside',
+            ticklen: 8,
+            tickcolor: 'rgba(0,0,0,0)',
             tickfont: { color: '#666', size: 10 }
         }
     };
