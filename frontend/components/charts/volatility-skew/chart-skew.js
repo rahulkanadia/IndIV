@@ -2,7 +2,7 @@ import { mockData } from '../../../mockdata.js';
 
 const LAYOUT_CLEAN = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { family: 'Segoe UI', color: '#666', size: 10 },
+    font: { family: 'Segoe UI', color: '#fff', size: 10 },
     dragmode: false
 };
 
@@ -124,7 +124,7 @@ export function renderSkewChart(containerId, showMonthly) {
             range: range,
             overlaying: 'y2', 
             side: 'left',
-            standoff: 10,
+            ticksuffix: '   ',
             tickfont: { color: '#666', size: 10 }
         }
     };
