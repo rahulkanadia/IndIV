@@ -67,21 +67,22 @@ export function renderSkewChart(containerId, showMonthly) {
         xaxis: { 
             showgrid: false, 
             fixedrange: true, 
-            // FIX: White X-Axis Labels
             tickfont: { color: '#fff', size: 10 } 
         },
-        // FIX: LAYERING TRICK
-        // To make Lines (y) appear ON TOP of Bars (y2), 
-        // y must "overlay" y2.
         yaxis2: { 
             side: 'right', 
             showgrid: false, 
             fixedrange: true,
-            overlaying: null, // y2 is the Base Layer
-            tickformat: '+.1f',
-            ticks: 'outside',
-            ticklen: 0,
-            standoff: 10,
+            overlaying: null, 
+            
+            // --- ALIGNMENT FIX ---
+            tickformat: '+.1f',  // Crucial: Makes positive numbers same width as negative numbers
+            
+            // --- SPACING FIX ---
+            ticks: 'outside',    // Activates spacing calculation
+            ticklen: 0,          // Hides the tick mark line
+            standoff: 10,        // Pushes text 10px away
+            
             tickfont: { color: '#888', size: 9 },
             automargin: true
         },
@@ -89,8 +90,10 @@ export function renderSkewChart(containerId, showMonthly) {
             gridcolor: '#222', 
             fixedrange: true, 
             range: range,
-            overlaying: 'y2', // y is the Top Layer
+            overlaying: 'y2', 
             side: 'left',
+            
+            // --- SPACING FIX (Left Side) ---
             ticks: 'outside',
             ticklen: 0,
             standoff: 10
