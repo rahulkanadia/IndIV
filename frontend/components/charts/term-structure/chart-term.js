@@ -60,7 +60,7 @@ export function renderTermChart(containerId, showMonthly) {
         yaxis: { 
             gridcolor: '#1f1f1f', fixedrange: true,
             range: globalRange, autorange: false, dtick: 1.0,           
-            tickformat: '.1f', ticks: 'outside', ticklen: 8, tickcolor: 'rgba(0,0,0,0)', tickfont: { color: '#fff', size: 10 }
+            ticks: 'outside', ticklen: 8, tickcolor: 'rgba(0,0,0,0)', tickfont: { color: '#fff', size: 10 }
         }
     };
 
