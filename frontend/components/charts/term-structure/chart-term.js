@@ -2,7 +2,7 @@ import { mockData } from '../../../mockdata.js';
 
 const LAYOUT_CLEAN = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { family: 'Segoe UI', color: '#666', size: 10 },
+    font: { family: 'Segoe UI', color: '#fff', size: 10 },
     xaxis: { showgrid: false, fixedrange: true },
     yaxis: { gridcolor: '#222', fixedrange: true },
     dragmode: false
