@@ -1,11 +1,12 @@
-import { mockData, getGlobalIVRange } from '../../../mockdata.js';
+import { mockData } from '../../../mockdata.js';
 
-const LAYOUT_CLEAN = {
-    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+// 1. SIMPLE LAYOUT (Removed strict axis settings here to set them dynamically later)
+const LAYOUT_BASE = {
+    paper_bgcolor: 'rgba(0,0,0,0)', 
+    plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI', color: '#fff', size: 10 },
-    xaxis: { showgrid: false, fixedrange: true },
-    yaxis: { gridcolor: '#222', fixedrange: true },
-    dragmode: false
+    dragmode: false,
+    margin: { t: 20, b: 30, l: 40, r: 20 } // Fixed margins prevent "layout shift"
 };
 
 export function updateLegend(showMonthly) {
@@ -25,45 +26,51 @@ export function updateLegend(showMonthly) {
     inp.appendChild(lbl);
 }
 
-// ... imports and updateLegend ...
-
 export function renderTermChart(containerId, showMonthly) {
+    // 1. PREPARE DATA
     const traces = [
         { x: mockData.term.expiries, y: mockData.term.weekly, name: 'Wk', line: { color: '#FF9800' }, type: 'scatter' }
     ];
-
     if (showMonthly) {
         traces.push(
             { x: mockData.term.expiries, y: mockData.term.monthly, name: 'Mo', line: { color: '#42A5F5' }, type: 'scatter' }
         );
     }
 
-    const globalRange = getGlobalIVRange();
+    // 2. CALCULATE RANGE LOCALY (Live Data Friendly)
+    // We scan ALL relevant data to ensure the chart doesn't jump if we toggle lines
+    const allValues = [...mockData.term.weekly, ...mockData.term.monthly];
+    const minV = Math.min(...allValues);
+    const maxV = Math.max(...allValues);
+    
+    // Add 1-point buffer
+    const safeRange = [Math.floor(minV) - 1, Math.ceil(maxV) + 1];
 
+    // 3. DEFINE LAYOUT WITH EXPLICIT RANGE
     const layout = {
-        ...LAYOUT_CLEAN,
+        ...LAYOUT_BASE,
         showlegend: false,
-        margin: { t: 20, b: 30, l: 40, r: 20 },
-        transition: { duration: 0 }, // Keep this to prevent data animation
+        xaxis: { 
+            showgrid: false, 
+            fixedrange: true, 
+            tickfont: { color: '#fff', size: 10 } 
+        },
         yaxis: { 
-            ...LAYOUT_CLEAN.yaxis, 
-            autorange: false,
-            range: globalRange,
+            gridcolor: '#222', 
+            fixedrange: true, // Prevents user zoom
+            
+            // KEY FIX: Hard-set the range immediately
+            range: safeRange,
+            autorange: false, 
+            
             tickformat: '.1f',
             ticks: 'outside',
             ticklen: 8,
-            tickcolor: 'rgba(0,0,0,0)',
+            tickcolor: 'rgba(0,0,0,0)', // Invisible padding
             tickfont: { color: '#fff', size: 10 }
         }
     };
 
-    // --- THE FIX: PURGE OLD CHART ---
-    // If a chart already exists, destroy it. 
-    // This stops Plotly from trying to "animate" from the old axis range to the new one.
-    const container = document.getElementById(containerId);
-    if (container) {
-        Plotly.purge(containerId);
-    }
-
+    // 4. DRAW
     Plotly.newPlot(containerId, traces, layout, { displayModeBar: false, responsive: true });
 }
