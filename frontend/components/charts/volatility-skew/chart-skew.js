@@ -1,4 +1,5 @@
-import { mockData } from '../../../mockdata.js';
+// 1. IMPORT GLOBAL RANGE HELPER
+import { mockData, getGlobalIVRange } from '../../../mockdata.js';
 
 const LAYOUT_CLEAN = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
@@ -6,36 +7,25 @@ const LAYOUT_CLEAN = {
     dragmode: false
 };
 
-// --- NEW HELPER: Generates Manual Ticks & Strings ---
+// --- HELPER: Generates Manual Ticks (Keep this for Right Axis/Skew) ---
 function generateManualTicks(dataArr, step) {
     const min = Math.floor(Math.min(...dataArr));
     const max = Math.ceil(Math.max(...dataArr));
-    
+
     let vals = [];
     let text = [];
-    
-    // Generate ticks from min to max by step (e.g., 0.5)
+
     for (let i = min; i <= max; i += step) {
-        // Fix float precision issues (e.g. 0.3000004)
         const val = parseFloat(i.toFixed(1)); 
         vals.push(val);
-        
-        // Format: Sign + 1 Decimal + Leading Spaces for Padding
-        // Example: "   +1.0" or "   -0.5"
-        const sign = val > 0 ? '+' : (val === 0 ? ' ' : ''); // Align 0 with +
+        const sign = val > 0 ? '+' : (val === 0 ? ' ' : ''); 
         const str = `   ${sign}${val.toFixed(1)}`; 
         text.push(str);
     }
     return { vals, text };
 }
 
-function getSmartRange(dataArrays) {
-    let all = [];
-    dataArrays.forEach(arr => all.push(...arr));
-    const minV = Math.min(...all);
-    const maxV = Math.max(...all);
-    return [minV - 1.0, maxV + 1.0];
-}
+// (Removed local getSmartRange function - using Global instead)
 
 export function updateLegend(showMonthly) {
     const leg = document.getElementById('dynamicLegends');
@@ -84,47 +74,52 @@ export function renderSkewChart(containerId, showMonthly) {
         );
     }
 
-    const range = getSmartRange([mockData.skew.call, mockData.skew.put, mockData.skewMo.call]);
+    // 2. GET DYNAMIC GLOBAL RANGE (Syncs with Term Structure Chart)
+    const globalRange = getGlobalIVRange();
 
     // --- GENERATE MANUAL TICKS FOR Y2 ---
-    // Step 0.5 ensures we get -1.0, -0.5, 0.0, +0.5, etc.
     const y2Ticks = generateManualTicks(mockData.skew.spread, 0.5);
 
     const layout = {
         ...LAYOUT_CLEAN,
         showlegend: false,
         margin: { t: 20, b: 30, l: 40, r: 40 }, 
-        
+
         xaxis: { 
             showgrid: false, 
             fixedrange: true, 
             tickfont: { color: '#fff', size: 10 } 
         },
-        
-        // --- RIGHT AXIS (MANUAL OVERRIDE) ---
+
+        // --- RIGHT AXIS (Keep Manual Ticks) ---
         yaxis2: { 
             side: 'right', 
             showgrid: false, 
             fixedrange: true,
             overlaying: null, 
-            
-            // 1. FORCE MANUAL TICKS
             tickmode: 'array',
-            tickvals: y2Ticks.vals,  // e.g. [0.5, 1.0]
-            ticktext: y2Ticks.text,  // e.g. ["   +0.5", "   +1.0"] (Includes Spacing!)
-            
+            tickvals: y2Ticks.vals,
+            ticktext: y2Ticks.text,
             tickfont: { color: '#fff', size: 9 },
             automargin: true
         },
-        
-        // --- LEFT AXIS ---
+
+        // --- LEFT AXIS (Global Range + Invisible Tick Padding) ---
         yaxis: { 
             gridcolor: '#222', 
             fixedrange: true, 
-            range: range,
+            
+            // 3. APPLY GLOBAL RANGE
+            range: globalRange,
+            
             overlaying: 'y2', 
             side: 'left',
-            ticksuffix: '   ',
+            
+            // Updated to match Term Structure Chart padding style exactly
+            ticks: 'outside',
+            ticklen: 8,
+            tickcolor: 'rgba(0,0,0,0)', // Invisible
+            
             tickfont: { color: '#fff', size: 10 }
         }
     };
