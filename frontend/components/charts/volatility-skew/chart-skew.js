@@ -27,25 +27,51 @@ export function updateLegend(showMonthly) {
     const inp = document.getElementById('dynamicInputs');
     if(!leg || !inp) return;
 
+    // 1. RENDER LEGEND (Right Side)
     inp.style.display = 'flex'; 
     leg.style.width = 'auto';
-    leg.style.flex = 'initial';
+    leg.style.flex = '1'; 
+    
     leg.innerHTML = `
         <div class="leg-item" style="display:flex; align-items:center"><div class="line-box" style="border:none; background:#333; height:10px; width:10px; opacity:0.5"></div>Skew</div>
-        <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#00E676; border-top-style:solid"></div>Weekly ATM Call</div>
-        <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#FF5252; border-top-style:solid"></div>Weekly ATM Put</div>
-        <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#00E676; border-top-style:dotted"></div>Monthly ATM Call</div>
-        <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#FF5252; border-top-style:dotted"></div>Monthly ATM Put</div>
+        <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#00E676; border-top-style:solid"></div>Wk Call</div>
+        <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#FF5252; border-top-style:solid"></div>Wk Put</div>
+        ${showMonthly ? `
+        <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#00E676; border-top-style:dotted"></div>Mo Call</div>
+        <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#FF5252; border-top-style:dotted"></div>Mo Put</div>
+        ` : ''}
     `;
-    inp.innerHTML = '';
-    const lbl = document.createElement('label');
-    lbl.style.display = 'flex'; lbl.style.alignItems = 'center'; lbl.style.gap = '4px'; lbl.style.cursor = 'pointer';
-    lbl.innerHTML = `<input type="checkbox" ${showMonthly ? 'checked' : ''}> Show Monthly`;
-    lbl.querySelector('input').onchange = (e) => renderSkewChart('chart-skew', e.target.checked);
-    inp.appendChild(lbl);
+
+    // 2. RENDER BUTTON CONTROLS (Left Side)
+    // Styles
+    const styleOn = `background: rgba(0, 230, 118, 0.2); color: #00E676;`;
+    const styleOff = `background: rgba(255, 82, 82, 0.2); color: #FF5252;`;
+    const btnStyle = `
+        border: none; width: 90px; height: 26px; 
+        border-radius: 4px; font-size: 11px; font-weight: bold; 
+        cursor: pointer; transition: 0.2s; outline: none;
+    `;
+
+    inp.innerHTML = `
+        <div style="display:flex; align-items:center; gap: 8px; font-size: 10px; color: #888; margin-left: 10px;">
+            <span>Click this button to see monthly</span>
+            <button id="skew-toggle-btn" style="${btnStyle} ${showMonthly ? styleOn : styleOff}">
+                Show Monthly
+            </button>
+        </div>
+    `;
+
+    // 3. ATTACH LISTENER
+    document.getElementById('skew-toggle-btn').onclick = () => {
+        // Toggle boolean and re-render
+        renderSkewChart('chart-skew', !showMonthly);
+    };
 }
 
 export function renderSkewChart(containerId, showMonthly) {
+    // Default to true if undefined
+    if (typeof showMonthly === 'undefined') showMonthly = true;
+
     const traces = [
         { x: mockData.strikes, y: mockData.skew.spread, name: 'Skew', type: 'bar', marker: { color: '#222', opacity: 0.5 }, yaxis: 'y2', hoverinfo: 'y' },
         { x: mockData.strikes, y: mockData.skew.call, name: 'Wk Call', line: { color: '#00E676', width: 2 }, type: 'scatter', mode: 'lines' },
