@@ -16,7 +16,7 @@
     cursor: pointer; color: #888; border-right: 1px solid var(--border); font-weight: 600; 
 }
 .c-tab:hover { color: #fff; background: #222; }
-.c-tab.active { color: #fff; background: var(--card); border-bottom: 2px solid var(--green); }
+.c-tab.active { color: #fff; background: var(--card); border-bottom: 2px solid var(--blue); }
 
 /* Controls & Content */
 .chart-controls { 
