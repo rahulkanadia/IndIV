@@ -79,6 +79,8 @@ export function renderSkewChart(containerId, showMonthly) {
             fixedrange: true,
             overlaying: null, // y2 is the Base Layer
             tickformat: '+.1f',
+            ticks: 'outside',
+            ticklen: 0,
             standoff: 10,
             tickfont: { color: '#888', size: 9 },
             automargin: true
@@ -89,6 +91,8 @@ export function renderSkewChart(containerId, showMonthly) {
             range: range,
             overlaying: 'y2', // y is the Top Layer
             side: 'left',
+            ticks: 'outside',
+            ticklen: 0,
             standoff: 10
         }
     };
