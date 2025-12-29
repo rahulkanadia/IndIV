@@ -52,9 +52,6 @@ export function renderTermChart(containerId, showMonthly) {
             
             // 3. APPLY RANGE & FORMATTING
             range: globalRange,
-            
-            // Visual Sync with Skew Chart
-            tickformat: '.1f',
             ticks: 'outside',
             ticklen: 8,
             tickcolor: 'rgba(0,0,0,0)', // Invisible padding
