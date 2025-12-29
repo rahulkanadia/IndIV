@@ -1,0 +1,73 @@
+/* WRAPPER */
+.dashboard-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* CONTROLS ROW */
+.dashboard-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 30px;
+}
+
+/* --- THE STACK --- */
+.chart-stack {
+    display: grid;
+    /* 1x1 Grid: All children go into the same cell named "stack" */
+    grid-template-areas: "stack"; 
+    width: 100%;
+    
+    /* FIXED HEIGHT: Crucial for Plotly stability */
+    height: 35vh;
+    min-height: 300px;
+    
+    background: #151515;
+    border: 1px solid #222;
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden; 
+}
+
+/* LAYERS (The Cards) */
+.chart-layer {
+    grid-area: stack; /* Sits in the "stack" cell */
+    width: 100%;
+    height: 100%;
+    
+    /* HIDDEN STATE */
+    opacity: 0;
+    z-index: 0;
+    pointer-events: none; /* Clicks pass through */
+    transition: opacity 0.15s ease-in-out; /* Smooth fade */
+    background: #151515; /* Prevents see-through */
+}
+
+/* ACTIVE STATE */
+.chart-layer.active {
+    opacity: 1;
+    z-index: 10;
+    pointer-events: all;
+}
+
+/* UTILS */
+.full-chart {
+    width: 100%;
+    height: 100%;
+}
+
+.surface-split {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+.surface-half {
+    flex: 1;
+    height: 100%;
+    min-width: 0;
+}
