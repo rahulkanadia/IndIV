@@ -105,9 +105,12 @@ export const mockData = {
 };
 
 // NEW HELPER FUNCTION: Calculates Dynamic Y-Axis Range
+// frontend/mockdata.js
+
+// ... (mockData object) ...
+
 export function getGlobalIVRange() {
-    // 1. Gather all IV datasets (Skew Lines + Term Structure Lines)
-    // Note: We EXCLUDE 'spread' because that is a small differential (0.5, -1.0), not absolute IV.
+    // 1. Collect ALL data points from both charts
     const allIVs = [
         ...mockData.skew.call,
         ...mockData.skew.put,
@@ -117,11 +120,10 @@ export function getGlobalIVRange() {
         ...mockData.term.monthly
     ];
 
-    // 2. Find Min and Max
-    const minVal = Math.min(...allIVs);
-    const maxVal = Math.max(...allIVs);
+    const minV = Math.min(...allIVs);
+    const maxV = Math.max(...allIVs);
 
-    // 3. Add Breathing Room (Buffer)
-    // e.g. If range is 12.2 to 16.5 -> Return [11, 18]
-    return [Math.floor(minVal) - 1, Math.ceil(maxVal) + 1];
+    // 2. Return a strict integer range
+    // Floor - 1 and Ceil + 1 ensures we never touch the edge
+    return [Math.floor(minV) - 1, Math.ceil(maxV) + 1];
 }
