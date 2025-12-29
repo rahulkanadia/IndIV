@@ -8,42 +8,61 @@ const LAYOUT_BASE = {
     margin: { t: 20, b: 30, l: 40, r: 20 }
 };
 
-// ... (updateLegend function remains the same) ...
+export function updateLegend(showMonthly) {
+    const leg = document.getElementById('dynamicLegends');
+    const inp = document.getElementById('dynamicInputs');
+    if(!leg || !inp) return;
+
+    leg.innerHTML = `
+        <div class="leg-item" style="display:flex; align-items:center; margin-right:15px"><span class="leg-dot" style="background:#FF9800; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px;"></span>Weekly</div> 
+        <div class="leg-item" style="display:flex; align-items:center"><span class="leg-dot" style="background:#42A5F5; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px;"></span>Monthly</div>
+    `;
+    inp.innerHTML = '';
+    const lbl = document.createElement('label');
+    lbl.style.display = 'flex'; lbl.style.alignItems = 'center'; lbl.style.gap = '4px'; lbl.style.cursor = 'pointer';
+    lbl.innerHTML = `<input type="checkbox" ${showMonthly ? 'checked' : ''}> Show Monthly`;
+    lbl.querySelector('input').onchange = (e) => renderTermChart('chart-term', e.target.checked);
+    inp.appendChild(lbl);
+}
 
 export function renderTermChart(containerId, showMonthly) {
     const traces = [
         { x: mockData.term.expiries, y: mockData.term.weekly, name: 'Wk', line: { color: '#FF9800' }, type: 'scatter' }
     ];
+
     if (showMonthly) {
         traces.push(
             { x: mockData.term.expiries, y: mockData.term.monthly, name: 'Mo', line: { color: '#42A5F5' }, type: 'scatter' }
         );
     }
 
-    // 1. GET GLOBAL RANGE
+    // 1. GET GLOBAL RANGE (Ensures Min/Max match Skew Chart)
     const globalRange = getGlobalIVRange();
 
     const layout = {
         ...LAYOUT_BASE,
         showlegend: false,
+        
         xaxis: { 
             showgrid: false, 
             fixedrange: true, 
             tickfont: { color: '#fff', size: 10 } 
         },
+        
         yaxis: { 
             gridcolor: '#222', 
             fixedrange: true,
             
-            // 2. STRICT SYNC SETTINGS
+            // 2. STRICT SCALING
             range: globalRange,
             autorange: false,
-            dtick: 1.0,           // <--- FORCES STEP SIZE OF 1 (No more 2.0 steps)
+            dtick: 1.0,           // Forces 1.0 step size (11, 12, 13...)
             
+            // 3. VISUAL ALIGNMENT
             tickformat: '.1f',
             ticks: 'outside',
             ticklen: 8,
-            tickcolor: 'rgba(0,0,0,0)',
+            tickcolor: 'rgba(0,0,0,0)', // Invisible padding
             tickfont: { color: '#fff', size: 10 }
         }
     };
