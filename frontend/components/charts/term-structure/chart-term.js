@@ -12,19 +12,40 @@ export function updateLegend(showMonthly) {
     const inp = document.getElementById('dynamicInputs');
     if(!leg || !inp) return;
 
+    // 1. RENDER LEGEND
     leg.innerHTML = `
         <div class="leg-item" style="display:flex; align-items:center; margin-right:15px"><span class="leg-dot" style="background:#FF9800; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px;"></span>Weekly</div> 
-        <div class="leg-item" style="display:flex; align-items:center"><span class="leg-dot" style="background:#42A5F5; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px;"></span>Monthly</div>
+        ${showMonthly ? `<div class="leg-item" style="display:flex; align-items:center"><span class="leg-dot" style="background:#42A5F5; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px;"></span>Monthly</div>` : ''}
     `;
-    inp.innerHTML = '';
-    const lbl = document.createElement('label');
-    lbl.style.display = 'flex'; lbl.style.alignItems = 'center'; lbl.style.gap = '4px'; lbl.style.cursor = 'pointer';
-    lbl.innerHTML = `<input type="checkbox" ${showMonthly ? 'checked' : ''}> Show Monthly`;
-    lbl.querySelector('input').onchange = (e) => renderTermChart('chart-term', e.target.checked);
-    inp.appendChild(lbl);
+
+    // 2. RENDER BUTTON CONTROLS
+    // Styles
+    const styleOn = `background: rgba(0, 230, 118, 0.2); color: #00E676;`;
+    const styleOff = `background: rgba(255, 82, 82, 0.2); color: #FF5252;`;
+    const btnStyle = `
+        border: none; width: 90px; height: 26px; 
+        border-radius: 4px; font-size: 11px; font-weight: bold; 
+        cursor: pointer; transition: 0.2s; outline: none;
+    `;
+
+    inp.innerHTML = `
+        <div style="display:flex; align-items:center; gap: 8px; font-size: 10px; color: #888; margin-left: 10px;">
+            <span>Click this button to see monthly</span>
+            <button id="term-toggle-btn" style="${btnStyle} ${showMonthly ? styleOn : styleOff}">
+                Show Monthly
+            </button>
+        </div>
+    `;
+
+    // 3. ATTACH LISTENER
+    document.getElementById('term-toggle-btn').onclick = () => {
+        renderTermChart('chart-term', !showMonthly);
+    };
 }
 
 export function renderTermChart(containerId, showMonthly) {
+    if (typeof showMonthly === 'undefined') showMonthly = true;
+
     const traces = [
         { x: mockData.term.expiries, y: mockData.term.weekly, name: 'Wk', line: { color: '#FF9800' }, type: 'scatter' }
     ];
@@ -46,4 +67,5 @@ export function renderTermChart(containerId, showMonthly) {
     };
 
     Plotly.react(containerId, traces, layout, { displayModeBar: false, responsive: true });
+    updateLegend(showMonthly);
 }
