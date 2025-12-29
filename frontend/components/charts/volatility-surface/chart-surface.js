@@ -5,30 +5,25 @@ let isWeeklyMode = false;
 const LAYOUT_CONTOUR = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI', color: '#666', size: 10 },
-    xaxis: { title: '', tickfont: {size: 9}, color: '#fff', fixedrange: true },
-    yaxis: { title: '', tickfont: {size: 9}, color: '#fff', fixedrange: true },
+    
+    // --- FIX 1: FORCE CATEGORY AXES ---
+    // This tells Plotly "Don't treat '20D' as a date or number. It's just a label."
+    xaxis: { 
+        type: 'category', 
+        title: '', 
+        tickfont: {size: 9}, 
+        color: '#fff', 
+        fixedrange: true 
+    },
+    yaxis: { 
+        type: 'category', 
+        title: '', 
+        tickfont: {size: 9}, 
+        color: '#fff', 
+        fixedrange: true 
+    },
     dragmode: false
 };
-
-// --- NEW HELPER: Auto-fixes "Sideways" Data ---
-function transposeIfNeeded(dataObj) {
-    const z = dataObj.z;
-    const xLen = dataObj.x.length;
-    const yLen = dataObj.y.length;
-
-    // Case 1: Perfect Match (Rows == Y-Axis Length)
-    if (z.length === yLen) return z;
-
-    // Case 2: Mismatch detected (Likely Rotated)
-    // If we have as many rows as the X-axis (Columns), we need to flip it.
-    if (z.length === xLen) {
-        // "Transpose" logic: Flip rows and columns
-        return z[0].map((_, colIndex) => z.map(row => row[colIndex]));
-    }
-
-    // Return original if ambiguous (e.g. 3x3 matrix)
-    return z;
-}
 
 function refreshCharts() {
     const moneyData = isWeeklyMode ? mockData.surfMoneyWk : mockData.surfMoney;
@@ -36,25 +31,31 @@ function refreshCharts() {
 
     // 1. Plot Moneyness (Left)
     Plotly.react('surf-money', [{ 
-        z: moneyData.z, x: moneyData.x, y: moneyData.y, 
-        type: 'heatmap', colorscale: 'Viridis', showscale: false 
+        z: moneyData.z, 
+        x: moneyData.x, 
+        y: moneyData.y, 
+        type: 'heatmap', 
+        colorscale: 'Viridis', 
+        showscale: false 
     }], { 
         ...LAYOUT_CONTOUR, 
         margin: { t: 20, b: 30, l: 40, r: 20 },
     }, { displayModeBar: false, responsive: true });
 
 
-    // 2. Plot Delta (Right) - WITH FIX
-    // We run the helper to ensure Z aligns with Y-axis
-    const correctedZ = transposeIfNeeded(deltaData);
-
+    // 2. Plot Delta (Right)
     Plotly.react('surf-delta', [{ 
-        z: correctedZ, 
+        z: deltaData.z, 
         x: deltaData.x, 
         y: deltaData.y, 
         type: 'heatmap', 
         colorscale: 'Plasma', 
-        showscale: false 
+        showscale: false,
+        
+        // --- FIX 2: HELP PLOTLY WITH DATA GAPS ---
+        // (Optional safety net, though 'category' axis usually solves it)
+        zsmooth: false,
+        connectgaps: false
     }], { 
         ...LAYOUT_CONTOUR, 
         margin: { t: 20, b: 30, l: 40, r: 20 },
@@ -66,13 +67,13 @@ export function updateLegend() {
     const inp = document.getElementById('dynamicInputs');
     if(!leg || !inp) return;
 
-    // 1. CLEAR RIGHT CONTAINER AND FORCE LEFT CONTAINER TO FULL WIDTH
+    // Reset Container
     inp.innerHTML = '';
     inp.style.display = 'none'; 
     leg.style.width = '100%';   
     leg.style.flex = '1';
 
-    // 2. BUTTON STYLING
+    // Button Styling
     const btnBase = `
         border: none;
         width: 80px;           
@@ -92,14 +93,11 @@ export function updateLegend() {
     const currentStyle = isWeeklyMode ? styleWeekly : styleMonthly;
     const currentLabel = isWeeklyMode ? "WEEKLY" : "MONTHLY";
 
-    // 3. RENDER LEGEND
     leg.innerHTML = `
         <div style="display:grid; grid-template-columns: 1fr auto 1fr; width:100%; align-items:center;">
-            
             <div style="text-align:left;">
                 <span style="color:#00E676; font-weight:bold; font-size:11px;">Moneyness vs Expiry</span>
             </div>
-            
             <div style="display:flex; align-items:center; justify-content:center; gap: 8px; font-size: 10px; color: #888;">
                 <span>Click this button</span>
                 <button id="surf-toggle-btn" style="${btnBase} ${currentStyle}">
@@ -107,15 +105,12 @@ export function updateLegend() {
                 </button>
                 <span>to change expiries</span>
             </div>
-            
             <div style="text-align:right;">
                 <span style="color:#FF9800; font-weight:bold; font-size:11px;">Delta vs Expiry</span>
             </div>
-
         </div>
     `;
 
-    // 4. ATTACH LISTENER
     document.getElementById('surf-toggle-btn').onclick = () => {
         isWeeklyMode = !isWeeklyMode;
         updateLegend();
