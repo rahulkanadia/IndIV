@@ -1,4 +1,5 @@
-import { mockData } from '../../../mockdata.js';
+// 1. IMPORT GLOBAL RANGE HELPER
+import { mockData, getGlobalIVRange } from '../../../mockdata.js';
 
 const LAYOUT_CLEAN = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
@@ -8,14 +9,7 @@ const LAYOUT_CLEAN = {
     dragmode: false
 };
 
-function getSmartRange(dataArrays) {
-    let all = [];
-    dataArrays.forEach(arr => all.push(...arr));
-    const minV = Math.min(...all);
-    const maxV = Math.max(...all);
-    const pad = (maxV - minV) * 0.1; 
-    return [minV - (pad||1.0), maxV + (pad||1.0)];
-}
+// (Removed local getSmartRange function)
 
 // PUBLIC LEGEND UPDATER
 export function updateLegend(showMonthly) {
@@ -46,13 +40,26 @@ export function renderTermChart(containerId, showMonthly) {
         );
     }
 
-    const range = getSmartRange([mockData.term.weekly, mockData.term.monthly]);
+    // 2. GET DYNAMIC GLOBAL RANGE
+    const globalRange = getGlobalIVRange();
 
     const layout = {
         ...LAYOUT_CLEAN,
         showlegend: false,
-        margin: { t: 20, b: 30, l: 20, r: 20 },
-        yaxis: { ...LAYOUT_CLEAN.yaxis, range: range }
+        margin: { t: 20, b: 30, l: 40, r: 20 }, // Left margin matches Skew chart
+        yaxis: { 
+            ...LAYOUT_CLEAN.yaxis, 
+            
+            // 3. APPLY RANGE & FORMATTING
+            range: globalRange,
+            
+            // Visual Sync with Skew Chart
+            tickformat: '.1f',
+            ticks: 'outside',
+            ticklen: 8,
+            tickcolor: 'rgba(0,0,0,0)', // Invisible padding
+            tickfont: { color: '#fff', size: 10 }
+        }
     };
 
     Plotly.newPlot(containerId, traces, layout, { displayModeBar: false, responsive: true });
