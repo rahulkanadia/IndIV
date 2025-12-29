@@ -52,9 +52,7 @@ export function renderTermChart(containerId, showMonthly) {
             // 2. EXPLICITLY SET RANGE (Stops the jump)
             range: globalRange,
             autorange: false,     // Crucial: Tells Plotly "Do not guess"
-            dtick: 1.0,           
-            
-            tickformat: '.1f',
+            dtick: 1.0,
             ticks: 'outside',
             ticklen: 8,
             tickcolor: 'rgba(0,0,0,0)',
