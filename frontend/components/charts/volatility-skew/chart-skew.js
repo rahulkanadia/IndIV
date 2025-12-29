@@ -4,7 +4,7 @@ const LAYOUT_CLEAN = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI', color: '#fff', size: 10 },
     dragmode: false,
-    transition: { duration: 0 } // disable animation
+    margin: { t: 20, b: 30, l: 40, r: 40 }, 
 };
 
 function generateManualTicks(dataArr, step) {
@@ -65,34 +65,17 @@ export function renderSkewChart(containerId, showMonthly) {
     const layout = {
         ...LAYOUT_CLEAN,
         showlegend: false,
-        margin: { t: 20, b: 30, l: 40, r: 40 }, 
         xaxis: { showgrid: false, fixedrange: true, tickfont: { color: '#fff', size: 10 } },
         yaxis2: { 
-            side: 'right', 
-            showgrid: false, 
-            fixedrange: true, 
-            overlaying: null, 
-            tickmode: 'array',
-            tickvals: y2Ticks.vals,
-            ticktext: y2Ticks.text,
-            tickfont: { color: '#fff', size: 9 },
-            automargin: true
+            side: 'right', showgrid: false, fixedrange: true, overlaying: null, 
+            tickmode: 'array', tickvals: y2Ticks.vals, ticktext: y2Ticks.text,
+            tickfont: { color: '#fff', size: 9 }, automargin: true
         },
         yaxis: { 
-            gridcolor: '#222', 
-            fixedrange: true, 
-            
-            // EXPLICITLY SET RANGE
-            range: globalRange,
-            autorange: false,     // Crucial
-            dtick: 1.0,
-            
-            overlaying: 'y2', 
-            side: 'left',
-            ticks: 'outside',
-            ticklen: 8,
-            tickcolor: 'rgba(0,0,0,0)', 
-            tickfont: { color: '#fff', size: 10 }
+            gridcolor: '#222', fixedrange: true, 
+            range: globalRange, autorange: false, dtick: 1.0,           
+            overlaying: 'y2', side: 'left',
+            ticks: 'outside', ticklen: 8, tickcolor: 'rgba(0,0,0,0)', tickfont: { color: '#fff', size: 10 }
         }
     };
 
