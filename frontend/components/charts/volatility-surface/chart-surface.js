@@ -19,7 +19,7 @@ function refreshCharts() {
         type: 'heatmap', colorscale: 'Viridis', showscale: false 
     }], { 
         ...LAYOUT_CONTOUR, 
-        margin: { t: 20, b: 30, l: 40, r: 10 },
+        margin: { t: 20, b: 30, l: 40, r: 20 },
     }, { displayModeBar: false, responsive: true });
 
     Plotly.react('surf-delta', [{ 
@@ -27,7 +27,7 @@ function refreshCharts() {
         type: 'heatmap', colorscale: 'Plasma', showscale: false 
     }], { 
         ...LAYOUT_CONTOUR, 
-        margin: { t: 20, b: 30, l: 40, r: 10 },
+        margin: { t: 20, b: 30, l: 40, r: 20 },
     }, { displayModeBar: false, responsive: true });
 }
 
