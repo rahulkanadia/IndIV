@@ -1,6 +1,5 @@
 import { mockData } from '../../../mockdata.js';
 
-// Module-level state to track the toggle
 let isWeeklyMode = false;
 
 const LAYOUT_CONTOUR = {
@@ -11,9 +10,7 @@ const LAYOUT_CONTOUR = {
     dragmode: false
 };
 
-// Helper to re-render charts based on mode
 function refreshCharts() {
-    // Select data based on mode
     const moneyData = isWeeklyMode ? mockData.surfMoneyWk : mockData.surfMoney;
     const deltaData = isWeeklyMode ? mockData.surfDeltaWk : mockData.surfDelta;
 
@@ -36,57 +33,68 @@ function refreshCharts() {
     }, { displayModeBar: false, responsive: true });
 }
 
-// PUBLIC LEGEND & CONTROLLER
 export function updateLegend() {
     const leg = document.getElementById('dynamicLegends');
-    const inp = document.getElementById('dynamicInputs'); // We will hide this to make room
+    const inp = document.getElementById('dynamicInputs');
     if(!leg || !inp) return;
 
-    // 1. Hide the Inputs right-side container to give us full width
+    // 1. CLEAR RIGHT CONTAINER AND FORCE LEFT CONTAINER TO FULL WIDTH
     inp.innerHTML = '';
-    
-    // 2. Define Styles for the Button States
-    const btnStyleBase = `
-        border: 1px solid; 
-        padding: 2px 12px; 
-        border-radius: 4px; 
-        font-size: 10px; 
-        font-weight: bold; 
-        cursor: pointer; 
+    inp.style.display = 'none'; // Remove from flow
+    leg.style.width = '100%';   // Take full space
+    leg.style.flex = '1';
+
+    // 2. BUTTON STYLING (Fixed Width + Filled Background + No Border)
+    const btnBase = `
+        border: none;
+        width: 80px;           /* Fixed width prevents shifting */
+        padding: 4px 0;        /* Vertical padding */
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        cursor: pointer;
         transition: 0.2s;
-        background: rgba(0,0,0,0.3);
+        text-align: center;
+        outline: none;
     `;
-    
-    const styleMonthly = `color: #42A5F5; border-color: #42A5F5; box-shadow: 0 0 5px rgba(66, 165, 245, 0.2);`;
-    const styleWeekly  = `color: #FF5252; border-color: #FF5252; box-shadow: 0 0 5px rgba(255, 82, 82, 0.2);`;
+
+    // Faint Blue Fill vs Faint Red Fill
+    const styleMonthly = `background: rgba(66, 165, 245, 0.2); color: #42A5F5;`;
+    const styleWeekly  = `background: rgba(255, 82, 82, 0.2);  color: #FF5252;`;
 
     const currentStyle = isWeeklyMode ? styleWeekly : styleMonthly;
-    const currentLabel = isWeeklyMode ? "Weekly" : "Monthly";
+    const currentLabel = isWeeklyMode ? "WEEKLY" : "MONTHLY";
 
-    // 3. Inject Layout: [Label Left] --- [Button Center] --- [Label Right]
-    // We use a container with width: 95% (to account for padding) and space-between
+    // 3. LAYOUT GRID: [Left Label] [Center Button] [Right Label]
     leg.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; width: 440px;">
-            <span style="color:#00E676; font-weight:bold;">Moneyness vs Expiry</span>
+        <div style="display:grid; grid-template-columns: 1fr auto 1fr; width:100%; align-items:center;">
             
-            <button id="surf-toggle-btn" style="${btnStyleBase} ${currentStyle}">
-                ${currentLabel}
-            </button>
+            <div style="text-align:left;">
+                <span style="color:#00E676; font-weight:bold; font-size:11px;">Moneyness vs Expiry</span>
+            </div>
             
-            <span style="color:#FF9800; font-weight:bold;">Delta vs Expiry</span>
+            <div style="text-align:center;">
+                <button id="surf-toggle-btn" style="${btnBase} ${currentStyle}">
+                    ${currentLabel}
+                </button>
+            </div>
+            
+            <div style="text-align:right;">
+                <span style="color:#FF9800; font-weight:bold; font-size:11px;">Delta vs Expiry</span>
+            </div>
+
         </div>
     `;
 
-    // 4. Attach Event Listener to the new Button
+    // 4. ATTACH LISTENER
     document.getElementById('surf-toggle-btn').onclick = () => {
-        isWeeklyMode = !isWeeklyMode; // Toggle State
-        updateLegend(); // Re-render button with new color/text
-        refreshCharts(); // Update the charts
+        isWeeklyMode = !isWeeklyMode;
+        updateLegend();
+        refreshCharts();
     };
 }
 
 export function renderSurfaceCharts(containerId1, containerId2) {
-    // Initial Render
     refreshCharts();
     updateLegend();
 }
