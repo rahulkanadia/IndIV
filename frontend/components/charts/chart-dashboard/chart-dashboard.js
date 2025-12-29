@@ -8,9 +8,9 @@ export function renderChartDashboard(containerId) {
 
     container.innerHTML = `
         <div class="tabs-container">
-            <button class="tab-btn active" data-target="skew">Skew</button>
+            <button class="tab-btn active" data-target="skew">Volatility Skew</button>
             <button class="tab-btn" data-target="term">Term Structure</button>
-            <button class="tab-btn" data-target="surface">Vol Surface</button>
+            <button class="tab-btn" data-target="surface">Volatility Surface</button>
         </div>
 
         <div class="dashboard-wrapper">
@@ -42,13 +42,11 @@ export function renderChartDashboard(containerId) {
         </div>
     `;
 
-    // Initialize logic
     renderSkewChart('chart-skew', false);
     renderTermChart('chart-term', false);
     renderSurfaceCharts('surf-money', 'surf-delta');
 
-    // Initial State
-    updateSkewLegend(true); // Default to Monthly ON
+    updateSkewLegend(true); 
 
     const tabs = container.querySelectorAll('.tab-btn');
     tabs.forEach(btn => {
