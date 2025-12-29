@@ -1,45 +1,49 @@
-/* --- 1. TABS ROW (Full Width & Connected) --- */
+/* --- 1. TABS ROW (1x3 GRID) --- */
 .tabs-container {
-    display: flex;
-    width: 100%;       /* Full width */
-    gap: 1px;          /* Minimal gap between tabs */
-    padding: 0;        /* Remove padding to align with edges */
-    margin-bottom: -1px; 
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* Strict equal columns */
+    width: 100%;
+    margin-bottom: 0; 
     z-index: 5; 
     position: relative;
+    background: #000; /* Dark background behind tabs */
 }
 
 .tab-btn {
-    /* FILL SPACE EQUALLY */
-    flex: 1;           
-    text-align: center;
-    justify-content: center;
+    /* FLAT RECTANGLE LOOK */
+    width: 100%;
+    padding: 8px 0;
     
-    /* Shape */
-    padding: 8px 0;    /* Vertical padding only */
-    border-radius: 6px 6px 0 0; 
-    border: 1px solid transparent;
+    /* No rounded corners requested */
+    border-radius: 0; 
+    border: none; /* No borders by default */
+    border-bottom: 1px solid #222; /* Divider from content */
+    border-right: 1px solid #1a1a1a; /* Subtle separator */
     
-    /* Text */
     font-size: 11px;
     font-weight: 600;
-    color: #888;
-    background: #111; 
+    color: #666;
+    background: #0e0e0e; /* Slightly darker than content */
     cursor: pointer;
     transition: 0.2s;
-    white-space: nowrap; /* Prevent text wrapping */
 }
 
 .tab-btn:hover {
-    color: #ccc;
-    background: #1a1a1a;
+    color: #bbb;
+    background: #151515;
 }
 
 .tab-btn.active {
-    background: #1a1a1a; 
+    /* Merge with Content Box */
+    background: #151515; 
     color: var(--blue);
-    border: 1px solid #222;
-    border-bottom: 1px solid #1a1a1a; 
+    border-bottom: 1px solid #151515; /* Remove bottom border to merge */
+    border-top: 2px solid var(--blue); /* Highlight top */
+}
+
+/* Remove border from last tab */
+.tab-btn:last-child {
+    border-right: none;
 }
 
 /* --- 2. MAIN PANEL (The Box) --- */
@@ -52,7 +56,8 @@
     
     background: #151515;
     border: 1px solid #222;
-    border-radius: 0 0 6px 6px; /* Bottom corners only */
+    border-top: none; /* Tabs handle the top border visual */
+    border-radius: 0 0 6px 6px; 
     margin-bottom: 20px;
     position: relative;
     z-index: 1;
@@ -67,13 +72,13 @@
     
     height: 40px;
     padding: 0 15px;
-    background: #1a1a1a; 
-    border-bottom: 1px solid #222;
+    background: #151515; /* Matches Panel Body */
+    border-bottom: 1px solid #1f1f1f; /* Very subtle separator */
 }
 
 /* Column Alignment */
 #dynamicInputs {
-    justify-self: start; /* Extreme Left */
+    justify-self: start; 
     display: flex;
     align-items: center;
     height: 100%;
@@ -81,14 +86,14 @@
 }
 
 #dynamicCenterControls {
-    justify-self: center; /* Exact Center */
+    justify-self: center; 
     display: flex;
     align-items: center;
     height: 100%;
 }
 
 #dynamicLegends {
-    justify-self: end; /* Extreme Right */
+    justify-self: end; 
     display: flex;
     align-items: center;
     justify-content: flex-end;
