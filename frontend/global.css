@@ -66,5 +66,5 @@ h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; colo
     display: flex;          /* Become a flex parent for its children */
     flex-direction: column; /* Stack tabs and wrapper vertically */
     min-height: 0;          /* Crucial: prevents overflow issues */
-    margin-bottom: 10px;    /* Optional: small buffer before Monthly Grid */
+    margin-bottom: 4px;    /* Optional: small buffer before Monthly Grid */
 }
