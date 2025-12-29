@@ -27,8 +27,8 @@ export function updateLegend(showMonthly) {
     
     inp.innerHTML = `
         <div style="display:flex; align-items:center; gap: 8px; font-size: 10px; color: #888;">
-            <button id="term-toggle-btn" style="border:none; width:70px; height:24px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer; outline:none; ${showMonthly ? styleOn : styleOff}">
-                Monthly
+            <button id="term-toggle-btn" class="chart-toggle-btn" style="${showMonthly ? styleOn : styleOff}">
+                MONTHLY
             </button>
             <span>is ${showMonthly ? 'ON' : 'OFF'}</span>
         </div>
@@ -58,9 +58,7 @@ export function renderTermChart(containerId, showMonthly) {
         showlegend: false,
         xaxis: { showgrid: false, fixedrange: true, tickfont: { color: '#fff', size: 10 } },
         yaxis: { 
-            // FAINT GRID
-            gridcolor: '#1f1f1f', 
-            fixedrange: true,
+            gridcolor: '#1f1f1f', fixedrange: true,
             range: globalRange, autorange: false, dtick: 1.0,           
             tickformat: '.1f', ticks: 'outside', ticklen: 8, tickcolor: 'rgba(0,0,0,0)', tickfont: { color: '#fff', size: 10 }
         }
