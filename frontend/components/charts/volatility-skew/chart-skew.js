@@ -1,5 +1,6 @@
 import { mockData, getGlobalIVRange } from '../../../mockdata.js';
 
+// ... (Constants and Helper Functions remain the same) ...
 const LAYOUT_CLEAN = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI', color: '#fff', size: 10 },
@@ -25,51 +26,38 @@ function generateManualTicks(dataArr, step) {
 export function updateLegend(showMonthly) {
     const leg = document.getElementById('dynamicLegends');
     const inp = document.getElementById('dynamicInputs');
-    if(!leg || !inp) return;
+    const ctr = document.getElementById('dynamicCenterControls');
+    if(!leg || !inp || !ctr) return;
 
-    // 1. RENDER LEGEND (Right Side)
-    inp.style.display = 'flex'; 
-    leg.style.width = 'auto';
-    leg.style.flex = '1'; 
-    
+    // Clear Center (Used by Surface only)
+    ctr.innerHTML = '';
+
+    // 1. LEGENDS (Always Show All)
     leg.innerHTML = `
         <div class="leg-item" style="display:flex; align-items:center"><div class="line-box" style="border:none; background:#333; height:10px; width:10px; opacity:0.5"></div>Skew</div>
         <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#00E676; border-top-style:solid"></div>Wk Call</div>
         <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#FF5252; border-top-style:solid"></div>Wk Put</div>
-        ${showMonthly ? `
         <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#00E676; border-top-style:dotted"></div>Mo Call</div>
         <div class="leg-item" style="display:flex; align-items:center"><div class="line-box l-thick" style="border-color:#FF5252; border-top-style:dotted"></div>Mo Put</div>
-        ` : ''}
     `;
 
-    // 2. RENDER BUTTON CONTROLS (Left Side)
-    // Styles
-    const styleOn = `background: rgba(0, 230, 118, 0.2); color: #00E676;`;
-    const styleOff = `background: rgba(255, 82, 82, 0.2); color: #FF5252;`;
-    const btnStyle = `
-        border: none; width: 90px; height: 26px; 
-        border-radius: 4px; font-size: 11px; font-weight: bold; 
-        cursor: pointer; transition: 0.2s; outline: none;
-    `;
-
+    // 2. INPUTS (Monthly Toggle)
+    const styleOn = `background: rgba(0, 230, 118, 0.2); color: #00E676; border: 1px solid rgba(0,230,118,0.3);`;
+    const styleOff = `background: rgba(255, 82, 82, 0.2); color: #FF5252; border: 1px solid rgba(255,82,82,0.3);`;
+    
     inp.innerHTML = `
-        <div style="display:flex; align-items:center; gap: 8px; font-size: 10px; color: #888; margin-left: 10px;">
-            <span>Click this button to see monthly</span>
-            <button id="skew-toggle-btn" style="${btnStyle} ${showMonthly ? styleOn : styleOff}">
-                Show Monthly
+        <div style="display:flex; align-items:center; gap: 8px; font-size: 10px; color: #888;">
+            <span>Click to toggle</span>
+            <button id="skew-toggle-btn" style="border:none; width:70px; height:24px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer; outline:none; ${showMonthly ? styleOn : styleOff}">
+                Monthly
             </button>
         </div>
     `;
 
-    // 3. ATTACH LISTENER
-    document.getElementById('skew-toggle-btn').onclick = () => {
-        // Toggle boolean and re-render
-        renderSkewChart('chart-skew', !showMonthly);
-    };
+    document.getElementById('skew-toggle-btn').onclick = () => renderSkewChart('chart-skew', !showMonthly);
 }
 
 export function renderSkewChart(containerId, showMonthly) {
-    // Default to true if undefined
     if (typeof showMonthly === 'undefined') showMonthly = true;
 
     const traces = [
