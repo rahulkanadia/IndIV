@@ -59,3 +59,12 @@ h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; colo
 .up { color: var(--green); } .down { color: var(--red); }
 .c-g { color: var(--green); } .c-r { color: var(--red); }
 @media (max-width: 600px) { .sub-title { display: none; } }
+
+/* Ensure the chart container fills available vertical space */
+#main-chart-dashboard {
+    flex: 1;                /* Grow to fill empty space */
+    display: flex;          /* Become a flex parent for its children */
+    flex-direction: column; /* Stack tabs and wrapper vertically */
+    min-height: 0;          /* Crucial: prevents overflow issues */
+    margin-bottom: 10px;    /* Optional: small buffer before Monthly Grid */
+}
