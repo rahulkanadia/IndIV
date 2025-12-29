@@ -10,47 +10,49 @@ const LAYOUT_BASE = {
 export function updateLegend(showMonthly) {
     const leg = document.getElementById('dynamicLegends');
     const inp = document.getElementById('dynamicInputs');
-    if(!leg || !inp) return;
+    const ctr = document.getElementById('dynamicCenterControls');
+    if(!leg || !inp || !ctr) return;
 
-    // 1. RENDER LEGEND
+    // 1. CLEAR CENTER (Used only by Surface Chart)
+    ctr.innerHTML = '';
+
+    // 2. RENDER LEGEND (Right Side - Always show both)
     leg.innerHTML = `
         <div class="leg-item" style="display:flex; align-items:center; margin-right:15px"><span class="leg-dot" style="background:#FF9800; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px;"></span>Weekly</div> 
-        ${showMonthly ? `<div class="leg-item" style="display:flex; align-items:center"><span class="leg-dot" style="background:#42A5F5; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px;"></span>Monthly</div>` : ''}
+        <div class="leg-item" style="display:flex; align-items:center"><span class="leg-dot" style="background:#42A5F5; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px;"></span>Monthly</div>
     `;
 
-    // 2. RENDER BUTTON CONTROLS
-    // Styles
-    const styleOn = `background: rgba(0, 230, 118, 0.2); color: #00E676;`;
-    const styleOff = `background: rgba(255, 82, 82, 0.2); color: #FF5252;`;
-    const btnStyle = `
-        border: none; width: 90px; height: 26px; 
-        border-radius: 4px; font-size: 11px; font-weight: bold; 
-        cursor: pointer; transition: 0.2s; outline: none;
-    `;
-
+    // 3. RENDER BUTTON CONTROLS (Left Side)
+    const styleOn = `background: rgba(0, 230, 118, 0.2); color: #00E676; border: 1px solid rgba(0,230,118,0.3);`;
+    const styleOff = `background: rgba(255, 82, 82, 0.2); color: #FF5252; border: 1px solid rgba(255,82,82,0.3);`;
+    
     inp.innerHTML = `
-        <div style="display:flex; align-items:center; gap: 8px; font-size: 10px; color: #888; margin-left: 10px;">
-            <span>Click this button to see monthly</span>
-            <button id="term-toggle-btn" style="${btnStyle} ${showMonthly ? styleOn : styleOff}">
-                Show Monthly
+        <div style="display:flex; align-items:center; gap: 8px; font-size: 10px; color: #888;">
+            <span>Click to toggle</span>
+            <button id="term-toggle-btn" style="border:none; width:70px; height:24px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer; outline:none; ${showMonthly ? styleOn : styleOff}">
+                Monthly
             </button>
         </div>
     `;
 
-    // 3. ATTACH LISTENER
+    // 4. ATTACH LISTENER
     document.getElementById('term-toggle-btn').onclick = () => {
         renderTermChart('chart-term', !showMonthly);
     };
 }
 
 export function renderTermChart(containerId, showMonthly) {
+    // Default to true (ON) if undefined
     if (typeof showMonthly === 'undefined') showMonthly = true;
 
     const traces = [
         { x: mockData.term.expiries, y: mockData.term.weekly, name: 'Wk', line: { color: '#FF9800' }, type: 'scatter' }
     ];
+
     if (showMonthly) {
-        traces.push({ x: mockData.term.expiries, y: mockData.term.monthly, name: 'Mo', line: { color: '#42A5F5' }, type: 'scatter' });
+        traces.push(
+            { x: mockData.term.expiries, y: mockData.term.monthly, name: 'Mo', line: { color: '#42A5F5' }, type: 'scatter' }
+        );
     }
 
     const globalRange = getGlobalIVRange();
