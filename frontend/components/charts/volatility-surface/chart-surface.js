@@ -19,8 +19,7 @@ function refreshCharts() {
         type: 'heatmap', colorscale: 'Viridis', showscale: false 
     }], { 
         ...LAYOUT_CONTOUR, 
-        margin: { t: 40, b: 30, l: 40, r: 10 },
-        title: {text: 'IV vs Moneyness', font:{size:10, color:'#666'}, y: 0.98} 
+        margin: { t: 20, b: 30, l: 40, r: 10 },
     }, { displayModeBar: false, responsive: true });
 
     Plotly.react('surf-delta', [{ 
@@ -28,8 +27,7 @@ function refreshCharts() {
         type: 'heatmap', colorscale: 'Plasma', showscale: false 
     }], { 
         ...LAYOUT_CONTOUR, 
-        margin: { t: 40, b: 30, l: 40, r: 10 },
-        title: {text: 'IV vs Delta', font:{size:10, color:'#666'}, y: 0.98} 
+        margin: { t: 20, b: 30, l: 40, r: 10 },
     }, { displayModeBar: false, responsive: true });
 }
 
