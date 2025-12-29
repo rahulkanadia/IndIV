@@ -57,9 +57,6 @@ export function renderTermChart(containerId, showMonthly) {
             range: globalRange,
             autorange: false,
             dtick: 1.0,           // Forces 1.0 step size (11, 12, 13...)
-            
-            // 3. VISUAL ALIGNMENT
-            tickformat: '.1f',
             ticks: 'outside',
             ticklen: 8,
             tickcolor: 'rgba(0,0,0,0)', // Invisible padding
