@@ -1,4 +1,3 @@
-// 1. IMPORT GLOBAL RANGE HELPER
 import { mockData, getGlobalIVRange } from '../../../mockdata.js';
 
 const LAYOUT_CLEAN = {
@@ -9,9 +8,6 @@ const LAYOUT_CLEAN = {
     dragmode: false
 };
 
-// (Removed local getSmartRange function)
-
-// PUBLIC LEGEND UPDATER
 export function updateLegend(showMonthly) {
     const leg = document.getElementById('dynamicLegends');
     const inp = document.getElementById('dynamicInputs');
@@ -40,21 +36,27 @@ export function renderTermChart(containerId, showMonthly) {
         );
     }
 
-    // 2. GET DYNAMIC GLOBAL RANGE
     const globalRange = getGlobalIVRange();
 
     const layout = {
         ...LAYOUT_CLEAN,
         showlegend: false,
-        margin: { t: 20, b: 30, l: 40, r: 20 }, // Left margin matches Skew chart
+        margin: { t: 20, b: 30, l: 40, r: 20 },
+        
+        // 1. FIX THE JUMP: Disable animations
+        transition: { duration: 0 },
+        
         yaxis: { 
             ...LAYOUT_CLEAN.yaxis, 
             
-            // 3. APPLY RANGE & FORMATTING
+            // 2. EXPLICITLY DISABLE AUTO-SCALING
+            autorange: false,
             range: globalRange,
+            
+            tickformat: '.1f',
             ticks: 'outside',
             ticklen: 8,
-            tickcolor: 'rgba(0,0,0,0)', // Invisible padding
+            tickcolor: 'rgba(0,0,0,0)',
             tickfont: { color: '#fff', size: 10 }
         }
     };
