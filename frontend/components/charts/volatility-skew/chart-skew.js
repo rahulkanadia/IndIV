@@ -113,7 +113,7 @@ export function renderSkewChart(containerId, showMonthly) {
             tickvals: y2Ticks.vals,  // e.g. [0.5, 1.0]
             ticktext: y2Ticks.text,  // e.g. ["   +0.5", "   +1.0"] (Includes Spacing!)
             
-            tickfont: { color: '#888', size: 9 },
+            tickfont: { color: '#fff', size: 9 },
             automargin: true
         },
         
@@ -125,7 +125,7 @@ export function renderSkewChart(containerId, showMonthly) {
             overlaying: 'y2', 
             side: 'left',
             ticksuffix: '   ',
-            tickfont: { color: '#666', size: 10 }
+            tickfont: { color: '#fff', size: 10 }
         }
     };
 
