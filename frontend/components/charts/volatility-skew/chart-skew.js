@@ -124,12 +124,6 @@ export function renderSkewChart(containerId, showMonthly) {
             range: range,
             overlaying: 'y2', 
             side: 'left',
-            
-            // Keep left axis simple/automatic as it was working
-            tickformat: '.1f',
-            ticks: 'outside',
-            ticklen: 8,
-            tickcolor: 'rgba(0,0,0,0)',
             tickfont: { color: '#666', size: 10 }
         }
     };
