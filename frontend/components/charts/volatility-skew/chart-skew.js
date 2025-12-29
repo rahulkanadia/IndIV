@@ -124,6 +124,7 @@ export function renderSkewChart(containerId, showMonthly) {
             range: range,
             overlaying: 'y2', 
             side: 'left',
+            standoff: 10,
             tickfont: { color: '#666', size: 10 }
         }
     };
