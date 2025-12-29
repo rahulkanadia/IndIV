@@ -6,7 +6,7 @@
 .chart-tabs { display: flex; border-bottom: 1px solid var(--border); background: #181818; }
 .c-tab { flex: 1; text-align: center; padding: 8px; font-size: 11px; cursor: pointer; color: #888; border-right: 1px solid var(--border); font-weight: 600; }
 .c-tab:hover { color: #fff; background: #222; }
-.c-tab.active { color: #fff; background: var(--card); border-bottom: 2px solid var(--green); }
+.c-tab.active { color: #fff; background: var(--card); border-bottom: 2px solid var(--blue); }
 
 .chart-controls { display: flex; align-items: center; justify-content: space-between; padding: 0 10px; background: #1a1a1a; border-bottom: 1px solid #333; height: 35px; }
 .ctrl-legends { display: flex; gap: 12px; font-size: 10px; color: #aaa; align-items: center; }
