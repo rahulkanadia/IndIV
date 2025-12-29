@@ -36,22 +36,32 @@ function refreshCharts() {
 export function updateLegend() {
     const leg = document.getElementById('dynamicLegends');
     const inp = document.getElementById('dynamicInputs');
-    if(!leg || !inp) return;
+    const ctr = document.getElementById('dynamicCenterControls');
+    if(!leg || !inp || !ctr) return;
 
-    inp.style.display = 'none'; 
-    leg.style.width = '100%';   
-    leg.style.flex = '1';
+    // Clear Left Inputs (Not used here)
+    inp.innerHTML = '';
 
-    const currentLabel = isWeeklyMode ? "WEEKLY" : "MONTHLY";
-    const currentStyle = isWeeklyMode ? "background: rgba(255, 82, 82, 0.2); color: #FF5252;" : "background: rgba(66, 165, 245, 0.2); color: #42A5F5;";
-
+    // 1. LEGENDS (Right)
     leg.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+        <div style="display:flex; justify-content:flex-end; gap:20px; width:100%;">
             <span style="color:#00E676; font-weight:bold; font-size:11px;">Moneyness</span>
-            <button id="surf-toggle-btn" style="border:none; padding:4px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:11px; ${currentStyle}">
+            <span style="color:#FF9800; font-weight:bold; font-size:11px;">Delta</span>
+        </div>
+    `;
+
+    // 2. CENTER CONTROL (The Toggle)
+    const currentLabel = isWeeklyMode ? "WEEKLY" : "MONTHLY";
+    const currentStyle = isWeeklyMode 
+        ? "background: rgba(255, 82, 82, 0.2); color: #FF5252; border: 1px solid rgba(255,82,82,0.3);" 
+        : "background: rgba(66, 165, 245, 0.2); color: #42A5F5; border: 1px solid rgba(66,165,245,0.3);";
+
+    ctr.innerHTML = `
+        <div style="display:flex; align-items:center; gap: 8px; font-size: 10px; color: #888;">
+            <span>Click to change</span>
+            <button id="surf-toggle-btn" style="border:none; padding:4px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:11px; outline:none; ${currentStyle}">
                 ${currentLabel}
             </button>
-            <span style="color:#FF9800; font-weight:bold; font-size:11px;">Delta</span>
         </div>
     `;
 
