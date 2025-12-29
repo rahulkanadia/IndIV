@@ -7,17 +7,19 @@ export function renderChartDashboard(containerId) {
     if (!container) return;
 
     container.innerHTML = `
+        <div class="tabs-container">
+            <button class="tab-btn active" data-target="skew">Skew</button>
+            <button class="tab-btn" data-target="term">Term Structure</button>
+            <button class="tab-btn" data-target="surface">Vol Surface</button>
+        </div>
+
         <div class="dashboard-wrapper">
             
             <div class="dashboard-controls">
                 
-                <div class="tabs">
-                    <button class="tab-btn active" data-target="skew">Volatility Skew</button>
-                    <button class="tab-btn" data-target="term">Term Structure</button>
-                    <button class="tab-btn" data-target="surface">Volatility Surface</button>
-                </div>
-
                 <div id="dynamicInputs"></div>
+
+                <div id="dynamicCenterControls"></div>
 
                 <div id="dynamicLegends"></div>
 
@@ -45,7 +47,8 @@ export function renderChartDashboard(containerId) {
     renderTermChart('chart-term', false);
     renderSurfaceCharts('surf-money', 'surf-delta');
 
-    updateSkewLegend(false);
+    // Initial State
+    updateSkewLegend(true); // Default to Monthly ON
 
     const tabs = container.querySelectorAll('.tab-btn');
     tabs.forEach(btn => {
@@ -57,16 +60,13 @@ export function renderChartDashboard(containerId) {
 }
 
 function handleTabSwitch(targetName, container, allTabs, clickedBtn) {
-    // UI Update
     allTabs.forEach(t => t.classList.remove('active'));
     clickedBtn.classList.add('active');
 
-    // Layer Switch
     container.querySelectorAll('.chart-layer').forEach(l => l.classList.remove('active'));
     container.querySelector(`#layer-${targetName}`).classList.add('active');
 
-    // Legend/Input Update
-    if (targetName === 'skew') updateSkewLegend(false);
-    if (targetName === 'term') updateTermLegend(false);
+    if (targetName === 'skew') updateSkewLegend(true);
+    if (targetName === 'term') updateTermLegend(true);
     if (targetName === 'surface') updateSurfaceLegend();
 }
