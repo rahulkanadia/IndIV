@@ -101,5 +101,27 @@ export const mockData = {
         atmPut: { val: 284.50, chg: "-12 (-4%)", iv: "14.8%", ivChg: "-0.3%" },
         straddle: { val: 595.00, chg: "+2 (0.4%)", iv: "14.5%", ivChg: "+0.8%" },
         rv: "11.0%", ivr: "IVR 52", ivp: "IVP 65"
-    }
+    }, 
 };
+
+// NEW HELPER FUNCTION: Calculates Dynamic Y-Axis Range
+export function getGlobalIVRange() {
+    // 1. Gather all IV datasets (Skew Lines + Term Structure Lines)
+    // Note: We EXCLUDE 'spread' because that is a small differential (0.5, -1.0), not absolute IV.
+    const allIVs = [
+        ...mockData.skew.call,
+        ...mockData.skew.put,
+        ...mockData.skewMo.call,
+        ...mockData.skewMo.put,
+        ...mockData.term.weekly,
+        ...mockData.term.monthly
+    ];
+
+    // 2. Find Min and Max
+    const minVal = Math.min(...allIVs);
+    const maxVal = Math.max(...allIVs);
+
+    // 3. Add Breathing Room (Buffer)
+    // e.g. If range is 12.2 to 16.5 -> Return [11, 18]
+    return [Math.floor(minVal) - 1, Math.ceil(maxVal) + 1];
+}
