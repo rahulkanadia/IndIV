@@ -1,50 +1,62 @@
-/* WRAPPER */
+/* 1. WRAPPER: BECOMES THE MAIN "PANEL" CARD */
 .dashboard-wrapper {
     width: 100%;
+    height: 35vh;
+    min-height: 300px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    
+    /* VISUALS: This now holds the border/background */
+    background: #151515;
+    border: 1px solid #222;
+    border-radius: 6px;
+    overflow: hidden; /* Ensures child elements respect rounded corners */
     margin-bottom: 20px;
 }
 
-/* CONTROLS ROW */
+/* 2. CONTROLS: BECOMES THE PANEL HEADER */
 .dashboard-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 30px;
+    
+    /* Fixed height for the header bar */
+    height: 40px; 
+    padding: 0 10px;
+    
+    /* Visual Separation from Chart */
+    background: #1a1a1a;
+    border-bottom: 1px solid #222;
 }
 
-/* --- THE STACK --- */
+/* 3. THE STACK: BECOMES THE PANEL BODY */
 .chart-stack {
     display: grid;
-    /* 1x1 Grid: All children go into the same cell named "stack" */
     grid-template-areas: "stack"; 
     width: 100%;
     
-    /* FIXED HEIGHT: Crucial for Plotly stability */
-    height: 35vh;
-    min-height: 300px;
-    
-    background: #151515;
-    border: 1px solid #222;
-    border-radius: 6px;
+    /* Fills remaining vertical space */
+    flex: 1; 
     position: relative;
     overflow: hidden; 
+    
+    /* REMOVED: Border/Background/Radius (Parent handles this now) */
+    background: transparent;
+    border: none;
+    border-radius: 0;
 }
 
-/* LAYERS (The Cards) */
+/* LAYERS (The Charts) */
 .chart-layer {
-    grid-area: stack; /* Sits in the "stack" cell */
+    grid-area: stack;
     width: 100%;
     height: 100%;
     
     /* HIDDEN STATE */
     opacity: 0;
     z-index: 0;
-    pointer-events: none; /* Clicks pass through */
-    transition: opacity 0.15s ease-in-out; /* Smooth fade */
-    background: #151515; /* Prevents see-through */
+    pointer-events: none;
+    transition: opacity 0.15s ease-in-out;
 }
 
 /* ACTIVE STATE */
@@ -70,4 +82,12 @@
     flex: 1;
     height: 100%;
     min-width: 0;
+}
+
+/* --- OPTIONAL: Tweaks to make the tabs blend in better --- */
+/* You can add this if you want the tabs to look cleaner inside the header */
+.dashboard-controls .tabs {
+    border: none;
+    background: transparent;
+    padding: 0;
 }
