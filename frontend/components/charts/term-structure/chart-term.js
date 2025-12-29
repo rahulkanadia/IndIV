@@ -51,7 +51,7 @@ export function renderTermChart(containerId, showMonthly) {
     const layout = {
         ...LAYOUT_CLEAN,
         showlegend: false,
-        margin: { t: 20, b: 20, l: 20, r: 20 },
+        margin: { t: 20, b: 30, l: 20, r: 20 },
         yaxis: { ...LAYOUT_CLEAN.yaxis, range: range }
     };
 
