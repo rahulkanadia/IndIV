@@ -25,6 +25,8 @@ export function updateLegend(showMonthly) {
     inp.appendChild(lbl);
 }
 
+// ... imports and updateLegend ...
+
 export function renderTermChart(containerId, showMonthly) {
     const traces = [
         { x: mockData.term.expiries, y: mockData.term.weekly, name: 'Wk', line: { color: '#FF9800' }, type: 'scatter' }
@@ -42,17 +44,11 @@ export function renderTermChart(containerId, showMonthly) {
         ...LAYOUT_CLEAN,
         showlegend: false,
         margin: { t: 20, b: 30, l: 40, r: 20 },
-        
-        // 1. FIX THE JUMP: Disable animations
-        transition: { duration: 0 },
-        
+        transition: { duration: 0 }, // Keep this to prevent data animation
         yaxis: { 
             ...LAYOUT_CLEAN.yaxis, 
-            
-            // 2. EXPLICITLY DISABLE AUTO-SCALING
             autorange: false,
             range: globalRange,
-            
             tickformat: '.1f',
             ticks: 'outside',
             ticklen: 8,
@@ -60,6 +56,14 @@ export function renderTermChart(containerId, showMonthly) {
             tickfont: { color: '#fff', size: 10 }
         }
     };
+
+    // --- THE FIX: PURGE OLD CHART ---
+    // If a chart already exists, destroy it. 
+    // This stops Plotly from trying to "animate" from the old axis range to the new one.
+    const container = document.getElementById(containerId);
+    if (container) {
+        Plotly.purge(containerId);
+    }
 
     Plotly.newPlot(containerId, traces, layout, { displayModeBar: false, responsive: true });
 }
