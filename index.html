@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="frontend/components/charts/intraday-iv-rv/chart-intraday.css">
     <link rel="stylesheet" href="frontend/components/tables/sd-table/sd-table.css">
     <link rel="stylesheet" href="frontend/components/tables/greeks-table/greeks-table.css">
+    
+    <link rel="stylesheet" href="frontend/components/pcr-widget/pcr-widget.css">
 </head>
 <body>
 
@@ -60,35 +62,33 @@
     import { mockData } from './frontend/mockdata.js';
     import { renderPriceStrip } from './frontend/components/price-strip/price-strip.js';
     import { renderMarketGrid } from './frontend/components/market-grid/market-grid.js';
-    
-    // IMPORT THE NEW DASHBOARD CONTROLLER
     import { renderChartDashboard } from './frontend/components/charts/chart-dashboard/chart-dashboard.js';
-
     import { renderIntradayChart } from './frontend/components/charts/intraday-iv-rv/chart-intraday.js';
     import { renderSDTable } from './frontend/components/tables/sd-table/sd-table.js';
     import { renderGreeksTable } from './frontend/components/tables/greeks-table/greeks-table.js';
-
+    
+    // Import PCR Widget
     import { renderPCRWidget } from './frontend/components/pcr-widget/pcr-widget.js';
-//    import { renderPCRSpark } from './frontend/components/pcr-widget/pcr-widget.js';
 
-
-    // --- INITIALIZE ---
     function init() {
         console.log("Initializing Dashboard...");
 
         renderPriceStrip('price-strip-container', mockData);
         renderMarketGrid('weekly-grid-container', 'WEEKLY', mockData.gridWeekly, 't-week');
         renderMarketGrid('monthly-grid-container', 'MONTHLY', mockData.gridMonthly, 't-month');
-        
-        // --- RENDER MODULAR DASHBOARD ---
+
         renderChartDashboard('main-chart-dashboard');
 
         renderIntradayChart('chart-trend');
         renderSDTable('sd-table-container', mockData);
         renderGreeksTable('greeks-table-container', mockData);
 
-        renderPCRWidget('pcr-container', mockData.pcr.current);
-//        renderPCRSpark('pcr-container', mockData.pcr.history);
+        // CHECKPOINT: If mockData.pcr is missing, the code crashes here.
+        if (mockData.pcr) {
+            renderPCRWidget('pcr-container', mockData.pcr.current);
+        } else {
+            console.error("Missing PCR data in mockdata.js!");
+        }
     }
 
     init();
