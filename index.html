@@ -68,7 +68,7 @@
     import { renderGreeksTable } from './frontend/components/tables/greeks-table/greeks-table.js';
     
     // Import PCR Widget
-    import { renderPCRWidget } from './frontend/components/pcr-widget/pcr-widget.js';
+    import { renderPCRSpark } from './frontend/components/pcr-widget/pcr-widget.js';
 
     function init() {
         console.log("Initializing Dashboard...");
@@ -84,11 +84,7 @@
         renderGreeksTable('greeks-table-container', mockData);
 
         // CHECKPOINT: If mockData.pcr is missing, the code crashes here.
-        if (mockData.pcr) {
-            renderPCRWidget('pcr-container', mockData.pcr.current);
-        } else {
-            console.error("Missing PCR data in mockdata.js!");
-        }
+        renderPCRSpark('pcr-container', mockData.pcr.history);
     }
 
     init();
