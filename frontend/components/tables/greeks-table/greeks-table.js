@@ -1,12 +1,13 @@
-// --- HEATMAP HELPER ---
+// --- HEATMAP HELPER (UPDATED FOR LIGHTER COLORS) ---
 function getBgColor(value, min, max, isCall) {
     if (min === max || value === undefined) return 'transparent';
     
     let pct = (Math.abs(value) - min) / (max - min);
     if (pct < 0) pct = 0; if (pct > 1) pct = 1;
 
-    // Opacity range
-    const opacity = 0.05 + (pct * 0.30);
+    // REDUCED OPACITY: Base 0.05, Max add 0.15 = Total Max 0.20
+    const opacity = 0.05 + (pct * 0.15);
+    
     const color = isCall ? `0, 230, 118` : `255, 82, 82`;
     return `rgba(${color}, ${opacity.toFixed(3)})`;
 }
@@ -16,7 +17,6 @@ function getColumnRanges(rows) {
     const ranges = {
         gamma: { min: Infinity, max: -Infinity },
         delta: { min: Infinity, max: -Infinity }
-        // We only calculate ranges for columns that need heatmap
     };
 
     rows.forEach(r => {
@@ -68,11 +68,6 @@ function calculateStrike(atm, index, isMajor) {
     }
     
     // Case B: ATM ends in 50 (e.g., 26150)
-    // Index 0: 26150
-    // Index +1: 26200 (+50)
-    // Index +2: 26300 (+100 from prev)
-    // Index -1: 26100 (-50)
-    // Index -2: 26000 (-100 from prev)
     if (index === 0) return atm;
     if (index > 0) {
         return (atm + 50) + ((index - 1) * 100);
@@ -91,17 +86,11 @@ export function renderGreeksTable(containerId, mockData) {
     if (!container) return;
 
     // 1. GENERATE DUMMY DATA
-    const centerStrike = 26150; // Ends in 50, perfect for testing your logic
-    const rows = [];
+    const centerStrike = 26150; 
+    let rows = [];
     
-    // We maintain fixed 21 rows (-10 to 10) regardless of mode
     for (let i = -10; i <= 10; i++) {
-        
-        // Use new helper to determine strike based on mode
         const strike = calculateStrike(centerStrike, i, majorStrikesOn);
-        
-        // Calculate distance from center for curve simulation
-        // (Approximation: purely visual)
         const dist = Math.abs((strike - centerStrike) / 50); 
         
         // Simulating curve
@@ -126,7 +115,7 @@ export function renderGreeksTable(containerId, mockData) {
         });
     }
 
-    // 2. CALCULATE RANGES (Only Delta/Gamma now)
+    // 2. CALCULATE RANGES (Only Delta/Gamma)
     const rng = getColumnRanges(rows);
 
     // 3. BUILD CONTROLS HTML
@@ -134,7 +123,6 @@ export function renderGreeksTable(containerId, mockData) {
     const styleOff = `background: rgba(255, 82, 82, 0.2); color: #FF5252; border: 1px solid rgba(255,82,82,0.3);`;
     const currentBtnStyle = majorStrikesOn ? styleOn : styleOff;
 
-    // 9 Expiry Buttons (Reverted to Wk/Mo)
     const expiries = [
         '26 Dec (Wk)', '02 Jan (Wk)', '09 Jan (Wk)', 
         '16 Jan (Wk)', '23 Jan (Wk)', '30 Jan (Mo)',
@@ -163,31 +151,23 @@ export function renderGreeksTable(containerId, mockData) {
     `;
 
     // 4. BUILD TABLE ROWS
-    // Heatmap applied ONLY to Delta and Gamma
     let tableRows = rows.map(r => {
-        const isATM = r.strike === centerStrike || r.strike === 26150; // 26150 is our centerStrike
+        const isATM = r.strike === centerStrike || r.strike === 26150; 
         const rowClass = isATM ? 'row-atm' : '';
 
         // CALL SIDE
         const cOI = renderCombinedOI(r.call.oi, r.call.oiChg);
-        // Heatmap ON
         const cG = `<td style="background:${getBgColor(r.call.gamma, rng.gamma.min, rng.gamma.max, true)}">${r.call.gamma}</td>`;
-        // Heatmap OFF
         const cV = `<td>${r.call.vega}</td>`;
         const cT = `<td>${r.call.theta}</td>`;
-        // Heatmap ON
         const cD = `<td style="background:${getBgColor(r.call.delta, rng.delta.min, rng.delta.max, true)}">${r.call.delta}</td>`;
-        // Heatmap OFF
         const cI = `<td>${r.call.iv}</td>`;
 
         // PUT SIDE
         const pI = `<td>${r.put.iv}</td>`;
-        // Heatmap ON
         const pD = `<td style="background:${getBgColor(r.put.delta, rng.delta.min, rng.delta.max, false)}">${r.put.delta}</td>`;
-        // Heatmap OFF
         const pT = `<td>${r.put.theta}</td>`;
         const pV = `<td>${r.put.vega}</td>`;
-        // Heatmap ON
         const pG = `<td style="background:${getBgColor(r.put.gamma, rng.gamma.min, rng.gamma.max, false)}">${r.put.gamma}</td>`;
         const pOI = renderCombinedOI(r.put.oi, r.put.oiChg);
 
@@ -226,7 +206,6 @@ export function renderGreeksTable(containerId, mockData) {
 
     // 6. ATTACH EVENT LISTENERS
     
-    // Major Strikes Toggle
     const btn = document.getElementById('btn-major-strikes');
     if(btn) {
         btn.onclick = () => {
@@ -235,7 +214,6 @@ export function renderGreeksTable(containerId, mockData) {
         };
     }
 
-    // Expiry Buttons
     const expiryBtns = container.querySelectorAll('.expiry-btn');
     expiryBtns.forEach(b => {
         b.onclick = (e) => {
