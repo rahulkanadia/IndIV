@@ -1,17 +1,8 @@
-// UPDATED PATHS & IMPORTS
-import { renderTermChart } from '../chart-term/chart-term.js'; // Check folder name (chart-term vs term-structure)
-import { renderSkewChart } from '../chart-skew/chart-skew.js'; // Check folder name (chart-skew vs volatility-skew)
-import { renderSurfaceCharts } from '../chart-surface/chart-surface.js'; // Check folder (chart-surface vs volatility-surface)
+// IMPORTS WITH CORRECTED PATHS
+import { renderTermChart } from '../term-structure/chart-term.js';
+import { renderSkewChart } from '../volatility-skew/chart-skew.js';
+import { renderSurfaceCharts } from '../volatility-surface/chart-surface.js'; // Plural function
 import { renderIntradayChart } from '../intraday-iv-rv/chart-intraday.js';
-
-// NOTE: The paths above assume your folders are named 'chart-term', 'chart-skew', etc.
-// If you renamed folders to 'term-structure', 'volatility-skew', please update the paths accordingly in your file.
-// Based on your previous message, you updated them to:
-// '../term-structure/chart-term.js'
-// '../volatility-skew/chart-skew.js'
-// '../volatility-surface/chart-surface.js'
-// '../intraday-iv-rv/chart-intraday.js'
-// Ensure the imports below match YOUR folder structure.
 
 const tabs = [
     // 1. INTRADAY
@@ -20,16 +11,17 @@ const tabs = [
     { id: 't-skew', label: 'VOLATILITY SKEW', render: renderSkewChart },
     // 3. TERM
     { id: 't-term', label: 'TERM STRUCTURE', render: renderTermChart },
-    // 4. SURFACE (Using the plural render function)
+    // 4. SURFACE
     { id: 't-surf', label: 'VOLATILITY SURFACE', render: renderSurfaceCharts }
 ];
 
-let activeTab = 0;
+let activeTab = 0; // Default to Intraday (Index 0)
 
 export function renderChartDashboard(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
+    // 1. Setup Shell (Tabs + Controls + Canvas)
     container.innerHTML = `
         <div class="chart-dashboard-wrapper">
             <div class="chart-tabs">
@@ -50,22 +42,29 @@ export function renderChartDashboard(containerId) {
         </div>
     `;
 
+    // 2. Attach Click Handlers
     const tabEls = container.querySelectorAll('.chart-tab');
     tabEls.forEach(el => {
         el.addEventListener('click', (e) => {
+            // Update UI
             tabEls.forEach(t => t.classList.remove('active'));
             e.target.classList.add('active');
+            
+            // Switch Logic
             activeTab = parseInt(e.target.getAttribute('data-index'));
             loadActiveChart();
         });
     });
 
+    // 3. Load Initial Chart
     loadActiveChart();
 }
 
 function loadActiveChart() {
     const tab = tabs[activeTab];
     if (tab && tab.render) {
+        // Clear previous chart content if necessary, though Plotly.react handles updates well
+        // tab.render takes the ID of the canvas div
         tab.render('chart-canvas'); 
     }
 }
