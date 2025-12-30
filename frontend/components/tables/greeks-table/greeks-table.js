@@ -1,8 +1,11 @@
 // --- HEATMAP HELPER ---
 function getBgColor(value, min, max, isCall) {
     if (min === max || value === undefined) return 'transparent';
+    
     let pct = (Math.abs(value) - min) / (max - min);
     if (pct < 0) pct = 0; if (pct > 1) pct = 1;
+
+    // Opacity range
     const opacity = 0.05 + (pct * 0.30);
     const color = isCall ? `0, 230, 118` : `255, 82, 82`;
     return `rgba(${color}, ${opacity.toFixed(3)})`;
@@ -12,13 +15,12 @@ function getBgColor(value, min, max, isCall) {
 function getColumnRanges(rows) {
     const ranges = {
         gamma: { min: Infinity, max: -Infinity },
-        vega:  { min: Infinity, max: -Infinity },
-        theta: { min: Infinity, max: -Infinity },
-        delta: { min: Infinity, max: -Infinity },
-        iv:    { min: Infinity, max: -Infinity }
+        delta: { min: Infinity, max: -Infinity }
+        // We only calculate ranges for columns that need heatmap
     };
+
     rows.forEach(r => {
-        ['gamma', 'vega', 'theta', 'delta', 'iv'].forEach(key => {
+        ['gamma', 'delta'].forEach(key => {
             const valC = Math.abs(parseFloat(r.call[key]));
             const valP = Math.abs(parseFloat(r.put[key]));
             if(!isNaN(valC)) {
@@ -52,6 +54,34 @@ function renderCombinedOI(oi, chg) {
     `;
 }
 
+// --- STRIKE CALCULATOR ---
+function calculateStrike(atm, index, isMajor) {
+    // STANDARD MODE (Step 50)
+    if (!isMajor) {
+        return atm + (index * 50);
+    }
+
+    // MAJOR MODE
+    // Case A: ATM ends in 00 (e.g., 26100) -> Step 100
+    if (atm % 100 === 0) {
+        return atm + (index * 100);
+    }
+    
+    // Case B: ATM ends in 50 (e.g., 26150)
+    // Index 0: 26150
+    // Index +1: 26200 (+50)
+    // Index +2: 26300 (+100 from prev)
+    // Index -1: 26100 (-50)
+    // Index -2: 26000 (-100 from prev)
+    if (index === 0) return atm;
+    if (index > 0) {
+        return (atm + 50) + ((index - 1) * 100);
+    }
+    if (index < 0) {
+        return (atm - 50) + ((index + 1) * 100);
+    }
+}
+
 // --- STATE MANAGEMENT ---
 let majorStrikesOn = false; 
 let activeExpiryIndex = 0; 
@@ -61,21 +91,27 @@ export function renderGreeksTable(containerId, mockData) {
     if (!container) return;
 
     // 1. GENERATE DUMMY DATA
-    const centerStrike = 26150;
-    let rows = [];
-    // Generate enough rows to show filtering (every 50 points)
+    const centerStrike = 26150; // Ends in 50, perfect for testing your logic
+    const rows = [];
+    
+    // We maintain fixed 21 rows (-10 to 10) regardless of mode
     for (let i = -10; i <= 10; i++) {
-        const strike = centerStrike + (i * 50);
-        const dist = Math.abs(i);
+        
+        // Use new helper to determine strike based on mode
+        const strike = calculateStrike(centerStrike, i, majorStrikesOn);
+        
+        // Calculate distance from center for curve simulation
+        // (Approximation: purely visual)
+        const dist = Math.abs((strike - centerStrike) / 50); 
         
         // Simulating curve
-        const gamma = (0.0035 - (dist * 0.0002)).toFixed(4);
-        const vega = (15.0 - (dist * 0.5)).toFixed(1);
-        const theta = (-14.2 + (dist * 0.5)).toFixed(1);
-        const deltaC = (0.5 - (i * 0.04)).toFixed(2);
-        const deltaP = (-0.5 - (i * 0.04)).toFixed(2);
-        const ivC = (12.4 + (dist * 0.1)).toFixed(1);
-        const ivP = (12.9 + (dist * 0.1)).toFixed(1);
+        const gamma = Math.max(0.0005, (0.0035 - (dist * 0.0001))).toFixed(4);
+        const vega = Math.max(10, (15.0 - (dist * 0.2))).toFixed(1);
+        const theta = Math.min(-5, (-14.2 + (dist * 0.2))).toFixed(1);
+        const deltaC = Math.max(0.05, Math.min(0.95, (0.5 - (i * (majorStrikesOn ? 0.08 : 0.04))))).toFixed(2);
+        const deltaP = Math.max(-0.95, Math.min(-0.05, (-0.5 - (i * (majorStrikesOn ? 0.08 : 0.04))))).toFixed(2);
+        const ivC = (12.4 + (dist * 0.05)).toFixed(1);
+        const ivP = (12.9 + (dist * 0.05)).toFixed(1);
 
         const baseOI = 3000000 + (Math.random() * 2000000);
         const callOI = Math.floor(baseOI); 
@@ -90,25 +126,19 @@ export function renderGreeksTable(containerId, mockData) {
         });
     }
 
-    // 2. FILTER FOR MAJOR STRIKES
-    // If Major Strikes is ON, only keep strikes that are multiples of 100
-    if (majorStrikesOn) {
-        rows = rows.filter(r => r.strike % 100 === 0);
-    }
-
-    // 3. CALCULATE RANGES (After filtering, so heatmap is accurate to view)
+    // 2. CALCULATE RANGES (Only Delta/Gamma now)
     const rng = getColumnRanges(rows);
 
-    // 4. BUILD CONTROLS HTML
+    // 3. BUILD CONTROLS HTML
     const styleOn = `background: rgba(0, 230, 118, 0.2); color: #00E676; border: 1px solid rgba(0,230,118,0.3);`;
     const styleOff = `background: rgba(255, 82, 82, 0.2); color: #FF5252; border: 1px solid rgba(255,82,82,0.3);`;
     const currentBtnStyle = majorStrikesOn ? styleOn : styleOff;
 
-    // Generate 9 Expiry Buttons
+    // 9 Expiry Buttons (Reverted to Wk/Mo)
     const expiries = [
-        '26 Dec (Weekly)', '02 Jan (Weekly)', '09 Jan (Weekly)', 
-        '16 Jan (Weekly)', '23 Jan (Weekly)', '30 Jan (Monthly)',
-        '06 Feb (Weekly)', '13 Feb (Weekly)', '27 Feb (Monthly)'
+        '26 Dec (Wk)', '02 Jan (Wk)', '09 Jan (Wk)', 
+        '16 Jan (Wk)', '23 Jan (Wk)', '30 Jan (Mo)',
+        '06 Feb (Wk)', '13 Feb (Wk)', '27 Feb (Mo)'
     ];
 
     const tabsHtml = expiries.map((exp, idx) => {
@@ -132,24 +162,32 @@ export function renderGreeksTable(containerId, mockData) {
         </div>
     `;
 
-    // 5. BUILD TABLE ROWS
+    // 4. BUILD TABLE ROWS
+    // Heatmap applied ONLY to Delta and Gamma
     let tableRows = rows.map(r => {
-        const isATM = r.strike === centerStrike || r.strike === 26200;
+        const isATM = r.strike === centerStrike || r.strike === 26150; // 26150 is our centerStrike
         const rowClass = isATM ? 'row-atm' : '';
 
         // CALL SIDE
         const cOI = renderCombinedOI(r.call.oi, r.call.oiChg);
+        // Heatmap ON
         const cG = `<td style="background:${getBgColor(r.call.gamma, rng.gamma.min, rng.gamma.max, true)}">${r.call.gamma}</td>`;
-        const cV = `<td style="background:${getBgColor(r.call.vega, rng.vega.min, rng.vega.max, true)}">${r.call.vega}</td>`;
-        const cT = `<td style="background:${getBgColor(r.call.theta, rng.theta.min, rng.theta.max, true)}">${r.call.theta}</td>`;
+        // Heatmap OFF
+        const cV = `<td>${r.call.vega}</td>`;
+        const cT = `<td>${r.call.theta}</td>`;
+        // Heatmap ON
         const cD = `<td style="background:${getBgColor(r.call.delta, rng.delta.min, rng.delta.max, true)}">${r.call.delta}</td>`;
-        const cI = `<td style="background:${getBgColor(r.call.iv, rng.iv.min, rng.iv.max, true)}">${r.call.iv}</td>`;
+        // Heatmap OFF
+        const cI = `<td>${r.call.iv}</td>`;
 
         // PUT SIDE
-        const pI = `<td style="background:${getBgColor(r.put.iv, rng.iv.min, rng.iv.max, false)}">${r.put.iv}</td>`;
+        const pI = `<td>${r.put.iv}</td>`;
+        // Heatmap ON
         const pD = `<td style="background:${getBgColor(r.put.delta, rng.delta.min, rng.delta.max, false)}">${r.put.delta}</td>`;
-        const pT = `<td style="background:${getBgColor(r.put.theta, rng.theta.min, rng.theta.max, false)}">${r.put.theta}</td>`;
-        const pV = `<td style="background:${getBgColor(r.put.vega, rng.vega.min, rng.vega.max, false)}">${r.put.vega}</td>`;
+        // Heatmap OFF
+        const pT = `<td>${r.put.theta}</td>`;
+        const pV = `<td>${r.put.vega}</td>`;
+        // Heatmap ON
         const pG = `<td style="background:${getBgColor(r.put.gamma, rng.gamma.min, rng.gamma.max, false)}">${r.put.gamma}</td>`;
         const pOI = renderCombinedOI(r.put.oi, r.put.oiChg);
 
@@ -162,7 +200,7 @@ export function renderGreeksTable(containerId, mockData) {
         `;
     }).join('');
 
-    // 6. INJECT HTML
+    // 5. INJECT HTML
     container.innerHTML = `
         ${controlsHtml}
         <div class="greeks-table-wrapper">
@@ -186,7 +224,7 @@ export function renderGreeksTable(containerId, mockData) {
         </div>
     `;
 
-    // 7. ATTACH EVENT LISTENERS
+    // 6. ATTACH EVENT LISTENERS
     
     // Major Strikes Toggle
     const btn = document.getElementById('btn-major-strikes');
