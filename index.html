@@ -68,6 +68,8 @@
     import { renderSDTable } from './frontend/components/tables/sd-table/sd-table.js';
     import { renderGreeksTable } from './frontend/components/tables/greeks-table/greeks-table.js';
 
+    import { renderPCRWidget } from './frontend/components/pcr-widget/pcr-widget.js';
+
     // --- INITIALIZE ---
     function init() {
         console.log("Initializing Dashboard...");
@@ -82,6 +84,8 @@
         renderIntradayChart('chart-trend');
         renderSDTable('sd-table-container', mockData);
         renderGreeksTable('greeks-table-container', mockData);
+
+        renderPCRWidget('pcr-container', mockData.pcr.current); 
     }
 
     init();
