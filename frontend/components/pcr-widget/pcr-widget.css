@@ -1,8 +1,7 @@
 .pcr-spark-box {
     width: 100%;
-    /* HEIGHT: Adjust this to match your SD table if needed (approx 120-150px) */
     height: 140px; 
-    padding: 10px 15px;
+    padding: 5px 10px; /* Minimal padding */
     background: #121212;
     border-top: 1px solid #222;
     display: flex;
@@ -10,29 +9,23 @@
     box-sizing: border-box;
 }
 
-.pcr-spark-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 5px;
+/* CENTERED HEADER */
+.pcr-header-centered {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 2px;
 }
 
-.pcr-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #888;
+.pcr-title-text {
+    font-size: 14px;
+    font-weight: 800; /* Extra Bold */
+    color: #FF9800;   /* Orange */
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.pcr-value-text {
-    font-size: 16px;
-    font-weight: bold;
-    color: #fff;
-}
-
-/* Container for the Plotly chart */
 #pcr-spark-chart {
     width: 100%;
-    flex: 1; /* Fills the remaining height */
+    flex: 1;
     min-height: 0;
 }
