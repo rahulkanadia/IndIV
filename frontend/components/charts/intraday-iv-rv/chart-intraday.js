@@ -1,89 +1,78 @@
-import { mockData } from '../../../mockdata.js';
-
-const LAYOUT_2D = {
-    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { family: 'Segoe UI', color: '#666', size: 10 },
-    xaxis: { showgrid: false, fixedrange: true, color: '#666' },
-    yaxis: { gridcolor: '#222', fixedrange: true },
-    dragmode: false
-};
-
-// ... [Keep getSmartRange helper] ...
-function getSmartRange(dataArrays) {
-    let all = [];
-    dataArrays.forEach(arr => all.push(...arr));
-    const minV = Math.min(...all);
-    const maxV = Math.max(...all);
-    const pad = (maxV - minV) * 0.1; 
-    return [minV - (pad||1.0), maxV + (pad||1.0)];
-}
-
-// Export Legend Updater
-export function updateLegend() {
-    // Intraday legends are actually static in the HTML header in this design, 
-    // but we define this for consistency if we want to change them later.
-}
-
-export function renderIntradayChart(containerId) {
-    // ... [Keep Axis Generation Logic] ...
-    const fullTimeAxis = [];
+// Helper: Generates 15-min slots for 09:15 - 15:30
+function generateFullDayTimeArray() {
+    const times = [];
     let h = 9, m = 15;
     while (h < 15 || (h === 15 && m <= 30)) {
-        fullTimeAxis.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+        const hh = h.toString().padStart(2, '0');
+        const mm = m.toString().padStart(2, '0');
+        times.push(`${hh}:${mm}`);
         m += 15;
         if (m === 60) { m = 0; h++; }
     }
-    const generateTickLabels = () => {
-        const ticks = ["09:15"];
-        for(let i=10; i<=15; i++) ticks.push(i + ":00");
-        ticks.push("15:30");
-        return ticks;
-    };
-    const autoTicks = generateTickLabels();
+    return times;
+}
 
-    const mapToFullAxis = (existingTimes, existingVals) => fullTimeAxis.map(t => {
-        const idx = existingTimes.indexOf(t);
-        return idx !== -1 ? existingVals[idx] : null;
-    });
+export function renderIntradayChart(containerId, intradayData) {
+    // 1. Setup Data
+    // We Map the incoming data to the first N slots of our full timeline
+    const fullTimeline = generateFullDayTimeArray();
     
-    const generateLastValText = (sparseData) => {
-        let lastIdx = -1;
-        for(let i=sparseData.length-1; i>=0; i--) {
-            if(sparseData[i] !== null && sparseData[i] !== undefined) {
-                lastIdx = i;
-                break;
-            }
-        }
-        return sparseData.map((v, i) => i === lastIdx ? v.toFixed(1) : null);
+    // Slice timeline to match data length for plotting
+    // (Assuming intradayData.time aligns with the start of the day)
+    const activeTime = intradayData.time; 
+
+    const traceWk = {
+        x: activeTime, y: intradayData.wk,
+        type: 'scatter', mode: 'lines', name: 'Wk IV',
+        line: { color: '#FF9800', width: 2 }
     };
 
-    const yWk = mapToFullAxis(mockData.intraday.time, mockData.intraday.wk);
-    const yMo = mapToFullAxis(mockData.intraday.time, mockData.intraday.mo);
-    const yWkRv = mapToFullAxis(mockData.intraday.time, mockData.intraday.wkRv);
-    const yMoRv = mapToFullAxis(mockData.intraday.time, mockData.intraday.moRv);
+    const traceMo = {
+        x: activeTime, y: intradayData.mo,
+        type: 'scatter', mode: 'lines', name: 'Mo IV',
+        line: { color: '#FF9800', width: 4 } // Thicker for visual distinction
+    };
 
-    const traces = [
-        { x: fullTimeAxis, y: yWk, name: 'Weekly IV', line: { color: '#FF9800', width: 1 }, connectgaps: true, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yWk), textposition:'middle right' },
-        { x: fullTimeAxis, y: yMo, name: 'Monthly IV', line: { color: '#FF9800', width: 3 }, connectgaps: true, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yMo), textposition:'middle right' },
-        { x: fullTimeAxis, y: yWkRv, name: 'Weekly RV', line: { color: '#42A5F5', width: 1, dash: 'dot' }, connectgaps: true, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yWkRv), textposition:'middle right' },
-        { x: fullTimeAxis, y: yMoRv, name: 'Monthly RV', line: { color: '#42A5F5', width: 2, dash: 'dash' }, connectgaps: true, type: 'scatter', mode:'lines+markers+text', text: generateLastValText(yMoRv), textposition:'middle right' }
-    ];
+    const traceWkRv = {
+        x: activeTime, y: intradayData.wkRv,
+        type: 'scatter', mode: 'lines', name: 'Wk RV',
+        line: { color: '#42A5F5', width: 2, dash: 'dot' }
+    };
 
-    const range = getSmartRange([mockData.intraday.wk, mockData.intraday.mo, mockData.intraday.wkRv, mockData.intraday.moRv], true);
+    const traceMoRv = {
+        x: activeTime, y: intradayData.moRv,
+        type: 'scatter', mode: 'lines', name: 'Mo RV',
+        line: { color: '#42A5F5', width: 2, dash: 'dash' }
+    };
 
+    // 2. Layout
     const layout = {
-        ...LAYOUT_2D,
-        showlegend: false,
-        margin: { t: 10, b: 25, l: 35, r: 50 }, // REDUCED MARGINS
-        yaxis: { ...LAYOUT_2D.yaxis, range: range },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        margin: { t: 10, b: 20, l: 30, r: 10 },
+        font: { family: 'Segoe UI', color: '#fff', size: 10 },
+        showlegend: false, // Custom legend in HTML handled in index.html
+
         xaxis: {
-            ...LAYOUT_2D.xaxis,
+            // CRITICAL: Force the range to cover 09:15 to 15:30
+            // We use the category array index logic or pass the full category list
+            type: 'category',
+            categoryorder: 'array',
+            categoryarray: fullTimeline, // This reserves the space for the whole day
             tickmode: 'array',
-            tickvals: autoTicks,
-            ticktext: autoTicks,
-            tickangle: 0
+            tickvals: fullTimeline.filter((_, i) => i % 4 === 0), // Hourly ticks
+            fixedrange: true,
+            gridcolor: '#1f1f1f',
+            tickfont: { color: '#666' }
+        },
+        yaxis: {
+            gridcolor: '#1f1f1f',
+            fixedrange: true,
+            tickfont: { color: '#666' }
         }
     };
 
-    Plotly.newPlot(containerId, traces, layout, { displayModeBar: false, responsive: true });
+    const config = { displayModeBar: false, responsive: true };
+
+    Plotly.newPlot(containerId, [traceWk, traceMo, traceWkRv, traceMoRv], layout, config);
 }
