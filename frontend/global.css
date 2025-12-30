@@ -1,54 +1,99 @@
-/* RESET */
-body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background-color: #000;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #e0e0e0;
+/* =========================================
+   1. GLOBAL RESET & BASE
+   ========================================= */
+body, html { 
+    margin: 0; 
+    padding: 0; 
+    height: 100%; 
+    background-color: #000; 
+    color: #e0e0e0; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
     overflow: hidden; /* Prevent full page scroll */
 }
 
-/* MAIN LAYOUT CONTAINER */
-.container {
+/* =========================================
+   2. HEADER LAYOUT
+   ========================================= */
+.header-row {
+    height: 60px;
+    background: #121212;
+    border-bottom: 1px solid #333;
     display: flex;
-    /* Subtract Header Height (60px) from total viewport height */
-    height: calc(100vh - 60px); 
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    flex-shrink: 0;
+}
+
+.header-left h1 { margin: 0; font-size: 18px; color: #fff; letter-spacing: 1px; }
+.sub-title { font-size: 11px; color: #666; margin-left: 10px; font-weight: 400; }
+
+.header-center { display: flex; align-items: center; gap: 20px; }
+.stat-block { display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+.stat-label { font-size: 9px; color: #888; font-weight: 700; letter-spacing: 0.5px; }
+.stat-price { font-size: 15px; color: #fff; font-weight: 700; }
+
+.asset-select {
+    background: #1a1a1a; color: #fff; border: 1px solid #333;
+    padding: 4px 10px; font-size: 13px; font-weight: 600;
+    border-radius: 4px; outline: none; cursor: pointer;
+    text-align: center; height: 28px;
+}
+
+.header-right { display: flex; align-items: center; gap: 15px; }
+.live-badge { 
+    color: #00E676; font-size: 11px; font-weight: 600; 
+    border: 1px solid #00E676; padding: 2px 6px; border-radius: 4px; 
+}
+
+/* =========================================
+   3. MAIN CONTAINER (The Splitter)
+   ========================================= */
+.main-container {
+    display: flex;
+    /* Subtract header height */
+    height: calc(100vh - 60px);
     width: 100%;
     overflow: hidden;
 }
 
-/* --- LEFT PANEL (Main Dashboard) --- */
+/* =========================================
+   4. LEFT PANEL (Charts & Grids)
+   ========================================= */
 .left-panel {
-    flex: 1; /* Takes remaining space (approx 70-75%) */
+    flex: 1; /* Takes remaining space (approx 75%) */
     display: flex;
     flex-direction: column;
+    border-right: 1px solid #333;
     padding: 10px;
-    gap: 10px;
-    min-width: 0; /* CRITICAL: Prevents Plotly charts from forcing width issues */
-    border-right: 1px solid #222;
+    gap: 8px;
+    min-width: 0; /* CRITICAL for Plotly resizing */
 }
 
-/* Left Panel Internal Layout */
+/* Containers for Grids inside Left Panel */
 #weekly-grid-container, 
 #monthly-grid-container {
-    flex-shrink: 0; /* Prevent grids from shrinking */
-    min-height: 50px; /* Ensure they have height even if empty */
+    height: 50px; 
+    flex-shrink: 0; 
+    width: 100%;
 }
 
+/* Container for Main Chart */
 #main-chart-dashboard {
-    flex: 1; /* Chart takes all remaining vertical space */
-    min-height: 0; /* Critical for vertical resizing */
-    position: relative;
-    border: 1px solid #222;
+    flex: 1; 
+    min-height: 0; /* allows flex item to shrink below content size */
+    background: #111; 
+    border: 1px solid #222; 
     border-radius: 4px;
-    background: #121212;
+    position: relative; 
 }
 
-/* --- RIGHT PANEL (Stats & Tables) --- */
+/* =========================================
+   5. RIGHT PANEL (Data Tables)
+   ========================================= */
 .right-panel {
-    width: 420px; /* Fixed width for stability */
-    flex-shrink: 0; /* Prevent it from getting squashed */
+    width: 420px; /* Fixed width (approx 25% on 1080p) */
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     padding: 10px;
@@ -56,49 +101,32 @@ body, html {
     background: #0a0a0a;
 }
 
-/* Right Panel Internal Layout */
 .split-header {
-    display: flex;
-    gap: 10px;
-    height: 160px; /* Fixed height for PCR & SD Table row */
+    display: flex; 
+    gap: 10px; 
+    height: 180px; 
     flex-shrink: 0;
 }
 
-.split-half {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
+.split-half { 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    min-width: 0; 
 }
 
-#pcr-container,
+#pcr-container, 
 #sd-table-container {
-    flex: 1;
-    width: 100%;
-    height: 100%;
+    flex: 1; 
+    background: #151515; 
+    border: 1px solid #222; 
+    border-radius: 4px;
 }
 
 #greeks-table-container {
-    flex: 1; /* Takes remaining vertical space */
-    min-height: 0;
-    width: 100%;
+    flex: 1; 
+    min-height: 0; 
+    background: #151515; 
+    border: 1px solid #222; 
+    border-radius: 4px;
 }
-
-/* --- HEADER UTILS --- */
-.status-badge {
-    font-size: 10px;
-    color: #00E676;
-    background: rgba(0, 230, 118, 0.1);
-    padding: 4px 8px;
-    border-radius: 12px;
-    border: 1px solid rgba(0, 230, 118, 0.2);
-    font-weight: 600;
-}
-
-.help-btn {
-    text-decoration: none;
-    color: #888;
-    font-size: 12px;
-    transition: color 0.2s;
-}
-.help-btn:hover { color: #fff; }
