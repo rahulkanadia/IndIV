@@ -7,29 +7,46 @@
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 
     <link rel="stylesheet" href="frontend/global.css">
+    
     <link rel="stylesheet" href="frontend/components/charts/chart-dashboard/chart-dashboard.css">
-
-    <link rel="stylesheet" href="frontend/components/price-strip/price-strip.css">
     <link rel="stylesheet" href="frontend/components/market-grid/market-grid.css">
     <link rel="stylesheet" href="frontend/components/charts/intraday-iv-rv/chart-intraday.css">
     <link rel="stylesheet" href="frontend/components/tables/sd-table/sd-table.css">
     <link rel="stylesheet" href="frontend/components/tables/greeks-table/greeks-table.css">
-    
     <link rel="stylesheet" href="frontend/components/pcr-widget/pcr-widget.css">
+
+    <style>
+        #ticker-tape {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-right: 20px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+        }
+        .ticker-item { color: #ccc; font-weight: 500; }
+        .ticker-val { color: #fff; font-weight: 700; margin-left: 5px; }
+        .ticker-up { color: #00E676; font-size: 11px; margin-left: 3px; }
+        .ticker-down { color: #FF5252; font-size: 11px; margin-left: 3px; }
+    </style>
 </head>
 <body>
 
     <div class="header-row">
-        <div class="header-left"><h1>IndIV <span class="sub-title">Volatility monitor for Indian markets</span></h1></div>
-        <div class="header-right"><a href="#" class="help-btn">How to use?</a><div class="status-badge">● LIVE DATA</div></div>
+        <div class="header-left">
+            <h1>IndIV <span class="sub-title">Volatility monitor for Indian markets</span></h1>
+        </div>
+        
+        <div class="header-right">
+            <div id="ticker-tape"></div> <a href="#" class="help-btn">How to use?</a>
+            <div class="status-badge">● LIVE DATA</div>
+        </div>
     </div>
 
     <div class="container">
 
         <div class="left-panel">
-            <div id="price-strip-container"></div>
             <div id="weekly-grid-container"></div>
-
             <div id="main-chart-dashboard"></div>
             <div id="monthly-grid-container"></div>
         </div>
@@ -40,10 +57,8 @@
                     <span class="panel-title">
                         Intraday IV & RV
                         <div class="legend-row">
-                            <div class="leg-item"><div class="line-box" style="border-top:1px solid #FF9800; width: 10px;"></div>Weekly ATM IV</div>
-                            <div class="leg-item"><div class="line-box" style="border-top:3px solid #FF9800; width: 10px;"></div>Monthly ATM IV</div>
-                            <div class="leg-item"><div class="line-box" style="border-top:1px dotted #42A5F5; width: 10px;"></div>Weekly RV</div>
-                            <div class="leg-item"><div class="line-box" style="border-top:2px dashed #42A5F5; width: 10px;"></div>Monthly RV</div>
+                            <div class="leg-item"><div class="line-box" style="border-top:1px solid #FF9800; width: 10px;"></div>Wk IV</div>
+                            <div class="leg-item"><div class="line-box" style="border-top:3px solid #FF9800; width: 10px;"></div>Mo IV</div>
                         </div>
                     </span>
                     <div id="chart-trend" style="width:100%; height:100%"></div>
@@ -60,30 +75,50 @@
 
 <script type="module">
     import { mockData } from './frontend/mockdata.js';
-    import { renderPriceStrip } from './frontend/components/price-strip/price-strip.js';
     import { renderMarketGrid } from './frontend/components/market-grid/market-grid.js';
     import { renderChartDashboard } from './frontend/components/charts/chart-dashboard/chart-dashboard.js';
     import { renderIntradayChart } from './frontend/components/charts/intraday-iv-rv/chart-intraday.js';
     import { renderSDTable } from './frontend/components/tables/sd-table/sd-table.js';
     import { renderGreeksTable } from './frontend/components/tables/greeks-table/greeks-table.js';
-    
-    // Import PCR Widget
     import { renderPCRSpark } from './frontend/components/pcr-widget/pcr-widget.js';
+
+    // NEW: Simple Ticker Renderer
+    function renderTickerTape(containerId, data) {
+        const container = document.getElementById(containerId);
+        if(!container) return;
+        
+        // Helper for color class
+        const getCls = (txt) => txt.includes('+') ? 'ticker-up' : 'ticker-down';
+        
+        // Hardcoded simulation based on mockData spot/futures, 
+        // normally you'd calculate change % from data
+        const spotChg = "+45.20 (0.17%)";
+        const futChg = "+37.00 (0.14%)";
+
+        container.innerHTML = `
+            <div class="ticker-item">NIFTY 50 <span class="ticker-val">${data.spot.toLocaleString()}</span> <span class="${getCls(spotChg)}">${spotChg}</span></div>
+            <div style="width:1px; height:14px; background:#333"></div>
+            <div class="ticker-item">FUT <span class="ticker-val">26,187.00</span> <span class="${getCls(futChg)}">${futChg}</span></div>
+        `;
+    }
 
     function init() {
         console.log("Initializing Dashboard...");
 
-        renderPriceStrip('price-strip-container', mockData);
+        // 1. Render Header Ticker
+        renderTickerTape('ticker-tape', mockData);
+
+        // 2. Grids
         renderMarketGrid('weekly-grid-container', 'WEEKLY', mockData.gridWeekly, 't-week');
         renderMarketGrid('monthly-grid-container', 'MONTHLY', mockData.gridMonthly, 't-month');
 
+        // 3. Main Dashboard Charts
         renderChartDashboard('main-chart-dashboard');
 
-        renderIntradayChart('chart-trend');
+        // 4. Right Panel Components
+        renderIntradayChart('chart-trend', mockData.intraday);
         renderSDTable('sd-table-container', mockData);
         renderGreeksTable('greeks-table-container', mockData);
-
-        // CHECKPOINT: If mockData.pcr is missing, the code crashes here.
         renderPCRSpark('pcr-container', mockData.pcr);
     }
 
