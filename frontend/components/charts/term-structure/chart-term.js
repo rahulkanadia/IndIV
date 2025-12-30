@@ -5,7 +5,6 @@ const LAYOUT_BASE = {
     plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI', color: '#fff', size: 10 },
     dragmode: false,
-    // UNIFORM MARGINS
     margin: { t: 20, b: 30, l: 40, r: 40 },
 };
 
@@ -23,10 +22,12 @@ function updateLegend(showMonthly) {
         </button>
     `;
 
+    // UPDATED LEGEND
     leg.innerHTML = `
         <div style="display:flex; gap:12px; font-size:10px; color:#ccc;">
             <div class="leg-item"><span style="background:#FF9800; width:6px; height:6px; border-radius:50%; margin-right:4px;"></span>Weekly</div>
-            ${showMonthly ? `<div class="leg-item"><span style="background:#42A5F5; width:6px; height:6px; border-radius:50%; margin-right:4px;"></span>Monthly</div>` : ''}
+            <div class="leg-item" style="opacity:${showMonthly ? 1 : 0.5}"><span style="background:#42A5F5; width:6px; height:6px; border-radius:50%; margin-right:4px;"></span>Monthly</div>
+            <div class="leg-item"><span style="border-bottom:2px dashed #FFF; width:12px; margin-right:4px;"></span>India VIX</div>
         </div>
     `;
 
@@ -38,22 +39,33 @@ function updateLegend(showMonthly) {
 export function renderTermChart(containerId, showMonthly) {
     if (typeof showMonthly === 'undefined') showMonthly = true;
 
-    const traces = [
-        { 
-            x: mockData.term.expiries, y: mockData.term.weekly, 
-            mode: 'lines+markers', name: 'Wk', // Added markers to match theme
-            line: { color: '#FF9800', width: 2 }, 
-            marker: { size: 4 },
-            type: 'scatter' 
-        }
-    ];
+    // 1. Weekly Trace
+    const traceWk = { 
+        x: mockData.term.expiries, y: mockData.term.weekly, 
+        mode: 'lines+markers', name: 'Wk', 
+        line: { color: '#FF9800', width: 2 }, marker: { size: 4 },
+        type: 'scatter' 
+    };
+
+    // 2. India VIX Trace (Secondary Axis Y2)
+    // Horizontal Line across all expiries
+    const vixVal = mockData.spotVix;
+    const traceVix = {
+        x: [mockData.term.expiries[0], mockData.term.expiries[mockData.term.expiries.length - 1]],
+        y: [vixVal, vixVal],
+        mode: 'lines', name: 'India VIX',
+        yaxis: 'y2', // Map to Right Axis
+        line: { color: '#fff', width: 1.5, dash: 'dash' },
+        type: 'scatter'
+    };
+
+    const traces = [traceWk, traceVix];
     
     if (showMonthly) {
         traces.push({ 
             x: mockData.term.expiries, y: mockData.term.monthly, 
             mode: 'lines+markers', name: 'Mo', 
-            line: { color: '#42A5F5', width: 2 }, 
-            marker: { size: 4 },
+            line: { color: '#42A5F5', width: 2 }, marker: { size: 4 },
             type: 'scatter' 
         });
     }
@@ -62,17 +74,22 @@ export function renderTermChart(containerId, showMonthly) {
         ...LAYOUT_BASE,
         showlegend: false,
         xaxis: { 
-            showgrid: false, 
-            fixedrange: true, 
-            tickfont: { color: '#fff', size: 10 }, // White ticks
-            title: '' // No Axis Title
+            showgrid: false, fixedrange: true, 
+            tickfont: { color: '#fff', size: 10 }
         },
         yaxis: { 
-            gridcolor: '#1f1f1f', 
-            fixedrange: true,
+            gridcolor: '#1f1f1f', fixedrange: true,
             range: getGlobalIVRange(), 
-            tickfont: { color: '#fff', size: 10 }, // White ticks
-            title: '' // No Axis Title
+            tickfont: { color: '#fff', size: 10 }
+        },
+        // SECONDARY Y-AXIS (VIX)
+        yaxis2: {
+            overlaying: 'y',
+            side: 'right',
+            // Typically VIX range is similar to IV, but we let it be auto or same
+            range: getGlobalIVRange(), 
+            showgrid: false,
+            tickfont: { color: '#888', size: 9 }
         }
     };
 
