@@ -1,81 +1,61 @@
 import { mockData } from '../../../mockdata.js';
 
-let isWeeklyMode = false;
-
-const LAYOUT_CONTOUR = {
+const LAYOUT_BASE = {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { family: 'Segoe UI', color: '#666', size: 10 },
-    xaxis: { type: 'category', tickfont: {size: 9, color:'#fff'}, fixedrange: true },
-    yaxis: { type: 'category', tickfont: {size: 9, color:'#fff'}, fixedrange: true },
-    dragmode: false,
-    margin: { t: 20, b: 30, l: 40, r: 20 }
+    font: { family: 'Segoe UI', color: '#fff', size: 10 },
+    margin: { t: 0, b: 0, l: 0, r: 0 }, // Tight margins for 3D
 };
 
-function getZRange(zMatrix) {
-    const flat = zMatrix.flat();
-    return [Math.min(...flat), Math.max(...flat)];
-}
-
-function refreshCharts() {
-    const moneyData = isWeeklyMode ? mockData.surfMoneyWk : mockData.surfMoney;
-    const deltaData = isWeeklyMode ? mockData.surfDeltaWk : mockData.surfDelta;
-
-    const [mMin, mMax] = getZRange(moneyData.z);
-    Plotly.react('surf-money', [{ 
-        z: moneyData.z, x: moneyData.x, y: moneyData.y, 
-        type: 'heatmap', colorscale: 'Viridis', showscale: false, zmin: mMin, zmax: mMax 
-    }], LAYOUT_CONTOUR, { displayModeBar: false, responsive: true });
-
-    const [dMin, dMax] = getZRange(deltaData.z);
-    Plotly.react('surf-delta', [{ 
-        z: deltaData.z, x: deltaData.x, y: deltaData.y, 
-        type: 'heatmap', colorscale: 'Plasma', showscale: false, zmin: dMin, zmax: dMax 
-    }], LAYOUT_CONTOUR, { displayModeBar: false, responsive: true });
-}
-
-export function updateLegend() {
+function updateLegend() {
     const leg = document.getElementById('dynamicLegends');
     const inp = document.getElementById('dynamicInputs');
-    const ctr = document.getElementById('dynamicCenterControls');
-    if(!leg || !inp || !ctr) return;
+    if(!leg || !inp) return;
 
-    // 1. LEFT TITLE (Replaces Inputs)
+    // Surface chart usually doesn't toggle Monthly/Weekly the same way, 
+    // but we add a disabled state or simple info to match layout
     inp.innerHTML = `
-        <span style="color:#00E676; font-weight:bold; font-size:11px; white-space:nowrap;">
-            Moneyness w.r.t. Expiry
-        </span>
-    `;
-
-    // 2. RIGHT TITLE (Replaces Legends)
-    leg.innerHTML = `
-        <span style="color:#FF9800; font-weight:bold; font-size:11px; white-space:nowrap;">
-            Delta w.r.t. Expiry
-        </span>
-    `;
-
-    // 3. CENTER CONTROL (Toggle)
-    const currentLabel = isWeeklyMode ? "WEEKLY" : "MONTHLY";
-    const currentStyle = isWeeklyMode 
-        ? "background: rgba(255, 82, 82, 0.2); color: #FF5252; border: 1px solid rgba(255,82,82,0.3);" 
-        : "background: rgba(66, 165, 245, 0.2); color: #42A5F5; border: 1px solid rgba(66,165,245,0.3);";
-
-    // Use chart-toggle-btn for dimension consistency
-    ctr.innerHTML = `
-        <div style="display:flex; align-items:center; gap: 8px; font-size: 10px; color: #888;">
-            <button id="surf-toggle-btn" class="chart-toggle-btn" style="${currentStyle}">
-                ${currentLabel}
-            </button>
+        <div style="color:#666; font-size:10px; font-style:italic;">
+            3D View Interactive
         </div>
     `;
 
-    document.getElementById('surf-toggle-btn').onclick = () => {
-        isWeeklyMode = !isWeeklyMode;
-        updateLegend();
-        refreshCharts();
-    };
+    leg.innerHTML = `
+        <div style="display:flex; gap:15px;">
+             <div class="leg-item">
+                <span style="background:linear-gradient(90deg, #FF9800, #42A5F5); width:12px; height:8px; border-radius:2px; margin-right:6px;"></span>
+                Surface Gradient
+            </div>
+        </div>
+    `;
 }
 
-export function renderSurfaceCharts(containerId1, containerId2) {
-    refreshCharts();
+export function renderSurfaceCharts(containerId) {
+    const data = [{
+        type: 'surface',
+        x: mockData.surface.strikes,
+        y: mockData.surface.expiries,
+        z: mockData.surface.z,
+        colorscale: [
+            [0, '#FF9800'], 
+            [1, '#42A5F5']
+        ],
+        showscale: false,
+        contours: {
+            z: { show: true, usecolormap: true, highlightcolor: "#fff", project: { z: true } }
+        }
+    }];
+
+    const layout = {
+        ...LAYOUT_BASE,
+        scene: {
+            xaxis: { title: 'Strike', titlefont:{size:9, color:'#666'}, tickfont:{size:9, color:'#888'}, gridcolor: '#333' },
+            yaxis: { title: 'Expiry', titlefont:{size:9, color:'#666'}, tickfont:{size:9, color:'#888'}, gridcolor: '#333' },
+            zaxis: { title: 'IV', titlefont:{size:9, color:'#666'}, tickfont:{size:9, color:'#888'}, gridcolor: '#333' },
+            camera: { eye: { x: 1.5, y: 1.5, z: 1.2 } },
+            aspectmode: 'cube' // Helps fit in small container
+        }
+    };
+
+    Plotly.react(containerId, data, layout, { displayModeBar: false, responsive: true });
     updateLegend();
 }
