@@ -1,4 +1,4 @@
-// Helper to generate full market day slots (09:15 to 15:30)
+// Helper: Generates 15-min slots for the full Indian trading day (09:15 - 15:30)
 function generateMarketTimeArray() {
     const times = [];
     let h = 9, m = 15;
@@ -16,21 +16,21 @@ export function renderPCRSpark(containerId, pcrData) {
     const container = document.getElementById(containerId);
     if (!container || !pcrData || !pcrData.history) return;
 
-    // 1. Generate Master Timeline (Fixed X-Axis)
+    // 1. Generate Master Timeline (Fixed 15-min X-Axis)
     const fullTimeline = generateMarketTimeArray();
     
-    // 2. Prepare Data arrays matched to the Full Timeline
-    // This ensures that "09:15" data goes into the "09:15" slot, 
-    // and future slots remain null/empty.
+    // 2. Map Data to Timeline
     const yValues = [];
     const colorValues = [];
     const textValues = [];
 
-    // Create a map for quick lookup
+    // Lookup map for incoming data
     const dataMap = {};
-    pcrData.time.forEach((t, i) => {
-        dataMap[t] = pcrData.history[i];
-    });
+    if (pcrData.time && pcrData.history) {
+        pcrData.time.forEach((t, i) => {
+            dataMap[t] = pcrData.history[i];
+        });
+    }
 
     fullTimeline.forEach(t => {
         const val = dataMap[t];
@@ -39,11 +39,12 @@ export function renderPCRSpark(containerId, pcrData) {
             textValues.push(val.toFixed(2));
             
             // Color Logic
-            if (val > 1.0) colorValues.push('#D32F2F');      // Red
-            else if (val >= 0.7) colorValues.push('#757575'); // Grey
-            else colorValues.push('#388E3C');                 // Green
+            if (val > 1.0) colorValues.push('#D32F2F');      // Red (Bearish)
+            else if (val >= 0.7) colorValues.push('#757575'); // Grey (Neutral)
+            else colorValues.push('#388E3C');                 // Green (Bullish)
         } else {
-            yValues.push(null); // No bar for future times
+            // Future placeholder (Transparent)
+            yValues.push(null); 
             textValues.push('');
             colorValues.push('transparent');
         }
@@ -59,29 +60,31 @@ export function renderPCRSpark(containerId, pcrData) {
         </div>
     `;
 
-    // 4. Trace
+    // 4. Trace Configuration
     const trace = {
-        x: fullTimeline, // Use FULL timeline for X-axis
+        x: fullTimeline,
         y: yValues,
         text: textValues,
-        textposition: 'auto',
+        textposition: 'inside',          // Force text inside the block
+        insidetextorientation: 'horizontal', // NEVER ROTATE
         type: 'bar',
         marker: {
             color: colorValues,
             line: {
-                color: '#121212', // Separator color
+                color: '#121212',        // Dark separator
                 width: 2
             }
         },
-        hoverinfo: 'x+text',
+        hoverinfo: 'x+text',             // Tooltip: Time + Value
         insidetextfont: {
             family: 'Segoe UI',
-            size: 10,
+            size: 9,                     // Small enough to fit horizontally
             color: '#fff',
             weight: 'bold'
         }
     };
 
+    // 5. Layout Configuration
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
@@ -91,8 +94,11 @@ export function renderPCRSpark(containerId, pcrData) {
             visible: true, 
             type: 'category', 
             fixedrange: true,
+            
+            // Show tick only every hour (4 * 15min)
             tickmode: 'array',
-            tickvals: fullTimeline.filter((_, i) => i % 4 === 0), // Show tick every hour (09:15, 10:15...)
+            tickvals: fullTimeline.filter((_, i) => i % 4 === 0), 
+            
             tickfont: { size: 10, color: '#666' },
             showgrid: false,
             zeroline: false
@@ -104,7 +110,7 @@ export function renderPCRSpark(containerId, pcrData) {
             range: [0, 1] 
         },
         
-        bargap: 0, // Gantt Effect (Bars touch)
+        bargap: 0, // GANTT STRIP EFFECT
         dragmode: false
     };
 
