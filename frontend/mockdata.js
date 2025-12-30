@@ -26,10 +26,14 @@ function generatePath(start, steps, volatility) {
     return path;
 }
 
+// ... (Keep existing generateTimeArray and generatePath) ...
+// ... (Keep existing times/steps consts) ...
+
 export const mockData = {
     spot: 26150.00,
-    
-    // ... (Keep gridWeekly and gridMonthly as is) ...
+    spotVix: 13.8, // NEW: For Term Structure VIX line
+
+    // ... (Keep gridWeekly, gridMonthly, intraday, pcr, sdTable) ...
     gridWeekly: [
         { label: 'ATM CALL', value: '145.20', chg: '+12 (9%)', color: 'up' },
         { label: 'CALL IV', value: '12.4%', chg: '+2%', color: 'up' },
@@ -52,42 +56,34 @@ export const mockData = {
         { label: 'IVR', value: '52', chg: '', color: 'neutral' },
         { label: 'IVP', value: '65', chg: '', color: 'neutral' }
     ],
-
     intraday: {
-        time: times,
-        wk: generatePath(12.4, steps, 0.2),    
-        mo: generatePath(14.2, steps, 0.15),   
-        wkRv: generatePath(10.5, steps, 0.1),  
-        moRv: generatePath(11.0, steps, 0.1)   
+        time: generateTimeArray(),
+        wk: generatePath(12.4, 26, 0.2),    
+        mo: generatePath(14.2, 26, 0.15),   
+        wkRv: generatePath(10.5, 26, 0.1),  
+        moRv: generatePath(11.0, 26, 0.1)   
     },
-
     pcr: {
         current: 0.85,
-        time: times,
-        history: generatePath(1.1, steps, 0.15).map(v => Math.max(0.5, Math.min(1.5, v)))
+        time: generateTimeArray(),
+        history: generatePath(1.1, 26, 0.15).map(v => Math.max(0.5, Math.min(1.5, v)))
     },
-
     sdTable: {
         levels: ["+2 SD", "+1 SD", "Mean", "-1 SD", "-2 SD"],
         call: ["26,750", "26,450", "26,150", "25,850", "25,550"],
         put: ["26,800", "26,500", "26,150", "25,900", "25,600"]
     },
-
     term: {
         expiries: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '30 Jan', '27 Feb'],
         weekly: [12.8, 13.2, 13.5, 13.9, 14.5, 15.1],
         monthly: [13.1, 13.4, 13.8, 14.2, 14.8, 15.4]
     },
-
     skew: {
         strikes: [25500, 25750, 26000, 26250, 26500, 26750],
-        weekly: [14.5, 13.8, 12.8, 12.5, 12.9, 13.5], // Smile curve
-        monthly: [15.2, 14.5, 13.5, 13.2, 13.6, 14.2],
-        // NEW: Call-Put Skew Spread (Negative = Put Skew / Fear, Positive = Call Skew)
-        skewBars: [2.5, 1.8, 0.5, -0.2, -1.5, -2.8] 
+        weekly: [14.5, 13.8, 12.8, 12.5, 12.9, 13.5], 
+        monthly: [15.2, 14.5, 13.5, 13.2, 13.6, 14.2]
+        // Note: skewBars and Risk Reversal are now calculated dynamically in the chart component
     },
-
-    // ... (Keep surface data as is) ...
     surface: {
         moneyness: ['-10%', '-5%', 'ATM', '+5%', '+10%'],
         delta: ['10', '25', '50', '75', '90'],
