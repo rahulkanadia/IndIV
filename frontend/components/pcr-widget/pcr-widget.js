@@ -1,8 +1,55 @@
+// Helper to generate full market day slots (09:15 to 15:30)
+function generateMarketTimeArray() {
+    const times = [];
+    let h = 9, m = 15;
+    while (h < 15 || (h === 15 && m <= 30)) {
+        const hh = h.toString().padStart(2, '0');
+        const mm = m.toString().padStart(2, '0');
+        times.push(`${hh}:${mm}`);
+        m += 15;
+        if (m === 60) { m = 0; h++; }
+    }
+    return times;
+}
+
 export function renderPCRSpark(containerId, pcrData) {
     const container = document.getElementById(containerId);
     if (!container || !pcrData || !pcrData.history) return;
 
-    // 1. Structure
+    // 1. Generate Master Timeline (Fixed X-Axis)
+    const fullTimeline = generateMarketTimeArray();
+    
+    // 2. Prepare Data arrays matched to the Full Timeline
+    // This ensures that "09:15" data goes into the "09:15" slot, 
+    // and future slots remain null/empty.
+    const yValues = [];
+    const colorValues = [];
+    const textValues = [];
+
+    // Create a map for quick lookup
+    const dataMap = {};
+    pcrData.time.forEach((t, i) => {
+        dataMap[t] = pcrData.history[i];
+    });
+
+    fullTimeline.forEach(t => {
+        const val = dataMap[t];
+        if (val !== undefined) {
+            yValues.push(1); // Full height bar
+            textValues.push(val.toFixed(2));
+            
+            // Color Logic
+            if (val > 1.0) colorValues.push('#D32F2F');      // Red
+            else if (val >= 0.7) colorValues.push('#757575'); // Grey
+            else colorValues.push('#388E3C');                 // Green
+        } else {
+            yValues.push(null); // No bar for future times
+            textValues.push('');
+            colorValues.push('transparent');
+        }
+    });
+
+    // 3. HTML Structure
     container.innerHTML = `
         <div class="pcr-spark-box">
             <div class="pcr-header-centered">
@@ -12,37 +59,24 @@ export function renderPCRSpark(containerId, pcrData) {
         </div>
     `;
 
-    // 2. Prepare Data for the "Strip"
-    // We map each value to a specific color
-    const colors = pcrData.history.map(val => {
-        if (val > 1.0) return '#D32F2F';       // Red (Bearish)
-        if (val >= 0.7) return '#757575';      // Grey/White (Neutral) - using Grey for better text contrast
-        return '#388E3C';                      // Green (Bullish)
-    });
-
-    // We map values to text strings
-    const textLabels = pcrData.history.map(val => val.toFixed(2));
-
-    // Dummy Y-values (all 1 so bars are equal height)
-    const yValues = new Array(pcrData.history.length).fill(1);
-
+    // 4. Trace
     const trace = {
-        x: pcrData.time,
+        x: fullTimeline, // Use FULL timeline for X-axis
         y: yValues,
-        text: textLabels,
-        textposition: 'auto', // Smart positioning (usually inside)
+        text: textValues,
+        textposition: 'auto',
         type: 'bar',
         marker: {
-            color: colors,
+            color: colorValues,
             line: {
-                color: '#121212', // Dark separator between blocks
+                color: '#121212', // Separator color
                 width: 2
             }
         },
-        hoverinfo: 'x+text', // Show Time + PCR Value on hover
+        hoverinfo: 'x+text',
         insidetextfont: {
             family: 'Segoe UI',
-            size: 11,
+            size: 10,
             color: '#fff',
             weight: 'bold'
         }
@@ -51,24 +85,26 @@ export function renderPCRSpark(containerId, pcrData) {
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
-        margin: { t: 0, b: 20, l: 0, r: 0 }, // Minimal margins
+        margin: { t: 5, b: 25, l: 0, r: 0 },
         
         xaxis: { 
             visible: true, 
             type: 'category', 
             fixedrange: true,
+            tickmode: 'array',
+            tickvals: fullTimeline.filter((_, i) => i % 4 === 0), // Show tick every hour (09:15, 10:15...)
             tickfont: { size: 10, color: '#666' },
             showgrid: false,
             zeroline: false
         },
         
         yaxis: { 
-            visible: false, // Hide Y axis completely
+            visible: false, 
             fixedrange: true,
             range: [0, 1] 
         },
         
-        bargap: 0, // CRITICAL: Makes bars touch like a Gantt chart
+        bargap: 0, // Gantt Effect (Bars touch)
         dragmode: false
     };
 
