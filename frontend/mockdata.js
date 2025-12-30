@@ -1,155 +1,108 @@
+// HELPER: Generates consistent time slots for the day
+function generateTimeArray() {
+    const times = [];
+    let h = 9, m = 15;
+    while (h < 15 || (h === 15 && m <= 30)) {
+        const hh = h.toString().padStart(2, '0');
+        const mm = m.toString().padStart(2, '0');
+        times.push(`${hh}:${mm}`);
+        m += 15;
+        if (m === 60) { m = 0; h++; }
+    }
+    return times;
+}
+
+const times = generateTimeArray();
+const steps = times.length; // ~26 steps
+
+// HELPER: Generate Random Data Path
+function generatePath(start, steps, volatility) {
+    const path = [start];
+    for (let i = 1; i < steps; i++) {
+        const change = (Math.random() - 0.5) * volatility;
+        path.push(path[i - 1] + change);
+    }
+    return path;
+}
+
 export const mockData = {
-    spot: 26150,
-    strikes: Array.from({length: 21}, (_, i) => 26000 + (i * 50)),
+    spot: 26150.00,
+    
+    // 1. GRID DATA
+    gridWeekly: [
+        { label: 'ATM CALL', value: '145.20', chg: '+12 (9%)', color: 'up' },
+        { label: 'CALL IV', value: '12.4%', chg: '+2%', color: 'up' },
+        { label: 'ATM PUT', value: '139.30', chg: '-18 (-11%)', color: 'down' },
+        { label: 'PUT IV', value: '13.1%', chg: '-1%', color: 'down' },
+        { label: 'STRADDLE', value: '284.50', chg: '-5 (-1%)', color: 'down' },
+        { label: 'IV', value: '12.8%', chg: '+0.5%', color: 'up' },
+        { label: 'RV (20D)', value: '10.5%', chg: '-', color: 'neutral' },
+        { label: 'IVR', value: '45', chg: '', color: 'neutral' },
+        { label: 'IVP', value: '60', chg: '', color: 'neutral' }
+    ],
+    gridMonthly: [
+        { label: 'ATM CALL', value: '310.50', chg: '+15 (5%)', color: 'up' },
+        { label: 'CALL IV', value: '14.2%', chg: '+1%', color: 'up' },
+        { label: 'ATM PUT', value: '284.50', chg: '-12 (-4%)', color: 'down' },
+        { label: 'PUT IV', value: '14.8%', chg: '-0.3%', color: 'down' },
+        { label: 'STRADDLE', value: '595.00', chg: '+2 (0.4%)', color: 'up' },
+        { label: 'IV', value: '14.5%', chg: '+0.8%', color: 'up' },
+        { label: 'RV (20D)', value: '11.0%', chg: '-', color: 'neutral' },
+        { label: 'IVR', value: '52', chg: '', color: 'neutral' },
+        { label: 'IVP', value: '65', chg: '', color: 'neutral' }
+    ],
 
-    // --- SKEW CHART DATA ---
-    skew: {
-        call: [13.5, 13.2, 13.0, 12.8, 12.6, 12.5, 12.4, 12.4, 12.5, 12.6, 12.8, 13.0, 13.3, 13.6, 13.9, 14.3, 14.7, 15.2, 15.8, 16.4, 17.0],
-        put: [15.5, 15.0, 14.6, 14.2, 13.9, 13.6, 13.4, 13.2, 13.0, 12.9, 12.8, 12.8, 12.9, 13.0, 13.2, 13.5, 13.9, 14.4, 15.0, 15.7, 16.5],
-        spread: [2.0, 1.8, 1.6, 1.4, 1.3, 1.1, 1.0, 0.8, 0.5, 0.3, 0.0, -0.2, -0.4, -0.6, -0.7, -0.8, -0.8, -0.8, -0.7, -0.5]
-    },
-    skewMo: {
-        call: [14.5, 14.4, 14.3, 14.2, 14.1, 14.0, 14.0, 14.0, 14.1, 14.2, 14.3, 14.5, 14.7, 15.0, 15.3, 15.7, 16.1, 16.6, 17.1, 17.7, 18.3],
-        put: [16.0, 15.8, 15.6, 15.4, 15.2, 15.0, 14.8, 14.7, 14.6, 14.5, 14.5, 14.6, 14.7, 14.9, 15.2, 15.5, 15.9, 16.4, 17.0, 17.7]
-    },
-
-    // --- TERM STRUCTURE DATA ---
-    term: {
-        weekly: [12.8, 14.5, 15.2, 15.8, 16.2],
-        monthly: [14.5, 15.0, 15.5, 16.0, 16.5],
-        expiries: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '30 Jan']
-    },
-
-    // --- SURFACE DATA (MONTHLY DEFAULT) ---
-    surfMoney: { 
-        // 3 Rows (Months) x 11 Cols (Moneyness)
-        z: [
-            [14.5, 14.0, 13.6, 13.2, 12.8, 12.5, 12.8, 13.2, 13.6, 14.0, 14.5], // Dec
-            [15.5, 15.0, 14.6, 14.3, 14.1, 14.0, 14.1, 14.3, 14.6, 15.0, 15.5], // Jan
-            [16.5, 16.0, 15.7, 15.5, 15.3, 15.2, 15.3, 15.5, 15.7, 16.0, 16.5]  // Feb
-        ], 
-        x: ['-10', '-8', '-6', '-4', '-2', 'ATM', '+2', '+4', '+6', '+8', '+10'], 
-        y: ['Dec', 'Jan', 'Feb'] 
-    },
-
-    // --- SURFACE DATA (WEEKLY TOGGLE) ---
-    surfMoneyWk: { 
-        // 9 Rows (Weeks) x 11 Cols (Moneyness)
-        z: [
-            [14.0, 13.5, 13.0, 12.6, 12.3, 12.0, 12.4, 12.7, 13.1, 13.6, 14.1], // 26 Dec
-            [14.2, 13.8, 13.4, 13.0, 12.7, 12.5, 12.8, 13.1, 13.5, 13.9, 14.3], // 02 Jan
-            [14.5, 14.1, 13.7, 13.4, 13.1, 13.0, 13.2, 13.5, 13.8, 14.2, 14.6], // 09 Jan
-            [14.7, 14.3, 13.9, 13.6, 13.3, 13.2, 13.4, 13.7, 14.0, 14.4, 14.8], // 16 Jan
-            [15.0, 14.6, 14.2, 13.9, 13.6, 13.5, 13.7, 14.0, 14.3, 14.7, 15.1], // 23 Jan
-            [15.2, 14.8, 14.4, 14.1, 13.8, 13.7, 13.9, 14.2, 14.5, 14.9, 15.3], // 30 Jan
-            [15.4, 15.0, 14.6, 14.3, 14.0, 13.9, 14.1, 14.4, 14.7, 15.1, 15.5], // 06 Feb
-            [15.7, 15.3, 14.9, 14.6, 14.3, 14.2, 14.4, 14.7, 15.0, 15.4, 15.8], // 13 Feb
-            [16.0, 15.6, 15.2, 14.9, 14.6, 14.5, 14.7, 15.0, 15.3, 15.7, 16.1]  // 20 Feb
-        ], 
-        x: ['-10', '-8', '-6', '-4', '-2', 'ATM', '+2', '+4', '+6', '+8', '+10'], 
-        y: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '23 Jan', '30 Jan', '06 Feb', '13 Feb', '20 Feb'] 
-    },
-
-    // 1. MONTHLY DELTA (Must be 3x3)
-    surfDelta: { 
-        z: [
-            [13.5, 12.5, 13.8], // Dec (3 items)
-            [14.2, 13.5, 14.5], // Jan (3 items)
-            [15.0, 14.5, 15.5]  // Feb (3 items)
-        ], 
-        x: ['20D', '50D', '80D'], // 3 Items
-        y: ['Dec', 'Jan', 'Feb'] 
-    },
-
-    // 2. WEEKLY DELTA (Must be 9x3)
-    surfDeltaWk: { 
-        z: [
-            [12.8, 12.2, 13.0], // 26 Dec (3 items only!)
-            [13.2, 12.8, 13.5], // 02 Jan
-            [13.8, 13.2, 14.0], // 09 Jan
-            [14.1, 13.5, 14.3], // 16 Jan
-            [14.5, 14.0, 14.8], // 23 Jan
-            [14.8, 14.2, 15.2], // 30 Jan
-            [15.2, 14.5, 15.5], // 06 Feb
-            [15.5, 14.8, 15.8], // 13 Feb
-            [15.8, 15.2, 16.2]  // 20 Feb
-        ], 
-        x: ['20D', '50D', '80D'], // 3 Items matches Z-row length
-        y: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '23 Jan', '30 Jan', '06 Feb', '13 Feb', '20 Feb'] 
-    }, 
-
-    // --- INTRADAY DATA ---
+    // 2. INTRADAY IV & RV DATA
     intraday: {
-        time: ["09:15", "10:15", "11:15", "12:15", "13:15"],
-        wk: [12.2, 12.4, 12.1, 12.5, 12.8],
-        mo: [14.1, 14.0, 14.2, 14.3, 14.4],
-        wkRv: [10.5, 10.5, 10.5, 10.5, 10.5],
-        moRv: [11.0, 11.0, 11.0, 11.0, 11.0]
+        time: times,
+        wk: generatePath(12.4, steps, 0.2),    // Weekly IV
+        mo: generatePath(14.2, steps, 0.15),   // Monthly IV
+        wkRv: generatePath(10.5, steps, 0.1),  // Weekly RV
+        moRv: generatePath(11.0, steps, 0.1)   // Monthly RV
     },
 
-    // --- MARKET GRID DATA ---
-    gridWeekly: {
-        date: "26 DEC 2025",
-        atmCall: { val: 145.20, chg: "+12 (9%)", iv: "12.4%", ivChg: "+2%" },
-        atmPut: { val: 139.30, chg: "-18 (-11%)", iv: "13.1%", ivChg: "-1%" },
-        straddle: { val: 284.50, chg: "-5 (-1%)", iv: "12.8%", ivChg: "+0.5%" },
-        rv: "10.5%", ivr: "IVR 45", ivp: "IVP 60"
-    },
-    gridMonthly: {
-        date: "29 JAN 2026",
-        atmCall: { val: 310.50, chg: "+15 (5%)", iv: "14.2%", ivChg: "+1%" },
-        atmPut: { val: 284.50, chg: "-12 (-4%)", iv: "14.8%", ivChg: "-0.3%" },
-        straddle: { val: 595.00, chg: "+2 (0.4%)", iv: "14.5%", ivChg: "+0.8%" },
-        rv: "11.0%", ivr: "IVR 52", ivp: "IVP 65"
+    // 3. PCR DATA (Sparkline)
+    pcr: {
+        current: 0.85,
+        time: times,
+        history: generatePath(1.1, steps, 0.15).map(v => Math.max(0.5, Math.min(1.5, v)))
     },
 
-    // --- SD TABLE DATA (Restored) ---
+    // 4. SD TABLE DATA
     sdTable: {
         levels: ["+2 SD", "+1 SD", "Mean", "-1 SD", "-2 SD"],
-        call: ["26,800", "26,500", "26,150", "25,800", "25,500"],
-        put: ["26,850", "26,550", "26,180", "25,850", "25,550"]
+        call: ["26,750", "26,450", "26,150", "25,850", "25,550"],
+        put: ["26,800", "26,500", "26,150", "25,900", "25,600"]
     },
 
-    // --- GREEKS DATA (Restored) ---
-    greeks: {
-        delta: { call: "0.52", put: "-0.48" },
-        gamma: { call: "0.0018", put: "0.0018" },
-        theta: { call: "-12.5", put: "-11.8" },
-        vega: { call: "18.2", put: "18.2" }
+    // 5. TERM STRUCTURE CHART
+    term: {
+        expiries: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '30 Jan', '27 Feb'],
+        weekly: [12.8, 13.2, 13.5, 13.9, 14.5, 15.1],
+        monthly: [13.1, 13.4, 13.8, 14.2, 14.8, 15.4]
     },
 
-    // --- PCR DATA ---
-    // ... inside mockData ...
-    pcr: {
-        // Current value
-        current: 0.85, 
-
-        // 15-minute intervals starting 09:15
-        time: [
-            "09:15", "09:30", "09:45", "10:00", "10:15", 
-            "10:30", "10:45", "11:00", "11:15", "11:30"
-        ],
-        // Matching history values
-        history: [
-            1.12, 1.15, 1.08, 1.05, 0.98, 
-            0.85, 0.80, 0.75, 0.72, 0.68
-        ] 
+    // 6. SKEW CHART
+    skew: {
+        strikes: [25500, 25750, 26000, 26250, 26500, 26750],
+        weekly: [14.5, 13.8, 12.8, 12.5, 12.9, 13.5], // Smile curve
+        monthly: [15.2, 14.5, 13.5, 13.2, 13.6, 14.2]
     },
+
+    // 7. SURFACE CHART (3D Mock)
+    surface: {
+        strikes: [25500, 26000, 26500],
+        expiries: ['26 Dec', '30 Jan', '27 Feb'],
+        z: [
+            [14, 13, 14], // Expiry 1
+            [15, 14, 15], // Expiry 2
+            [16, 15, 16]  // Expiry 3
+        ]
+    }
 };
 
-// --- HELPER FUNCTION ---
+// EXPORT HELPER FUNCTION (Critical for Chart Scaling)
 export function getGlobalIVRange() {
-    const allIVs = [
-        ...mockData.skew.call,
-        ...mockData.skew.put,
-        ...mockData.skewMo.call,
-        ...mockData.skewMo.put,
-        ...mockData.term.weekly,
-        ...mockData.term.monthly
-    ];
-
-    const minV = Math.min(...allIVs);
-    const maxV = Math.max(...allIVs);
-
-    return [Math.floor(minV) - 1, Math.ceil(maxV) + 1];
+    // Returns a fixed range for Y-axis consistency
+    return [10, 18]; 
 }
