@@ -5,7 +5,6 @@ function getBgColor(value, min, max, isCall) {
     let pct = (Math.abs(value) - min) / (max - min);
     if (pct < 0) pct = 0; if (pct > 1) pct = 1;
 
-    // Opacity range: 0.05 to 0.35
     const opacity = 0.05 + (pct * 0.30);
     const color = isCall ? `0, 230, 118` : `255, 82, 82`;
     return `rgba(${color}, ${opacity.toFixed(3)})`;
@@ -38,10 +37,11 @@ function getColumnRanges(rows) {
     return ranges;
 }
 
-// --- RENDER COMBINED OI CELL ---
+// --- RENDER COMBINED OI CELL (No 'L') ---
 function renderCombinedOI(oi, chg) {
-    const oiTxt = (oi / 100000).toFixed(1) + 'L';
-    const chgTxt = (chg > 0 ? '+' : '') + (chg / 100000).toFixed(1) + 'L';
+    // Format: 45.2 (+1.5)
+    const oiTxt = (oi / 100000).toFixed(1);
+    const chgTxt = (chg > 0 ? '+' : '') + (chg / 100000).toFixed(1);
     
     const maxChg = 200000; 
     let width = (Math.abs(chg) / maxChg) * 100;
@@ -57,14 +57,15 @@ function renderCombinedOI(oi, chg) {
     `;
 }
 
-// STATE for Toggle
-let majorStrikesOn = false; 
+// --- STATE MANAGEMENT ---
+let majorStrikesOn = false; // Default OFF
+let activeExpiryIndex = 0;  // Default first tab
 
 export function renderGreeksTable(containerId, mockData) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // 1. GENERATE DUMMY DATA (With IV restored)
+    // 1. GENERATE DUMMY DATA
     const centerStrike = 26150;
     const rows = [];
     for (let i = -10; i <= 10; i++) {
@@ -77,12 +78,9 @@ export function renderGreeksTable(containerId, mockData) {
         const theta = (-14.2 + (dist * 0.5)).toFixed(1);
         const deltaC = (0.5 - (i * 0.04)).toFixed(2);
         const deltaP = (-0.5 - (i * 0.04)).toFixed(2);
-        
-        // IV Data (Restored)
         const ivC = (12.4 + (dist * 0.1)).toFixed(1);
         const ivP = (12.9 + (dist * 0.1)).toFixed(1);
 
-        // OI Data
         const baseOI = 3000000 + (Math.random() * 2000000);
         const callOI = Math.floor(baseOI); 
         const putOI = Math.floor(baseOI * 0.9);
@@ -100,21 +98,29 @@ export function renderGreeksTable(containerId, mockData) {
     const rng = getColumnRanges(rows);
 
     // 3. BUILD CONTROLS HTML
-    // Note: The button class depends on 'majorStrikesOn' state
-    const btnClass = majorStrikesOn ? 'major-strikes-btn active' : 'major-strikes-btn';
+    // Exact styles from chart-term.js
+    const styleOn = `background: rgba(0, 230, 118, 0.2); color: #00E676; border: 1px solid rgba(0,230,118,0.3);`;
+    const styleOff = `background: rgba(255, 82, 82, 0.2); color: #FF5252; border: 1px solid rgba(255,82,82,0.3);`;
+    
+    // Determine button style based on state
+    const currentBtnStyle = majorStrikesOn ? styleOn : styleOff;
     const btnText = majorStrikesOn ? 'MAJOR ON' : 'MAJOR OFF';
+
+    // Expiry Tabs
+    const expiries = ['26 Dec (Wk)', '02 Jan (Wk)', '09 Jan (Wk)', '16 Jan (Wk)', '30 Jan (Mo)'];
+    const tabsHtml = expiries.map((exp, idx) => {
+        const isActive = idx === activeExpiryIndex ? 'active' : '';
+        // Add data-index to handle clicks
+        return `<button class="expiry-btn ${isActive}" data-index="${idx}">${exp}</button>`;
+    }).join('');
 
     const controlsHtml = `
         <div class="greeks-controls">
             <div class="expiry-tabs">
-                <button class="expiry-btn active">26 Dec (Wk)</button>
-                <button class="expiry-btn">02 Jan (Wk)</button>
-                <button class="expiry-btn">09 Jan (Wk)</button>
-                <button class="expiry-btn">16 Jan (Wk)</button>
-                <button class="expiry-btn">30 Jan (Mo)</button>
+                ${tabsHtml}
             </div>
-            <div class="toggle-container">
-                <button id="btn-major-strikes" class="${btnClass}">
+            <div class="toggle-container" style="display:flex; align-items:center; gap:8px;">
+                <button id="btn-major-strikes" class="major-strikes-btn" style="${currentBtnStyle}">
                     ${btnText}
                 </button>
             </div>
@@ -122,7 +128,6 @@ export function renderGreeksTable(containerId, mockData) {
     `;
 
     // 4. BUILD TABLE ROWS
-    // Columns: [OI(Chg) Gamma Vega Theta Delta IV] [STRIKE] [IV Delta Theta Vega Gamma OI(Chg)]
     let tableRows = rows.map(r => {
         const isATM = r.strike === centerStrike || r.strike === 26200;
         const rowClass = isATM ? 'row-atm' : '';
@@ -164,9 +169,9 @@ export function renderGreeksTable(containerId, mockData) {
                         <th colspan="6" style="border-bottom:2px solid #FF5252; color:#FF5252;">PUTS</th>
                     </tr>
                     <tr>
-                        <th>OI (Chg)</th> <th>Gamma</th> <th>Vega</th> <th>Theta</th> <th>Delta</th> <th>IV%</th>
+                        <th>OI (Lakhs)</th> <th>Gamma</th> <th>Vega</th> <th>Theta</th> <th>Delta</th> <th>IV%</th>
                         <th style="color:#fff; border-left:1px solid #333; border-right:1px solid #333;">Strike</th>
-                        <th>IV%</th> <th>Delta</th> <th>Theta</th> <th>Vega</th> <th>Gamma</th> <th>OI (Chg)</th>
+                        <th>IV%</th> <th>Delta</th> <th>Theta</th> <th>Vega</th> <th>Gamma</th> <th>OI (Lakhs)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -177,13 +182,22 @@ export function renderGreeksTable(containerId, mockData) {
     `;
 
     // 6. ATTACH EVENT LISTENERS
-    // Toggle Button Logic
+    
+    // A. Major Strikes Button Toggle
     const btn = document.getElementById('btn-major-strikes');
     if(btn) {
         btn.onclick = () => {
             majorStrikesOn = !majorStrikesOn;
-            // Rerender to update button state (Simple approach)
-            renderGreeksTable(containerId, mockData);
+            renderGreeksTable(containerId, mockData); // Re-render to update style
         };
     }
+
+    // B. Expiry Buttons Selection
+    const expiryBtns = container.querySelectorAll('.expiry-btn');
+    expiryBtns.forEach(b => {
+        b.onclick = (e) => {
+            activeExpiryIndex = parseInt(e.target.getAttribute('data-index'));
+            renderGreeksTable(containerId, mockData); // Re-render to update active tab
+        };
+    });
 }
