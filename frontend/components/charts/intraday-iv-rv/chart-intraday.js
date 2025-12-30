@@ -1,13 +1,15 @@
 import { mockData, getGlobalIVRange } from '../../../mockdata.js';
 
+// UNIFORM LAYOUT (Applied to all charts for consistent plot area)
 const LAYOUT_BASE = {
-    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+    paper_bgcolor: 'rgba(0,0,0,0)', 
+    plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI', color: '#fff', size: 10 },
     dragmode: false,
-    margin: { t: 20, b: 30, l: 40, r: 20 },
+    // FIXED MARGINS: l/r=40 ensures alignment with Term/Skew charts
+    margin: { t: 20, b: 30, l: 40, r: 40 },
 };
 
-// Helper: Generates 15-min slots for 09:15 - 15:30
 function generateFullDayTimeArray() {
     const times = [];
     let h = 9, m = 15;
@@ -21,89 +23,94 @@ function generateFullDayTimeArray() {
     return times;
 }
 
+// HELPER: Create text array with only the last value populated
+function getLastValueText(dataArray) {
+    return dataArray.map((val, i) => 
+        i === dataArray.length - 1 ? val.toFixed(1) : ''
+    );
+}
+
+// LEGEND UPDATE (Matches specific legend requirements)
 export function updateLegend(showMonthly) {
+    // Note: Intraday chart legend is static in the UI or handled by the chart toggles,
+    // but we update the external controls here if needed.
     const leg = document.getElementById('dynamicLegends');
     const inp = document.getElementById('dynamicInputs');
-    const ctr = document.getElementById('dynamicCenterControls');
-    if(!leg || !inp || !ctr) return;
+    if(!leg || !inp) return;
 
-    ctr.innerHTML = ''; 
-
-    // CUSTOM LEGENDS FOR INTRADAY (4 Items)
-    // We use your standard palette: Wk=Orange, Mo=Blue
-    // Solid = IV, Dotted = RV
-    leg.innerHTML = `
-        <div style="display:flex; gap:15px;">
-            <div class="leg-item" style="display:flex; align-items:center;">
-                <div style="width:12px; height:2px; background:#FF9800; margin-right:4px;"></div> Wk IV
-            </div>
-            <div class="leg-item" style="display:flex; align-items:center;">
-                <div style="width:12px; height:2px; border-bottom:2px dotted #FF9800; margin-right:4px;"></div> Wk RV
-            </div>
-
-            <div class="leg-item" style="display:flex; align-items:center; opacity: ${showMonthly ? 1 : 0.5}">
-                <div style="width:12px; height:2px; background:#42A5F5; margin-right:4px;"></div> Mo IV
-            </div>
-            <div class="leg-item" style="display:flex; align-items:center; opacity: ${showMonthly ? 1 : 0.5}">
-                <div style="width:12px; height:2px; border-bottom:2px dotted #42A5F5; margin-right:4px;"></div> Mo RV
-            </div>
-        </div>
-    `;
-
-    // TOGGLE BUTTON (Exact style from Term Chart reference)
-    const styleOn = `background: rgba(0, 230, 118, 0.2); color: #00E676; border: 1px solid rgba(0,230,118,0.3);`;
-    const styleOff = `background: rgba(255, 82, 82, 0.2); color: #FF5252; border: 1px solid rgba(255,82,82,0.3);`;
+    // Toggle Button
+    const styleOn = `background: rgba(0, 230, 118, 0.15); color: #00E676; border-color: rgba(0,230,118,0.3);`;
+    const styleOff = `background: rgba(255, 82, 82, 0.15); color: #FF5252; border-color: rgba(255,82,82,0.3);`;
 
     inp.innerHTML = `
-        <div style="display:flex; align-items:center; gap: 8px; font-size: 10px; color: #888;">
-            <button id="intra-toggle-btn" class="chart-toggle-btn" style="${showMonthly ? styleOn : styleOff}">
-                MONTHLY
-            </button>
-            <span>is ${showMonthly ? 'ON' : 'OFF'}</span>
+        <button id="intra-toggle-btn" class="chart-toggle-btn" style="${showMonthly ? styleOn : styleOff}">
+            MONTHLY
+        </button>
+    `;
+    
+    // Custom Legend Display
+    leg.innerHTML = `
+        <div style="display:flex; gap:12px; font-size:10px; color:#ccc;">
+            <div class="leg-item"><span style="background:#FF9800; width:6px; height:6px; border-radius:50%; margin-right:4px;"></span>Weekly IV</div>
+            <div class="leg-item"><span style="border:1px dotted #FF9800; width:6px; height:6px; border-radius:50%; margin-right:4px;"></span>Weekly RV</div>
+            ${showMonthly ? `<div class="leg-item"><span style="background:#42A5F5; width:6px; height:6px; border-radius:50%; margin-right:4px;"></span>Monthly IV</div>` : ''}
+            ${showMonthly ? `<div class="leg-item"><span style="border:1px dotted #42A5F5; width:6px; height:6px; border-radius:50%; margin-right:4px;"></span>Monthly RV</div>` : ''}
         </div>
     `;
 
     document.getElementById('intra-toggle-btn').onclick = () => {
-        renderIntradayChart('chart-canvas', !showMonthly); // Note: chart-dashboard uses 'chart-canvas' ID
+        renderIntradayChart('chart-canvas', !showMonthly);
     };
 }
 
 export function renderIntradayChart(containerId, showMonthly) {
     if (typeof showMonthly === 'undefined') showMonthly = true;
     
-    // Data Source
-    const intradayData = mockData.intraday;
+    const d = mockData.intraday;
     const fullTimeline = generateFullDayTimeArray();
-    const activeTime = intradayData.time; 
+    const activeTime = d.time; 
 
-    // TRACES
+    // CONFIG: Lines + Markers + Text (Last Value)
+    const mode = 'lines+markers+text';
+    const textPos = 'top right';
+    const markerSize = 4;
+
     const traces = [];
 
-    // 1. Weekly IV (Always On)
+    // 1. Weekly IV
     traces.push({
-        x: activeTime, y: intradayData.wk,
-        type: 'scatter', mode: 'lines', name: 'Wk IV',
-        line: { color: '#FF9800', width: 2 }
+        x: activeTime, y: d.wk,
+        type: 'scatter', mode: mode, name: 'Weekly IV',
+        line: { color: '#FF9800', width: 2 },
+        marker: { size: markerSize },
+        text: getLastValueText(d.wk), textposition: textPos, textfont: { color: '#FF9800', size: 10 }
     });
 
-    // 2. Weekly RV (Always On)
+    // 2. Weekly RV
     traces.push({
-        x: activeTime, y: intradayData.wkRv,
-        type: 'scatter', mode: 'lines', name: 'Wk RV',
-        line: { color: '#FF9800', width: 2, dash: 'dot' }
+        x: activeTime, y: d.wkRv,
+        type: 'scatter', mode: mode, name: 'Weekly RV',
+        line: { color: '#FF9800', width: 1.5, dash: 'dot' },
+        marker: { size: markerSize, symbol: 'circle-open' },
+        text: getLastValueText(d.wkRv), textposition: 'bottom right', textfont: { color: '#FF9800', size: 10 }
     });
 
-    // 3 & 4. Monthly Traces (Conditional)
     if (showMonthly) {
+        // 3. Monthly IV
         traces.push({
-            x: activeTime, y: intradayData.mo,
-            type: 'scatter', mode: 'lines', name: 'Mo IV',
-            line: { color: '#42A5F5', width: 2 }
+            x: activeTime, y: d.mo,
+            type: 'scatter', mode: mode, name: 'Monthly IV',
+            line: { color: '#42A5F5', width: 2 },
+            marker: { size: markerSize },
+            text: getLastValueText(d.mo), textposition: textPos, textfont: { color: '#42A5F5', size: 10 }
         });
+        // 4. Monthly RV
         traces.push({
-            x: activeTime, y: intradayData.moRv,
-            type: 'scatter', mode: 'lines', name: 'Mo RV',
-            line: { color: '#42A5F5', width: 2, dash: 'dot' }
+            x: activeTime, y: d.moRv,
+            type: 'scatter', mode: mode, name: 'Monthly RV',
+            line: { color: '#42A5F5', width: 1.5, dash: 'dot' },
+            marker: { size: markerSize, symbol: 'circle-open' },
+            text: getLastValueText(d.moRv), textposition: 'bottom right', textfont: { color: '#42A5F5', size: 10 }
         });
     }
 
@@ -117,19 +124,18 @@ export function renderIntradayChart(containerId, showMonthly) {
             categoryorder: 'array',
             categoryarray: fullTimeline,
             tickmode: 'array',
-            tickvals: fullTimeline.filter((_, i) => i % 4 === 0),
+            tickvals: fullTimeline.filter((_, i) => i % 8 === 0), // Spread ticks to prevent overlap
             fixedrange: true,
             showgrid: false,
-            tickfont: { color: '#fff', size: 10 }
+            tickfont: { color: '#fff', size: 10 },
+            title: '' // No Axis Title
         },
         yaxis: {
             gridcolor: '#1f1f1f',
             fixedrange: true,
-            // We can use global IV range here to keep scale consistent across tabs
-            // or use autorange if Intraday moves differently. 
-            // Using globalRange for consistency.
             range: globalRange, 
-            tickfont: { color: '#fff', size: 10 }
+            tickfont: { color: '#fff', size: 10 },
+            title: '' // No Axis Title
         }
     };
 
