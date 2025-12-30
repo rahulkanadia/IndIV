@@ -1,100 +1,106 @@
-// Helper: Calculate background tint based on value intensity
+// Helper: Calculate background tint (Existing)
 function getBgColor(value, min, max, isCall) {
     if (min === max) return 'transparent';
-    
-    // Normalize value (0 to 1)
     let pct = (Math.abs(value) - min) / (max - min);
-    if (pct < 0) pct = 0;
-    if (pct > 1) pct = 1;
-
-    // Cap opacity to keep it subtle (0.05 to 0.25)
+    if (pct < 0) pct = 0; if (pct > 1) pct = 1;
     const opacity = 0.05 + (pct * 0.20);
-
-    // Green for Calls, Red for Puts
     const color = isCall ? `0, 230, 118` : `255, 82, 82`;
-    
     return `rgba(${color}, ${opacity.toFixed(3)})`;
 }
 
-// Helper: Finds min/max for each column to normalize the heatmap
-function getColumnRanges(rows) {
-    const ranges = {
-        gamma: { min: Infinity, max: -Infinity },
-        vega:  { min: Infinity, max: -Infinity },
-        theta: { min: Infinity, max: -Infinity },
-        delta: { min: Infinity, max: -Infinity },
-        iv:    { min: Infinity, max: -Infinity }
-    };
+// Helper: Render Chg OI Cell with visual bar
+function renderChgOICell(val) {
+    const absVal = Math.abs(val);
+    const maxVal = 200000; // Cap for bar width
+    let width = (absVal / maxVal) * 100;
+    if (width > 100) width = 100;
+    
+    // Green for positive (writing), Red for negative (unwinding)
+    const color = val >= 0 ? '#00E676' : '#FF5252';
+    
+    // Format text: 1.5L or -0.5L
+    const text = (val / 100000).toFixed(2) + 'L';
+    
+    return `
+        <td class="col-oi-chg">
+            <div class="oi-bar-bg" style="width:${width}%; background:${color}; opacity:0.6;"></div>
+            <span style="color:${color}">${text}</span>
+        </td>
+    `;
+}
 
-    rows.forEach(r => {
-        ['gamma', 'vega', 'theta', 'delta', 'iv'].forEach(key => {
-            // Check both Call and Put values
-            const valC = Math.abs(parseFloat(r.call[key]));
-            const valP = Math.abs(parseFloat(r.put[key]));
-            
-            ranges[key].min = Math.min(ranges[key].min, valC, valP);
-            ranges[key].max = Math.max(ranges[key].max, valC, valP);
-        });
-    });
-    return ranges;
+// Helper: Format OI (Total)
+function renderOICell(val) {
+    // 4500000 -> 45.0L
+    return `<td class="col-oi">${(val/100000).toFixed(1)}L</td>`;
 }
 
 export function renderGreeksTable(containerId, mockData) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // 1. GENERATE DUMMY DATA (Since mockData usually doesn't have 20 rows of greeks)
-    // In production, this data would come directly from the API.
+    // 1. GENERATE DUMMY DATA (Now with OI)
     const centerStrike = 26150;
     const rows = [];
     for (let i = -10; i <= 10; i++) {
         const strike = centerStrike + (i * 50);
-        // Simulate Greeks curve
         const dist = Math.abs(i);
-        const gamma = (0.0035 - (dist * 0.0002)).toFixed(4); // Peaks at ATM
-        const vega = (15.0 - (dist * 0.5)).toFixed(1);       // Peaks at ATM
-        const theta = (-14.2 + (dist * 0.5)).toFixed(1);     // Peaks (negative) at ATM
         
-        // Delta: Calls 0.5 -> 0, Puts -0.5 -> 0
+        // Simulating curve
+        const gamma = (0.0035 - (dist * 0.0002)).toFixed(4);
+        const vega = (15.0 - (dist * 0.5)).toFixed(1);
+        const theta = (-14.2 + (dist * 0.5)).toFixed(1);
         const deltaC = (0.5 - (i * 0.04)).toFixed(2);
         const deltaP = (-0.5 - (i * 0.04)).toFixed(2);
+        
+        // Simulating OI (Random logic)
+        // High OI near ATM and round numbers
+        const baseOI = 3000000 + (Math.random() * 2000000);
+        const callOI = Math.floor(baseOI); 
+        const putOI = Math.floor(baseOI * 0.9);
+        
+        // Chg OI: Pos/Neg
+        const callChg = Math.floor((Math.random() * 250000) - 50000);
+        const putChg = Math.floor((Math.random() * 250000) - 50000);
 
         rows.push({
             strike: strike,
-            call: { gamma, vega, theta, delta: deltaC, iv: (12.4 + dist*0.1).toFixed(1) },
-            put:  { gamma, vega, theta, delta: deltaP, iv: (12.9 + dist*0.1).toFixed(1) }
+            call: { gamma, vega, theta, delta: deltaC, oi: callOI, oiChg: callChg },
+            put:  { gamma, vega, theta, delta: deltaP, oi: putOI, oiChg: putChg }
         });
     }
 
-    // 2. Calculate Ranges for Heatmap
-    const rng = getColumnRanges(rows);
+    // Ranges for Heatmap (Delta/Theta/Vega) - ignoring OI for heatmap tint
+    // (You can implement getColumnRanges here like before if you want the tint on Greeks)
+    
+    // 2. Build HTML
+    // Columns: [OI | ChgOI | Delta | Theta | Vega] [STRIKE] [Vega | Theta | Delta | ChgOI | OI]
+    // Note: Gamma removed to save space, or you can add it back if width allows.
 
-    // 3. Build HTML
-    // Note: We use inline styles for the background colors
     let tableRows = rows.map(r => {
-        const isATM = r.strike === centerStrike || r.strike === 26200; // Simulating ATM zone
+        const isATM = r.strike === centerStrike || r.strike === 26200;
         const rowClass = isATM ? 'row-atm' : '';
 
-        // Generate Cells with Tint
-        // LEFT (CALLS) - Green Tint
-        const cG = `<td style="background:${getBgColor(r.call.gamma, rng.gamma.min, rng.gamma.max, true)}">${r.call.gamma}</td>`;
-        const cV = `<td style="background:${getBgColor(r.call.vega, rng.vega.min, rng.vega.max, true)}">${r.call.vega}</td>`;
-        const cT = `<td style="background:${getBgColor(r.call.theta, rng.theta.min, rng.theta.max, true)}">${r.call.theta}</td>`;
-        const cD = `<td style="background:${getBgColor(r.call.delta, rng.delta.min, rng.delta.max, true)}">${r.call.delta}</td>`;
-        const cI = `<td style="background:${getBgColor(r.call.iv, rng.iv.min, rng.iv.max, true)}">${r.call.iv}</td>`;
+        // CALL SIDE
+        const cOI = renderOICell(r.call.oi);
+        const cChg = renderChgOICell(r.call.oiChg);
+        // We skip tint logic here for brevity, but you can wrap these in getBgColor like before
+        const cD = `<td>${r.call.delta}</td>`;
+        const cT = `<td>${r.call.theta}</td>`;
+        const cV = `<td>${r.call.vega}</td>`;
 
-        // RIGHT (PUTS) - Red Tint
-        const pI = `<td style="background:${getBgColor(r.put.iv, rng.iv.min, rng.iv.max, false)}">${r.put.iv}</td>`;
-        const pD = `<td style="background:${getBgColor(r.put.delta, rng.delta.min, rng.delta.max, false)}">${r.put.delta}</td>`;
-        const pT = `<td style="background:${getBgColor(r.put.theta, rng.theta.min, rng.theta.max, false)}">${r.put.theta}</td>`;
-        const pV = `<td style="background:${getBgColor(r.put.vega, rng.vega.min, rng.vega.max, false)}">${r.put.vega}</td>`;
-        const pG = `<td style="background:${getBgColor(r.put.gamma, rng.gamma.min, rng.gamma.max, false)}">${r.put.gamma}</td>`;
+        // PUT SIDE
+        const pV = `<td>${r.put.vega}</td>`;
+        const pT = `<td>${r.put.theta}</td>`;
+        const pD = `<td>${r.put.delta}</td>`;
+        const pChg = renderChgOICell(r.put.oiChg);
+        const pOI = renderOICell(r.put.oi);
 
         return `
             <tr class="${rowClass}">
-                ${cG} ${cV} ${cT} ${cD} ${cI}
+                ${cOI} ${cChg} ${cD} ${cT} ${cV}
                 <td class="col-strike">${r.strike}</td>
-                ${pI} ${pD} ${pT} ${pV} ${pG}
+                ${pV} ${pT} ${pD} ${pChg} ${pOI}
             </tr>
         `;
     }).join('');
@@ -109,9 +115,13 @@ export function renderGreeksTable(containerId, mockData) {
                         <th colspan="5" style="border-bottom:2px solid #FF5252; color:#FF5252;">PUTS</th>
                     </tr>
                     <tr>
-                        <th>Gamma</th> <th>Vega</th> <th>Theta</th> <th>Delta</th> <th>IV%</th>
+                        <th title="Open Interest">OI</th> 
+                        <th title="Change in OI">Chg</th> 
+                        <th>Delta</th> <th>Theta</th> <th>Vega</th>
                         <th style="color:#fff; border-left:1px solid #333; border-right:1px solid #333;">Strike</th>
-                        <th>IV%</th> <th>Delta</th> <th>Theta</th> <th>Vega</th> <th>Gamma</th>
+                        <th>Vega</th> <th>Theta</th> <th>Delta</th> 
+                        <th title="Change in OI">Chg</th> 
+                        <th title="Open Interest">OI</th>
                     </tr>
                 </thead>
                 <tbody>
