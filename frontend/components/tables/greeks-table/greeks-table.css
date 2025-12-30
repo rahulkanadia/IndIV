@@ -62,3 +62,27 @@
     color: #FF9800 !important;
     border: 1px solid #FF9800;
 }
+
+/* New OI/Chg OI Column Styles */
+.col-oi {
+    font-family: 'Consolas', monospace; /* Monospace for numbers */
+    color: #ccc;
+    font-size: 10px;
+}
+
+.col-oi-chg {
+    position: relative;
+    font-family: 'Consolas', monospace;
+    font-size: 10px;
+    z-index: 1;
+}
+
+/* The visual bar behind the number */
+.oi-bar-bg {
+    position: absolute;
+    bottom: 2px;
+    left: 2px;
+    height: 3px;
+    z-index: -1;
+    border-radius: 1px;
+}
