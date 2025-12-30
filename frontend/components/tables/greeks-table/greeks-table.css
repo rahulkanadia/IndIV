@@ -12,27 +12,34 @@
 /* --- CONTROLS STRIP --- */
 .greeks-controls {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     padding: 8px 10px;
     background: #111;
     border-bottom: 1px solid #222;
     flex-shrink: 0;
-    gap: 10px;
+    gap: 15px; /* Spacing between main sections */
 }
 
+/* Scrollable Expiry List */
 .expiry-tabs {
     display: flex;
-    gap: 4px;
+    gap: 6px;
     flex-wrap: nowrap;
     overflow-x: auto; 
+    flex: 1; /* Takes available space */
+    scrollbar-width: none; /* Hide scrollbar Firefox */
 }
+.expiry-tabs::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome */
 
 .expiry-btn {
     background: #1a1a1a;
     border: 1px solid #333;
     color: #888;
-    padding: 4px 10px;
+    /* Fixed Width for Uniformity */
+    min-width: 110px; 
+    padding: 5px 0;
+    text-align: center;
+    
     font-size: 10px;
     font-weight: 600;
     border-radius: 4px;
@@ -53,11 +60,17 @@
     color: #fff;
 }
 
-/* Major Strikes Button Base Class */
+/* Visual Demarcation Line */
+.control-separator {
+    width: 1px;
+    height: 20px;
+    background: #333;
+}
+
+/* Major Strikes Button */
 .major-strikes-btn {
-    /* Dimensions and Fonts matching chart buttons */
-    width: 90px;
-    height: 24px;
+    width: 120px; /* Slightly wider than expiry buttons */
+    height: 26px; /* Matches height of expiry buttons roughly */
     border-radius: 4px;
     font-size: 10px;
     font-weight: 700;
@@ -67,7 +80,6 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     white-space: nowrap;
-    /* Colors handled via inline styles in JS */
 }
 
 /* --- TABLE --- */
@@ -102,7 +114,6 @@
     border-bottom: 1px solid #1f1f1f;
 }
 
-/* ATM Strike */
 .col-strike {
     background: #1a1a1a;
     font-weight: 700;
@@ -115,7 +126,6 @@
     color: #FF9800 !important;
 }
 
-/* Combined OI Column */
 .col-oi-combined {
     position: relative;
     font-family: 'Consolas', monospace;
