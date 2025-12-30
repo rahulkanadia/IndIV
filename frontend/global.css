@@ -1,69 +1,104 @@
-/* --- 1. LOCKED THEME VARIABLES --- */
-:root { 
-    --bg: #0b0b0b; 
-    --card: #121212; 
-    --text: #e0e0e0; 
-    --border: #252525; 
-    --green: #00E676; 
-    --red: #FF5252; 
-    --orange: #FF9800; 
-    --blue: #42A5F5; 
-    --gold: #FFD700; 
-    --muted: #666;
-    --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+/* RESET */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #e0e0e0;
+    overflow: hidden; /* Prevent full page scroll */
 }
 
-* { box-sizing: border-box; }
-
-body { 
-    background: var(--bg); color: var(--text); font-family: var(--font-main);
-    margin: 0; padding: 10px; min-height: 100vh; display: flex; flex-direction: column;
+/* MAIN LAYOUT CONTAINER */
+.container {
+    display: flex;
+    /* Subtract Header Height (60px) from total viewport height */
+    height: calc(100vh - 60px); 
+    width: 100%;
+    overflow: hidden;
 }
 
-/* --- 2. HEADER --- */
-.header-row { 
-    display: flex; align-items: center; justify-content: space-between; 
-    padding: 0 10px 10px; border-bottom: 1px solid var(--border); 
-    height: 50px; flex-shrink: 0; 
+/* --- LEFT PANEL (Main Dashboard) --- */
+.left-panel {
+    flex: 1; /* Takes remaining space (approx 70-75%) */
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    gap: 10px;
+    min-width: 0; /* CRITICAL: Prevents Plotly charts from forcing width issues */
+    border-right: 1px solid #222;
 }
-.header-left { display: flex; align-items: baseline; }
-.header-right { display: flex; align-items: center; gap: 20px; }
-h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; color: #fff; }
-.sub-title { font-size: 0.9rem; font-weight: 400; color: #888; margin-left: 10px; }
-.status-badge { background: #1a1a1a; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; color: var(--green); font-weight: bold; font-size: 11px; }
-.help-btn { color: #fff; text-decoration: none; border: 1px solid #fff; padding: 5px 12px; border-radius: 4px; font-weight: 600; font-size: 12px; transition: 0.2s; background: rgba(255,255,255,0.1); }
-.help-btn:hover { background: #fff; color: #000; }
 
-/* --- 3. LAYOUT --- */
-.container { display: flex; gap: 15px; flex: 1; margin-top: 5px; flex-wrap: wrap; overflow: visible; }
-.left-panel { flex: 1 1 450px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.right-panel { flex: 1 1 550px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; min-width: 0; }
+/* Left Panel Internal Layout */
+#weekly-grid-container, 
+#monthly-grid-container {
+    flex-shrink: 0; /* Prevent grids from shrinking */
+    min-height: 50px; /* Ensure they have height even if empty */
+}
 
-/* Split Header (Right Panel) */
-.split-header { display: flex; min-height: 210px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-.split-half { flex: 1 1 300px; position: relative; padding: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
-.split-half:last-child { border-right: none; }
-
-.panel-title { font-size: 10px; color: #fff; font-weight: bold; text-transform: uppercase; padding: 8px 10px 0; display: flex; align-items: center; justify-content: space-between; }
-.legend-row { display: flex; gap: 15px; font-weight: normal; text-transform: none; }
-.leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
-.line-box { width: 20px; height: 0; border-top-style: solid; }
-
-/* TABS (Generic) - Specific dashboard tabs are in dashboard.css, but this provides base */
-.tabs { display: flex; gap: 5px; background: #1e1e1e; padding: 4px; border-radius: 6px; border: 1px solid var(--border); }
-.tab-btn { background: transparent; border: none; color: #888; padding: 6px 12px; cursor: pointer; font-size: 11px; font-weight: 600; border-radius: 4px; transition: 0.2s; font-family: var(--font-main); text-transform: uppercase; }
-.tab-btn:hover { color: #ccc; background: rgba(255,255,255,0.05); }
-.tab-btn.active { background: #333; color: var(--blue); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-
-/* --- 4. UTILITIES --- */
-.up { color: var(--green); } .down { color: var(--red); }
-.c-g { color: var(--green); } .c-r { color: var(--red); }
-@media (max-width: 600px) { .sub-title { display: none; } }
-
-/* Ensure the chart container fills available vertical space */
 #main-chart-dashboard {
-    flex: 1;                /* Grow to fill empty space */
-    display: flex;          /* Become a flex parent for its children */
-    flex-direction: column; /* Stack tabs and wrapper vertically */
-    min-height: 0;          /* Crucial: prevents overflow issues */
+    flex: 1; /* Chart takes all remaining vertical space */
+    min-height: 0; /* Critical for vertical resizing */
+    position: relative;
+    border: 1px solid #222;
+    border-radius: 4px;
+    background: #121212;
 }
+
+/* --- RIGHT PANEL (Stats & Tables) --- */
+.right-panel {
+    width: 420px; /* Fixed width for stability */
+    flex-shrink: 0; /* Prevent it from getting squashed */
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    gap: 10px;
+    background: #0a0a0a;
+}
+
+/* Right Panel Internal Layout */
+.split-header {
+    display: flex;
+    gap: 10px;
+    height: 160px; /* Fixed height for PCR & SD Table row */
+    flex-shrink: 0;
+}
+
+.split-half {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#pcr-container,
+#sd-table-container {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+}
+
+#greeks-table-container {
+    flex: 1; /* Takes remaining vertical space */
+    min-height: 0;
+    width: 100%;
+}
+
+/* --- HEADER UTILS --- */
+.status-badge {
+    font-size: 10px;
+    color: #00E676;
+    background: rgba(0, 230, 118, 0.1);
+    padding: 4px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 230, 118, 0.2);
+    font-weight: 600;
+}
+
+.help-btn {
+    text-decoration: none;
+    color: #888;
+    font-size: 12px;
+    transition: color 0.2s;
+}
+.help-btn:hover { color: #fff; }
