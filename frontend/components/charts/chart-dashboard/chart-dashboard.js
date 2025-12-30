@@ -15,7 +15,7 @@ const descriptions = {
     't-intra': "Intraday IV & RV: Tracks the movement of Implied Volatility (IV) and Realized Volatility (RV) throughout the trading day. Divergence here signals potential regime shifts.",
     't-skew': "Volatility Skew: Shows the IV difference between OTM Puts and Calls. A steep 'smirk' indicates high hedging demand (fear), while a flat curve suggests complacency.",
     't-term': "Term Structure: Compares IV across different expiration dates. Contango (upward slope) is normal; Backwardation (downward slope) signals near-term stress.",
-    't-surf': "Volatility Surface: The 3D view of risk. Left chart plots IV against Moneyness (Strike distance), Right chart plots IV against Delta. Use to identify cheap/expensive pockets."
+    't-surf': "Volatility Surface: The 2D Heatmap view. Left: IV vs Moneyness (Strike). Right: IV vs Delta. Brighter colors indicate higher IV pockets."
 };
 
 let activeTab = 0; 
@@ -40,7 +40,7 @@ export function renderChartDashboard(containerId) {
                 <div id="dynamicLegends" class="control-section right"></div>
             </div>
 
-            <div id="chart-canvas" style="width:100%; flex:1; min-height:0;"></div>
+            <div id="chart-canvas" style="width:100%; flex:1; min-height:0; position:relative;"></div>
             
             <div id="chart-help-text" class="chart-help-text"></div>
         </div>
@@ -62,21 +62,25 @@ export function renderChartDashboard(containerId) {
 function loadActiveChart() {
     const tab = tabs[activeTab];
     if (tab && tab.render) {
-        // 1. Clear center controls
+        // 1. CLEAR PREVIOUS CHART (CRITICAL FIX)
+        const canvas = document.getElementById('chart-canvas');
+        if(canvas) canvas.innerHTML = '';
+
+        // 2. Clear center controls
         const center = document.getElementById('dynamicCenterControls');
         if(center) center.innerHTML = '';
         
-        // 2. Render Chart
-        // Some charts (like Surface) accept 'true' as default for showMonthly
+        // 3. Render Chart
+        // Default 'true' for monthly toggle on Term/Skew/Surf charts
         tab.render('chart-canvas', true); 
 
-        // 3. Update Help Text
+        // 4. Update Help Text
         const helpContainer = document.getElementById('chart-help-text');
         if(helpContainer) {
             helpContainer.innerText = descriptions[tab.id] || "";
         }
 
-        // 4. Force Resize
+        // 5. Force Resize (Prevents blank charts)
         setTimeout(() => {
             window.dispatchEvent(new Event('resize'));
         }, 50);
