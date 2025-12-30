@@ -101,6 +101,18 @@ export const mockData = {
         atmPut: { val: 284.50, chg: "-12 (-4%)", iv: "14.8%", ivChg: "-0.3%" },
         straddle: { val: 595.00, chg: "+2 (0.4%)", iv: "14.5%", ivChg: "+0.8%" },
         rv: "11.0%", ivr: "IVR 52", ivp: "IVP 65"
+    },
+
+export const mockData = {
+    // ... existing data (priceStrip, gridWeekly, etc.) ...
+
+    // NEW: PCR Data
+    pcr: {
+        current: 0.85, // Current value (Bullish < 1.0)
+        
+        // History for the Sparkline (Option 3)
+        // Represents 15-min intervals or similar
+        history: [1.12, 1.10, 1.08, 1.05, 1.02, 0.98, 0.95, 0.94, 0.90, 0.88, 0.85] 
     }, 
 };
 
