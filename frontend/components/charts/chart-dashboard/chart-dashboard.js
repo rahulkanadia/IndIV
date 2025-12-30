@@ -10,12 +10,11 @@ const tabs = [
     { id: 't-surf', label: 'VOLATILITY SURFACE', render: renderSurfaceCharts }
 ];
 
-// CHART HELP DESCRIPTIONS
 const descriptions = {
-    't-intra': "Intraday IV & RV: Tracks the movement of Implied Volatility (IV) and Realized Volatility (RV) throughout the trading day. Divergence here signals potential regime shifts.",
-    't-skew': "Volatility Skew: Shows the IV difference between OTM Puts and Calls. A steep 'smirk' indicates high hedging demand (fear), while a flat curve suggests complacency.",
-    't-term': "Term Structure: Compares IV across different expiration dates. Contango (upward slope) is normal; Backwardation (downward slope) signals near-term stress.",
-    't-surf': "Volatility Surface: The 2D Heatmap view. Left: IV vs Moneyness (Strike). Right: IV vs Delta. Brighter colors indicate higher IV pockets."
+    't-intra': "Intraday IV & RV: Tracks IV and RV movement. Divergence signals regime shifts.",
+    't-skew': "Volatility Skew: IV difference between OTM Puts/Calls. Steep curve = Fear.",
+    't-term': "Term Structure: IV across expirations. Backwardation (down slope) = Stress.",
+    't-surf': "Vol Surface: Heatmap view. Left: IV vs Moneyness. Right: IV vs Delta."
 };
 
 let activeTab = 0; 
@@ -40,7 +39,9 @@ export function renderChartDashboard(containerId) {
                 <div id="dynamicLegends" class="control-section right"></div>
             </div>
 
-            <div id="chart-canvas" style="width:100%; flex:1; min-height:0; position:relative;"></div>
+            <div id="chart-canvas-container" style="flex:1; width:100%; min-height:0; position:relative; overflow:hidden;">
+                <div id="chart-canvas" style="width:100%; height:100%;"></div>
+            </div>
             
             <div id="chart-help-text" class="chart-help-text"></div>
         </div>
@@ -61,28 +62,36 @@ export function renderChartDashboard(containerId) {
 
 function loadActiveChart() {
     const tab = tabs[activeTab];
-    if (tab && tab.render) {
-        // 1. CLEAR PREVIOUS CHART (CRITICAL FIX)
-        const canvas = document.getElementById('chart-canvas');
-        if(canvas) canvas.innerHTML = '';
+    const canvasId = 'chart-canvas';
+    const canvas = document.getElementById(canvasId);
 
-        // 2. Clear center controls
-        const center = document.getElementById('dynamicCenterControls');
-        if(center) center.innerHTML = '';
+    if (tab && canvas) {
+        // 1. NUCLEAR CLEANUP
+        try {
+            Plotly.purge(canvasId); // Kill existing Plotly instance
+        } catch (e) { console.warn("Plotly purge failed", e); }
         
-        // 3. Render Chart
-        // Default 'true' for monthly toggle on Term/Skew/Surf charts
-        tab.render('chart-canvas', true); 
+        canvas.innerHTML = ''; // Wipe DOM
+        canvas.removeAttribute('class'); // Remove any lingering styles
+        canvas.removeAttribute('style'); 
+        canvas.style.width = "100%"; // Reset basic style
+        canvas.style.height = "100%";
+
+        // 2. Clear Controls
+        document.getElementById('dynamicCenterControls').innerHTML = '';
+        document.getElementById('dynamicInputs').innerHTML = '';
+        document.getElementById('dynamicLegends').innerHTML = '';
+
+        // 3. Render New Chart
+        // We use a small timeout to let the DOM settle after the wipe
+        setTimeout(() => {
+            tab.render(canvasId, true);
+        }, 10);
 
         // 4. Update Help Text
         const helpContainer = document.getElementById('chart-help-text');
         if(helpContainer) {
-            helpContainer.innerText = descriptions[tab.id] || "";
+            helpContainer.textContent = descriptions[tab.id] || "";
         }
-
-        // 5. Force Resize (Prevents blank charts)
-        setTimeout(() => {
-            window.dispatchEvent(new Event('resize'));
-        }, 50);
     }
 }
