@@ -1,38 +1,87 @@
-.market-grid-box {
-    display: flex; /* HORIZONTAL LAYOUT */
+/* MAIN WRAPPER */
+.market-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* SECTION TITLE (e.g. "WEEKLY (26 DEC)") */
+.section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #FF9800; /* Default Orange */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.t-month .section-title { color: #FF9800; /* Keep uniform or change to Blue #42A5F5 if preferred */ }
+
+/* GRID LAYOUT (5 Columns) */
+.grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr; /* Middle col slightly wider */
+    gap: 10px;
+    background: transparent;
+}
+
+/* COLUMNS */
+.grid-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* CELLS (The Boxes) */
+.grid-cell {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 4px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    height: 100%; width: 100%;
-    background: #151515; border: 1px solid #222; border-radius: 4px;
+    justify-content: center;
+    min-height: 50px; /* Ensure visual weight */
+}
+
+/* STRADDLE FEATURED CELL */
+.straddle-col .grid-cell {
+    height: 100%; /* Fill full height of the row */
+    background: #151515; /* Slightly lighter bg */
+    border: 1px solid #333;
+}
+
+/* TYPOGRAPHY */
+.cell-label { font-size: 9px; color: #666; font-weight: 600; text-transform: uppercase; margin-bottom: 2px; }
+.cell-value { font-size: 14px; color: #fff; font-weight: 700; letter-spacing: 0.5px; }
+.cell-value-lg { font-size: 18px; color: #fff; font-weight: 700; letter-spacing: 0.5px; }
+
+.cell-change { font-size: 10px; margin-top: 2px; }
+.cell-change.up { color: #00E676; }
+.cell-change.down { color: #FF5252; }
+.cell-change.neutral { color: #888; }
+
+/* RANK CELLS (IVR/IVP) */
+.rank-cell {
+    align-items: stretch; /* Stretch to fill width for bar */
+    justify-content: center;
+}
+.rank-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+.cell-value-sm { font-size: 12px; font-weight: 700; color: #fff; }
+
+.progress-track {
+    height: 4px;
+    width: 100%;
+    background: #222;
+    border-radius: 2px;
     overflow: hidden;
 }
-
-/* The Label (e.g. "WEEKLY") */
-.grid-header {
-    width: 80px; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 800; color: #000;
-    text-align: center; line-height: 1.1;
-    flex-shrink: 0;
+.progress-fill {
+    height: 100%;
+    border-radius: 2px;
 }
-.t-week .grid-header { background: #FF9800; }
-.t-month .grid-header { background: #42A5F5; }
-
-/* The Data Strip */
-.grid-body {
-    flex: 1; 
-    display: flex; /* HORIZONTAL LAYOUT */
-    align-items: center; 
-    justify-content: space-around; /* Spread items evenly */
-    padding: 0 10px;
-}
-
-.grid-item {
-    display: flex; flex-direction: column; align-items: center;
-}
-
-.grid-label { font-size: 9px; color: #666; margin-bottom: 2px; }
-.grid-value { font-size: 12px; color: #fff; font-weight: 700; }
-.grid-change { font-size: 9px; }
-.grid-change.up { color: #00E676; }
-.grid-change.down { color: #FF5252; }
-.grid-change.neutral { color: #888; }
