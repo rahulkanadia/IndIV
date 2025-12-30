@@ -1,14 +1,85 @@
 #greeks-table-container {
     width: 100%;
     height: 100%;
-    overflow: hidden; /* Container handles scroll if needed */
     background: #151515;
     border-radius: 4px;
     border: 1px solid #222;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
+/* --- CONTROLS STRIP (Restored) --- */
+.greeks-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background: #111;
+    border-bottom: 1px solid #222;
+    flex-shrink: 0;
+}
+
+.expiry-tabs {
+    display: flex;
+    gap: 5px;
+}
+
+.expiry-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #888;
+    padding: 4px 8px;
+    font-size: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.expiry-btn.active {
+    background: #007ACC;
+    border-color: #007ACC;
+    color: #fff;
+}
+
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: #ccc;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 28px;
+    height: 16px;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #333;
+    transition: .4s;
+    border-radius: 16px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 12px; width: 12px;
+    left: 2px; bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+input:checked + .slider { background-color: #fff; }
+input:checked + .slider:before { transform: translateX(12px); background-color: #000; }
+
+
+/* --- TABLE --- */
 .greeks-table-wrapper {
     overflow-y: auto;
     flex: 1;
@@ -22,67 +93,51 @@
     text-align: center;
 }
 
-/* STICKY HEADER */
 .greeks-table thead th {
     position: sticky;
     top: 0;
     background: #111;
     color: #666;
     font-weight: 700;
-    padding: 8px 4px;
+    padding: 6px 4px;
     border-bottom: 1px solid #333;
     z-index: 10;
     font-size: 10px;
-    text-transform: uppercase;
 }
 
 .greeks-table td {
-    padding: 6px 4px;
-    color: #ccc; /* Default Text Color (Unchanged) */
+    padding: 5px 2px;
+    color: #ccc;
     border-bottom: 1px solid #1f1f1f;
-    transition: background 0.2s;
 }
 
-.greeks-table tr:hover td {
-    border-bottom: 1px solid #333;
-}
-
-/* Strike Column - Always stand out */
+/* ATM Strike (No Border, Just Text Color) */
 .col-strike {
     background: #1a1a1a;
     font-weight: 700;
     color: #fff !important;
     border-left: 1px solid #222;
     border-right: 1px solid #222;
-    width: 60px;
+    width: 50px;
 }
-
-/* Active/ATM Row Highlight */
 .row-atm .col-strike {
-    color: #FF9800 !important;
-    border: 1px solid #FF9800;
+    color: #FF9800 !important; /* Orange Text */
+    /* Border removed as requested */
 }
 
-/* New OI/Chg OI Column Styles */
-.col-oi {
-    font-family: 'Consolas', monospace; /* Monospace for numbers */
-    color: #ccc;
-    font-size: 10px;
-}
-
-.col-oi-chg {
+/* Combined OI Column */
+.col-oi-combined {
     position: relative;
     font-family: 'Consolas', monospace;
     font-size: 10px;
+    width: 80px; /* Fixed width for better bar alignment */
     z-index: 1;
 }
-
-/* The visual bar behind the number */
 .oi-bar-bg {
     position: absolute;
     bottom: 2px;
-    left: 2px;
+    left: 0;
     height: 3px;
     z-index: -1;
-    border-radius: 1px;
+    opacity: 0.6;
 }
