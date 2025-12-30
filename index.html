@@ -3,112 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor V25 (Fixed Layout)</title>
+    <title>IndIV Monitor V25</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 
     <link rel="stylesheet" href="frontend/global.css">
+    
     <link rel="stylesheet" href="frontend/components/charts/chart-dashboard/chart-dashboard.css">
     <link rel="stylesheet" href="frontend/components/market-grid/market-grid.css">
     <link rel="stylesheet" href="frontend/components/tables/sd-table/sd-table.css">
     <link rel="stylesheet" href="frontend/components/tables/greeks-table/greeks-table.css">
     <link rel="stylesheet" href="frontend/components/pcr-widget/pcr-widget.css">
 
-    <style>
-        /* 1. RESET */
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; color: #fff; }
-
-        /* 2. HEADER */
-        .header-row {
-            height: 60px;
-            display: flex; /* Changed to flex for simplicity */
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #333;
-            background: #111;
-            padding: 0 20px;
-        }
-
-        /* 3. MAIN CONTAINER (The Splitter) */
-        .main-container {
-            display: flex !important; /* Force Side-by-Side */
-            flex-direction: row !important;
-            height: calc(100vh - 60px); /* Fill remaining height */
-            width: 100%;
-            overflow: hidden;
-        }
-
-        /* 4. LEFT PANEL (Charts) */
-        .left-panel {
-            flex: 1; /* Takes remaining space (dynamic width) */
-            min-width: 0; /* Prevents Plotly from expanding infinitely */
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid #333;
-            padding: 10px;
-            /* Debug Border - Remove later */
-            /* border: 1px solid red; */ 
-        }
-
-        /* 5. RIGHT PANEL (Data) */
-        .right-panel {
-            width: 400px; /* Fixed Width */
-            flex-shrink: 0; /* Don't shrink */
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            gap: 10px;
-            background: #0a0a0a;
-            /* Debug Border - Remove later */
-            /* border: 1px solid blue; */
-        }
-
-        /* 6. RIGHT PANEL INTERNAL LAYOUT */
-        .split-header {
-            display: flex;
-            gap: 10px;
-            height: 180px; /* Fixed height for top widgets */
-            flex-shrink: 0;
-        }
-        .split-half {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-
-        /* Component Containers */
-        #pcr-container, #sd-table-container { flex: 1; border: 1px solid #222; background: #151515; }
-        #greeks-table-container { flex: 1; border: 1px solid #222; background: #151515; min-height: 0; }
-        
-        #weekly-grid-container, #monthly-grid-container { height: 60px; flex-shrink: 0; margin-bottom: 5px;}
-        #main-chart-dashboard { flex: 1; min-height: 0; border: 1px solid #222; background: #121212; }
-
-        /* Header Stats Styling */
-        .stat-block { display: flex; flex-direction: column; align-items: center; }
-        .stat-price { font-size: 16px; font-weight: 700; color: #fff; }
-        .header-center { display: flex; gap: 20px; align-items: center; }
-        .asset-select { background: #222; color: #fff; border: 1px solid #444; padding: 5px; }
-    </style>
 </head>
 <body>
 
     <div class="header-row">
         <div class="header-left">
-            <h2 style="margin:0; font-size:18px;">IndIV Monitor</h2>
+            <h1>IndIV <span class="sub-title">Volatility Monitor</span></h1>
         </div>
-        <div class="header-center" id="header-stats-area">
-            </div>
+        
+        <div class="header-center" id="header-stats-area"></div>
+
         <div class="header-right">
-            <div style="font-size:12px; color:#00E676;">● LIVE</div>
+            <a href="#" style="color:#666; font-size:11px; text-decoration:none;">Help</a>
+            <div class="live-badge">● LIVE</div>
         </div>
     </div>
 
     <div class="main-container">
-        
+
         <div class="left-panel">
             <div id="weekly-grid-container"></div>
+            
             <div id="main-chart-dashboard"></div>
-            <div id="monthly-grid-container" style="margin-top:5px;"></div>
+            
+            <div id="monthly-grid-container"></div>
         </div>
 
         <div class="right-panel">
@@ -126,7 +55,7 @@
     </div>
 
 <script type="module">
-    // IMPORT YOUR DATA AND FUNCTIONS
+    // IMPORTS (Paths adjusted for Root Index)
     import { mockData } from './frontend/mockdata.js';
     import { renderMarketGrid } from './frontend/components/market-grid/market-grid.js';
     import { renderChartDashboard } from './frontend/components/charts/chart-dashboard/chart-dashboard.js';
@@ -134,49 +63,47 @@
     import { renderGreeksTable } from './frontend/components/tables/greeks-table/greeks-table.js';
     import { renderPCRSpark } from './frontend/components/pcr-widget/pcr-widget.js';
 
-    // HEADER RENDERER
+    // Header Renderer
     function renderHeaderStats(containerId, data) {
         const container = document.getElementById(containerId);
         if(!container) return;
+        
         container.innerHTML = `
             <div class="stat-block">
-                <span style="font-size:10px; color:#888;">SPOT</span>
+                <span class="stat-label">SPOT PRICE</span>
                 <span class="stat-price">${data.spot.toLocaleString()}</span>
             </div>
+
             <select class="asset-select">
-                <option>NIFTY 50</option>
-                <option>BANKNIFTY</option>
+                <option value="NIFTY">NIFTY 50</option>
+                <option value="BANKNIFTY">BANKNIFTY</option>
+                <option value="FINNIFTY">FINNIFTY</option>
             </select>
+
             <div class="stat-block">
-                <span style="font-size:10px; color:#888;">FUT</span>
+                <span class="stat-label">FUT PRICE</span>
                 <span class="stat-price">26,187.00</span>
             </div>
         `;
     }
 
-    // INIT
     function init() {
-        console.log("Starting App...");
-        try {
-            renderHeaderStats('header-stats-area', mockData);
-            
-            // Render Components
-            // 1. Grids
-            renderMarketGrid('weekly-grid-container', 'WEEKLY SNAPSHOT', mockData.gridWeekly, 't-week');
-            renderMarketGrid('monthly-grid-container', 'MONTHLY SNAPSHOT', mockData.gridMonthly, 't-month');
+        console.log("Initializing IndIV Monitor...");
+        
+        // 1. Header
+        renderHeaderStats('header-stats-area', mockData);
 
-            // 2. Main Chart
-            renderChartDashboard('main-chart-dashboard');
+        // 2. Grids (Left Panel Top/Bottom)
+        renderMarketGrid('weekly-grid-container', 'WEEKLY SNAPSHOT', mockData.gridWeekly, 't-week');
+        renderMarketGrid('monthly-grid-container', 'MONTHLY SNAPSHOT', mockData.gridMonthly, 't-month');
 
-            // 3. Right Widgets
-            renderPCRSpark('pcr-container', mockData.pcr);
-            renderSDTable('sd-table-container', mockData);
-            renderGreeksTable('greeks-table-container', mockData);
+        // 3. Main Chart Dashboard (Left Panel Center)
+        renderChartDashboard('main-chart-dashboard');
 
-        } catch (err) {
-            console.error("Init Error:", err);
-            document.body.innerHTML += `<div style="color:red; padding:20px">JS Error: ${err.message}</div>`;
-        }
+        // 4. Right Panel Widgets
+        renderPCRSpark('pcr-container', mockData.pcr);
+        renderSDTable('sd-table-container', mockData);
+        renderGreeksTable('greeks-table-container', mockData);
     }
 
     init();
