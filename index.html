@@ -69,6 +69,8 @@
     import { renderGreeksTable } from './frontend/components/tables/greeks-table/greeks-table.js';
 
     import { renderPCRWidget } from './frontend/components/pcr-widget/pcr-widget.js';
+    import { renderPCRSpark } from './frontend/components/pcr-widget/pcr-widget.js';
+
 
     // --- INITIALIZE ---
     function init() {
@@ -85,7 +87,8 @@
         renderSDTable('sd-table-container', mockData);
         renderGreeksTable('greeks-table-container', mockData);
 
-        renderPCRWidget('pcr-container', mockData.pcr.current); 
+        renderPCRWidget('pcr-container', mockData.pcr.current);
+//        renderPCRSpark('pcr-container', mockData.pcr.history);
     }
 
     init();
