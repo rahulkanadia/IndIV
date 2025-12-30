@@ -56,23 +56,38 @@
     import { renderGreeksTable } from './frontend/components/tables/greeks-table/greeks-table.js';
     import { renderPCRSpark } from './frontend/components/pcr-widget/pcr-widget.js';
 
+    // Replace the renderHeaderStats function in your index.html script block with this:
+
     function renderHeaderStats(containerId, data) {
         const container = document.getElementById(containerId);
         if(!container) return;
         
+        // Mock Change Data (In real app, calculate this)
+        const spotChgVal = 45.20;
+        const spotChgPct = 0.17;
+        const futChgVal = 37.00;
+        const futChgPct = 0.14;
+
+        const getCls = (val) => val >= 0 ? 'up' : 'down';
+        const formatChg = (val, pct) => `${val >= 0 ? '+' : ''}${val.toFixed(2)} (${pct.toFixed(2)}%)`;
+
         container.innerHTML = `
             <div class="stat-block">
                 <span class="stat-label">SPOT PRICE</span>
-                <span class="stat-price">${data.spot.toLocaleString()}</span>
+                <span class="stat-price ${getCls(spotChgVal)}">${data.spot.toLocaleString()}</span>
+                <span class="stat-change ${getCls(spotChgVal)}">${formatChg(spotChgVal, spotChgPct)}</span>
             </div>
+
             <select class="asset-select">
                 <option value="NIFTY">NIFTY 50</option>
                 <option value="BANKNIFTY">BANKNIFTY</option>
                 <option value="FINNIFTY">FINNIFTY</option>
             </select>
+
             <div class="stat-block">
-                <span class="stat-label">FUT PRICE</span>
-                <span class="stat-price">26,187.00</span>
+                <span class="stat-label">FUTURES PRICE</span>
+                <span class="stat-price ${getCls(futChgVal)}">26,187.00</span>
+                <span class="stat-change ${getCls(futChgVal)}">${formatChg(futChgVal, futChgPct)}</span>
             </div>
         `;
     }
