@@ -1,11 +1,11 @@
+// GO UP ONE LEVEL (..) THEN INTO SPECIFIC FOLDERS
 import { renderTermChart } from '../chart-term/chart-term.js';
 import { renderSkewChart } from '../chart-skew/chart-skew.js';
 import { renderSurfaceChart } from '../chart-surface/chart-surface.js';
-// NEW IMPORT
 import { renderIntradayChart } from '../intraday-iv-rv/chart-intraday.js';
 
 const tabs = [
-    // 1. INTRADAY (New First Tab)
+    // 1. INTRADAY
     { id: 't-intra', label: 'INTRADAY IV & RV', render: renderIntradayChart },
     // 2. SKEW
     { id: 't-skew', label: 'VOLATILITY SKEW', render: renderSkewChart },
@@ -63,7 +63,6 @@ export function renderChartDashboard(containerId) {
 function loadActiveChart() {
     const tab = tabs[activeTab];
     if (tab && tab.render) {
-        // Clear container to be safe or let Plotly.react handle it
         tab.render('chart-canvas'); 
     }
 }
