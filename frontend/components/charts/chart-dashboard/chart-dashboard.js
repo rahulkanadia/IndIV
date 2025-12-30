@@ -12,7 +12,7 @@ const tabs = [
     // 3. TERM
     { id: 't-term', label: 'TERM STRUCTURE', render: renderTermChart },
     // 4. SURFACE
-    { id: 't-surf', label: 'VOLATILITY SURFACE', render: renderSurfaceChart }
+    { id: 't-surf', label: 'VOLATILITY SURFACE', render: renderSurfaceCharts }
 ];
 
 let activeTab = 0; // Default to Intraday
