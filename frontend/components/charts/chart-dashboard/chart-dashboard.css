@@ -84,16 +84,24 @@
 
 /* ... Keep existing CSS ... */
 
-/* CHART HELP TEXT */
+/* ... Keep existing CSS ... */
+
+/* CHART HELP TEXT - FIXED */
 .chart-help-text {
     width: 100%;
-    padding: 8px 15px;
+    padding: 8px 12px;
     background: #111;
     border-top: 1px solid #222;
     color: #fff;
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.4;
     font-weight: 400;
     flex-shrink: 0;
     font-family: 'Segoe UI', sans-serif;
+    
+    /* PREVENT SPILL */
+    box-sizing: border-box;
+    word-wrap: break-word;
+    white-space: normal;
+    min-height: 35px; /* Ensure space for 2 lines */
 }
