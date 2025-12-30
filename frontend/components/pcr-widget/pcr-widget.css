@@ -1,21 +1,23 @@
-
-.pcr-box {
+.pcr-spark-box {
     width: 100%;
-    /* Match SD Table margins/padding style if needed */
+    /* HEIGHT: Adjust this to match your SD table if needed (approx 120-150px) */
+    height: 140px; 
     padding: 10px 15px;
-    background: #121212; /* Match card bg */
-    border-top: 1px solid #222; /* Separator from SD Table */
+    background: #121212;
+    border-top: 1px solid #222;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 8px;
-    height: 80px; /* Fixed height for consistency */
+    box-sizing: border-box;
 }
 
-.pcr-header {
+.pcr-spark-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: baseline;
+    margin-bottom: 5px;
+}
+
+.pcr-label {
     font-size: 11px;
     font-weight: 700;
     color: #888;
@@ -23,36 +25,14 @@
 }
 
 .pcr-value-text {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
     color: #fff;
 }
 
-/* GAUGE TRACK */
-.pcr-track {
-    position: relative;
+/* Container for the Plotly chart */
+#pcr-spark-chart {
     width: 100%;
-    height: 8px;
-    background: #222;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-/* CENTER LINE (1.0 Neutral) */
-.pcr-center-line {
-    position: absolute;
-    left: 50%;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: #555;
-    z-index: 2;
-    transform: translateX(-50%);
-}
-
-/* THE BAR FILL */
-.pcr-fill {
-    position: absolute;
-    height: 100%;
-    transition: width 0.3s ease, left 0.3s ease, background 0.3s;
+    flex: 1; /* Fills the remaining height */
+    min-height: 0;
 }
