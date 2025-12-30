@@ -1,8 +1,7 @@
 .pcr-spark-box {
     width: 100%;
-    /* Reduced height as we don't need y-axis range space */
-    height: 100px; 
-    padding: 10px 15px 0 15px; 
+    height: 140px; 
+    padding: 10px 0 0 0; /* Remove side padding to let chart fill */
     background: #121212;
     border-top: 1px solid #222;
     display: flex;
@@ -17,9 +16,9 @@
 }
 
 .pcr-title-text {
-    font-size: 13px;
-    font-weight: 700; 
-    color: #ccc;   
+    font-size: 14px;
+    font-weight: 800; 
+    color: #FF9800; /* Title Color */
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
