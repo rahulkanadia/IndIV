@@ -1,10 +1,8 @@
 // --- HEATMAP HELPER ---
 function getBgColor(value, min, max, isCall) {
     if (min === max || value === undefined) return 'transparent';
-    
     let pct = (Math.abs(value) - min) / (max - min);
     if (pct < 0) pct = 0; if (pct > 1) pct = 1;
-
     const opacity = 0.05 + (pct * 0.30);
     const color = isCall ? `0, 230, 118` : `255, 82, 82`;
     return `rgba(${color}, ${opacity.toFixed(3)})`;
@@ -19,7 +17,6 @@ function getColumnRanges(rows) {
         delta: { min: Infinity, max: -Infinity },
         iv:    { min: Infinity, max: -Infinity }
     };
-
     rows.forEach(r => {
         ['gamma', 'vega', 'theta', 'delta', 'iv'].forEach(key => {
             const valC = Math.abs(parseFloat(r.call[key]));
@@ -37,12 +34,10 @@ function getColumnRanges(rows) {
     return ranges;
 }
 
-// --- RENDER COMBINED OI CELL (No 'L') ---
+// --- RENDER COMBINED OI CELL ---
 function renderCombinedOI(oi, chg) {
-    // Format: 45.2 (+1.5)
     const oiTxt = (oi / 100000).toFixed(1);
     const chgTxt = (chg > 0 ? '+' : '') + (chg / 100000).toFixed(1);
-    
     const maxChg = 200000; 
     let width = (Math.abs(chg) / maxChg) * 100;
     if (width > 100) width = 100;
@@ -58,8 +53,8 @@ function renderCombinedOI(oi, chg) {
 }
 
 // --- STATE MANAGEMENT ---
-let majorStrikesOn = false; // Default OFF
-let activeExpiryIndex = 0;  // Default first tab
+let majorStrikesOn = false; 
+let activeExpiryIndex = 0; 
 
 export function renderGreeksTable(containerId, mockData) {
     const container = document.getElementById(containerId);
@@ -67,7 +62,8 @@ export function renderGreeksTable(containerId, mockData) {
 
     // 1. GENERATE DUMMY DATA
     const centerStrike = 26150;
-    const rows = [];
+    let rows = [];
+    // Generate enough rows to show filtering (every 50 points)
     for (let i = -10; i <= 10; i++) {
         const strike = centerStrike + (i * 50);
         const dist = Math.abs(i);
@@ -94,23 +90,29 @@ export function renderGreeksTable(containerId, mockData) {
         });
     }
 
-    // 2. CALCULATE RANGES
+    // 2. FILTER FOR MAJOR STRIKES
+    // If Major Strikes is ON, only keep strikes that are multiples of 100
+    if (majorStrikesOn) {
+        rows = rows.filter(r => r.strike % 100 === 0);
+    }
+
+    // 3. CALCULATE RANGES (After filtering, so heatmap is accurate to view)
     const rng = getColumnRanges(rows);
 
-    // 3. BUILD CONTROLS HTML
-    // Exact styles from chart-term.js
+    // 4. BUILD CONTROLS HTML
     const styleOn = `background: rgba(0, 230, 118, 0.2); color: #00E676; border: 1px solid rgba(0,230,118,0.3);`;
     const styleOff = `background: rgba(255, 82, 82, 0.2); color: #FF5252; border: 1px solid rgba(255,82,82,0.3);`;
-    
-    // Determine button style based on state
     const currentBtnStyle = majorStrikesOn ? styleOn : styleOff;
-    const btnText = majorStrikesOn ? 'MAJOR ON' : 'MAJOR OFF';
 
-    // Expiry Tabs
-    const expiries = ['26 Dec (Wk)', '02 Jan (Wk)', '09 Jan (Wk)', '16 Jan (Wk)', '30 Jan (Mo)'];
+    // Generate 9 Expiry Buttons
+    const expiries = [
+        '26 Dec (Weekly)', '02 Jan (Weekly)', '09 Jan (Weekly)', 
+        '16 Jan (Weekly)', '23 Jan (Weekly)', '30 Jan (Monthly)',
+        '06 Feb (Weekly)', '13 Feb (Weekly)', '27 Feb (Monthly)'
+    ];
+
     const tabsHtml = expiries.map((exp, idx) => {
         const isActive = idx === activeExpiryIndex ? 'active' : '';
-        // Add data-index to handle clicks
         return `<button class="expiry-btn ${isActive}" data-index="${idx}">${exp}</button>`;
     }).join('');
 
@@ -119,15 +121,18 @@ export function renderGreeksTable(containerId, mockData) {
             <div class="expiry-tabs">
                 ${tabsHtml}
             </div>
-            <div class="toggle-container" style="display:flex; align-items:center; gap:8px;">
+            
+            <div class="control-separator"></div>
+
+            <div class="toggle-container">
                 <button id="btn-major-strikes" class="major-strikes-btn" style="${currentBtnStyle}">
-                    ${btnText}
+                    MAJOR STRIKES
                 </button>
             </div>
         </div>
     `;
 
-    // 4. BUILD TABLE ROWS
+    // 5. BUILD TABLE ROWS
     let tableRows = rows.map(r => {
         const isATM = r.strike === centerStrike || r.strike === 26200;
         const rowClass = isATM ? 'row-atm' : '';
@@ -157,7 +162,7 @@ export function renderGreeksTable(containerId, mockData) {
         `;
     }).join('');
 
-    // 5. INJECT HTML
+    // 6. INJECT HTML
     container.innerHTML = `
         ${controlsHtml}
         <div class="greeks-table-wrapper">
@@ -181,23 +186,23 @@ export function renderGreeksTable(containerId, mockData) {
         </div>
     `;
 
-    // 6. ATTACH EVENT LISTENERS
+    // 7. ATTACH EVENT LISTENERS
     
-    // A. Major Strikes Button Toggle
+    // Major Strikes Toggle
     const btn = document.getElementById('btn-major-strikes');
     if(btn) {
         btn.onclick = () => {
             majorStrikesOn = !majorStrikesOn;
-            renderGreeksTable(containerId, mockData); // Re-render to update style
+            renderGreeksTable(containerId, mockData); 
         };
     }
 
-    // B. Expiry Buttons Selection
+    // Expiry Buttons
     const expiryBtns = container.querySelectorAll('.expiry-btn');
     expiryBtns.forEach(b => {
         b.onclick = (e) => {
             activeExpiryIndex = parseInt(e.target.getAttribute('data-index'));
-            renderGreeksTable(containerId, mockData); // Re-render to update active tab
+            renderGreeksTable(containerId, mockData); 
         };
     });
 }
