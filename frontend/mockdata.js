@@ -25,10 +25,11 @@ function generatePath(start, steps, volatility) {
     return path;
 }
 
+// ... (Keep existing generateTimeArray and generatePath) ...
+
 export const mockData = {
+    // ... (Keep spot, gridWeekly, gridMonthly, intraday, pcr, sdTable, term, skew) ...
     spot: 26150.00,
-    
-    // 1. GRID DATA
     gridWeekly: [
         { label: 'ATM CALL', value: '145.20', chg: '+12 (9%)', color: 'up' },
         { label: 'CALL IV', value: '12.4%', chg: '+2%', color: 'up' },
@@ -51,58 +52,60 @@ export const mockData = {
         { label: 'IVR', value: '52', chg: '', color: 'neutral' },
         { label: 'IVP', value: '65', chg: '', color: 'neutral' }
     ],
-
-    // 2. INTRADAY IV & RV DATA
     intraday: {
-        time: times,
-        wk: generatePath(12.4, steps, 0.2),    // Weekly IV
-        mo: generatePath(14.2, steps, 0.15),   // Monthly IV
-        wkRv: generatePath(10.5, steps, 0.1),  // Weekly RV
-        moRv: generatePath(11.0, steps, 0.1)   // Monthly RV
+        time: generateTimeArray(), // Ensure this function is defined as before
+        wk: generatePath(12.4, 26, 0.2),    
+        mo: generatePath(14.2, 26, 0.15),   
+        wkRv: generatePath(10.5, 26, 0.1),  
+        moRv: generatePath(11.0, 26, 0.1)   
     },
-
-    // 3. PCR DATA (Sparkline)
     pcr: {
         current: 0.85,
-        time: times,
-        history: generatePath(1.1, steps, 0.15).map(v => Math.max(0.5, Math.min(1.5, v)))
+        time: generateTimeArray(),
+        history: generatePath(1.1, 26, 0.15).map(v => Math.max(0.5, Math.min(1.5, v)))
     },
-
-    // 4. SD TABLE DATA
     sdTable: {
         levels: ["+2 SD", "+1 SD", "Mean", "-1 SD", "-2 SD"],
         call: ["26,750", "26,450", "26,150", "25,850", "25,550"],
         put: ["26,800", "26,500", "26,150", "25,900", "25,600"]
     },
-
-    // 5. TERM STRUCTURE CHART
     term: {
         expiries: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '30 Jan', '27 Feb'],
         weekly: [12.8, 13.2, 13.5, 13.9, 14.5, 15.1],
         monthly: [13.1, 13.4, 13.8, 14.2, 14.8, 15.4]
     },
-
-    // 6. SKEW CHART
     skew: {
         strikes: [25500, 25750, 26000, 26250, 26500, 26750],
-        weekly: [14.5, 13.8, 12.8, 12.5, 12.9, 13.5], // Smile curve
+        weekly: [14.5, 13.8, 12.8, 12.5, 12.9, 13.5], 
         monthly: [15.2, 14.5, 13.5, 13.2, 13.6, 14.2]
     },
 
-    // 7. SURFACE CHART (3D Mock)
+    // RESTRUCTURED SURFACE DATA
     surface: {
-        strikes: [25500, 26000, 26500],
-        expiries: ['26 Dec', '30 Jan', '27 Feb'],
-        z: [
-            [14, 13, 14], // Expiry 1
-            [15, 14, 15], // Expiry 2
-            [16, 15, 16]  // Expiry 3
+        // Axis Data
+        moneyness: ['-10%', '-5%', 'ATM', '+5%', '+10%'],
+        delta: ['10', '25', '50', '75', '90'],
+        
+        // Expiries
+        expiriesWeekly: ['26 Dec', '02 Jan', '09 Jan'],
+        expiriesMonthly: ['26 Dec', '30 Jan', '27 Feb'],
+
+        // Z-Data (Rows=Expiry, Cols=Strike/Delta)
+        // Weekly Data (3 Expiries x 5 Points)
+        zWk: [
+            [14.5, 13.2, 12.4, 12.8, 13.5], // Exp 1
+            [14.8, 13.5, 12.7, 13.1, 13.8], // Exp 2
+            [15.1, 13.8, 13.0, 13.4, 14.1]  // Exp 3
+        ],
+        // Monthly Data (3 Expiries x 5 Points)
+        zMo: [
+            [15.0, 13.8, 12.9, 13.3, 14.0],
+            [15.5, 14.2, 13.4, 13.8, 14.5],
+            [16.0, 14.8, 14.0, 14.4, 15.2]
         ]
     }
 };
 
-// EXPORT HELPER FUNCTION (Critical for Chart Scaling)
 export function getGlobalIVRange() {
-    // Returns a fixed range for Y-axis consistency
     return [10, 18]; 
 }
