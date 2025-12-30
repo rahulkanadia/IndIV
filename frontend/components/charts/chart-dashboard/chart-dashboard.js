@@ -11,10 +11,10 @@ const tabs = [
 ];
 
 const descriptions = {
-    't-intra': "Intraday IV & RV: Tracks IV and RV movement. Divergence signals regime shifts.",
-    't-skew': "Volatility Skew: IV difference between OTM Puts/Calls. Steep curve = Fear.",
-    't-term': "Term Structure: IV across expirations. Backwardation (down slope) = Stress.",
-    't-surf': "Vol Surface: Heatmap view. Left: IV vs Moneyness. Right: IV vs Delta."
+    't-intra': "Intraday IV & RV: Divergence signals regime shifts. High IV + Low RV = Options Expensive.",
+    't-skew': "Volatility Skew: The 'Smile'. Bars show the premium spread relative to ATM.",
+    't-term': "Term Structure: Slope indicates market stress. Up = Normal, Down = Fear.",
+    't-surf': "Volatility Surface: A visual scan of cheap vs. expensive options. Brighter colors (Blue) = Higher IV. The central white line shows expiry dates. Left Side: Shows IV across strikes relative to ATM price. Right Side: Shows IV across Delta levels, useful for hedging."
 };
 
 let activeTab = 0; 
