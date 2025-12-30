@@ -1,16 +1,16 @@
-/* WRAPPER: Fills the parent #main-chart-dashboard */
+/* WRAPPER */
 .chart-dashboard-wrapper {
     display: flex;
     flex-direction: column;
     height: 100%;
     width: 100%;
     background: #111;
+    font-family: 'Segoe UI', sans-serif; /* Global Font Consistency */
 }
 
 /* TABS STRIP */
 .chart-tabs {
-    display: flex; /* HORIZONTAL LAYOUT */
-    flex-direction: row;
+    display: flex;
     height: 32px;
     background: #000;
     border-bottom: 1px solid #222;
@@ -18,29 +18,66 @@
 }
 
 .chart-tab {
-    flex: 1; /* Equal width */
+    flex: 1;
     display: flex; align-items: center; justify-content: center;
     font-size: 11px; font-weight: 600; color: #666;
     cursor: pointer; border-right: 1px solid #1a1a1a;
-    transition: background 0.2s;
+    transition: background 0.2s, color 0.2s;
 }
 
 .chart-tab:hover { background: #1a1a1a; color: #bbb; }
 .chart-tab.active { background: #222; color: #fff; border-bottom: 2px solid #2196F3; }
 
-/* CONTROLS STRIP */
+/* CONTROLS STRIP (Legend & Toggle) */
 .chart-controls {
-    display: flex; /* HORIZONTAL LAYOUT */
+    display: flex;
     justify-content: space-between; align-items: center;
-    height: 34px; padding: 0 10px;
+    height: 36px; /* Slightly taller for breathing room */
+    padding: 0 15px;
     background: #151515; border-bottom: 1px solid #222;
     flex-shrink: 0;
+    font-size: 11px; /* Uniform Size */
 }
 
-/* CHART CANVAS AREA */
+/* CONTROL SECTIONS */
+.control-section {
+    display: flex; align-items: center; gap: 10px;
+}
+
+/* TOGGLE BUTTON STYLING (Polished) */
+.chart-toggle-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #bbb;
+    padding: 4px 12px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 4px; /* Rounded Corners */
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+    transition: all 0.2s ease;
+    outline: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.chart-toggle-btn:hover {
+    border-color: #555;
+    color: #fff;
+}
+
+/* LEGEND ITEMS */
+.leg-item {
+    font-size: 11px;
+    color: #ccc;
+    font-weight: 500;
+    display: flex; align-items: center;
+}
+
+/* CHART CANVAS */
 #chart-canvas {
     flex: 1;
     position: relative;
     width: 100%;
-    min-height: 0; /* Critical for Plotly */
+    min-height: 0;
 }
