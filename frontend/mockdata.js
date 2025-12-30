@@ -103,9 +103,6 @@ export const mockData = {
         rv: "11.0%", ivr: "IVR 52", ivp: "IVP 65"
     },
 
-export const mockData = {
-    // ... existing data (priceStrip, gridWeekly, etc.) ...
-
     // NEW: PCR Data
     pcr: {
         current: 0.85, // Current value (Bullish < 1.0)
