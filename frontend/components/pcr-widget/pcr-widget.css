@@ -1,1 +1,58 @@
 
+.pcr-box {
+    width: 100%;
+    /* Match SD Table margins/padding style if needed */
+    padding: 10px 15px;
+    background: #121212; /* Match card bg */
+    border-top: 1px solid #222; /* Separator from SD Table */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    height: 80px; /* Fixed height for consistency */
+}
+
+.pcr-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.pcr-value-text {
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* GAUGE TRACK */
+.pcr-track {
+    position: relative;
+    width: 100%;
+    height: 8px;
+    background: #222;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* CENTER LINE (1.0 Neutral) */
+.pcr-center-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #555;
+    z-index: 2;
+    transform: translateX(-50%);
+}
+
+/* THE BAR FILL */
+.pcr-fill {
+    position: absolute;
+    height: 100%;
+    transition: width 0.3s ease, left 0.3s ease, background 0.3s;
+}
