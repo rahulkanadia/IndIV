@@ -7,60 +7,64 @@ const LAYOUT_BASE = {
     margin: { t: 20, b: 30, l: 40, r: 20 },
 };
 
-export function updateLegend(showMonthly) {
-    const leg = document.getElementById('dynamicLegends');
-    const inp = document.getElementById('dynamicInputs');
-    const ctr = document.getElementById('dynamicCenterControls');
-    if(!leg || !inp || !ctr) return;
+function updateLegend(showMonthly) {
+    const leg = document.getElementById('dynamicLegends'); // Right side
+    const inp = document.getElementById('dynamicInputs');  // Left side
+    if(!leg || !inp) return;
 
-    ctr.innerHTML = ''; 
-
-    // RIGHT LEGEND
-    leg.innerHTML = `
-        <div class="leg-item" style="display:flex; align-items:center; margin-right:15px"><span class="leg-dot" style="background:#FF9800; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px;"></span>Weekly</div> 
-        <div class="leg-item" style="display:flex; align-items:center"><span class="leg-dot" style="background:#42A5F5; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px;"></span>Monthly</div>
-    `;
-
-    // LEFT BUTTON
-    const styleOn = `background: rgba(0, 230, 118, 0.2); color: #00E676; border: 1px solid rgba(0,230,118,0.3);`;
-    const styleOff = `background: rgba(255, 82, 82, 0.2); color: #FF5252; border: 1px solid rgba(255,82,82,0.3);`;
+    // 1. Render Toggle Button (Left)
+    const styleOn = `background: rgba(0, 230, 118, 0.15); color: #00E676; border-color: rgba(0,230,118,0.3);`;
+    const styleOff = `background: rgba(255, 82, 82, 0.15); color: #FF5252; border-color: rgba(255,82,82,0.3);`;
     
     inp.innerHTML = `
-        <div style="display:flex; align-items:center; gap: 8px; font-size: 10px; color: #888;">
+        <div style="display:flex; align-items:center; gap:8px;">
             <button id="term-toggle-btn" class="chart-toggle-btn" style="${showMonthly ? styleOn : styleOff}">
                 MONTHLY
             </button>
-            <span>is ${showMonthly ? 'ON' : 'OFF'}</span>
+            <span style="color:#666; font-size:10px;">${showMonthly ? 'ON' : 'OFF'}</span>
         </div>
     `;
 
+    // 2. Render Legends (Right)
+    leg.innerHTML = `
+        <div style="display:flex; gap:15px;">
+            <div class="leg-item"><span style="background:#FF9800; width:8px; height:8px; border-radius:50%; margin-right:6px;"></span>Weekly</div>
+            <div class="leg-item" style="opacity:${showMonthly ? 1 : 0.5}">
+                <span style="background:#42A5F5; width:8px; height:8px; border-radius:50%; margin-right:6px;"></span>Monthly
+            </div>
+        </div>
+    `;
+
+    // 3. Attach Event
     document.getElementById('term-toggle-btn').onclick = () => {
-        renderTermChart('chart-term', !showMonthly);
+        renderTermChart('chart-canvas', !showMonthly);
     };
 }
 
 export function renderTermChart(containerId, showMonthly) {
     if (typeof showMonthly === 'undefined') showMonthly = true;
 
+    // Data Traces
     const traces = [
-        { x: mockData.term.expiries, y: mockData.term.weekly, name: 'Wk', line: { color: '#FF9800' }, type: 'scatter' }
+        { x: mockData.term.expiries, y: mockData.term.weekly, name: 'Wk', line: { color: '#FF9800', width: 2 }, type: 'scatter' }
     ];
+    
     if (showMonthly) {
         traces.push(
-            { x: mockData.term.expiries, y: mockData.term.monthly, name: 'Mo', line: { color: '#42A5F5' }, type: 'scatter' }
+            { x: mockData.term.expiries, y: mockData.term.monthly, name: 'Mo', line: { color: '#42A5F5', width: 2 }, type: 'scatter' }
         );
     }
-
-    const globalRange = getGlobalIVRange();
 
     const layout = {
         ...LAYOUT_BASE,
         showlegend: false,
-        xaxis: { showgrid: false, fixedrange: true, tickfont: { color: '#fff', size: 10 } },
+        xaxis: { 
+            showgrid: false, fixedrange: true, tickfont: { color: '#888', size: 10 } 
+        },
         yaxis: { 
             gridcolor: '#1f1f1f', fixedrange: true,
-            range: globalRange, autorange: false, dtick: 1.0,           
-            ticks: 'outside', ticklen: 8, tickcolor: 'rgba(0,0,0,0)', tickfont: { color: '#fff', size: 10 }
+            range: getGlobalIVRange(), 
+            tickfont: { color: '#888', size: 10 }
         }
     };
 
