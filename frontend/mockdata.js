@@ -119,10 +119,14 @@ export const mockData = {
     },
 
     // --- PCR DATA ---
-    pcr: {
-        current: 0.85, 
-        history: [1.12, 1.10, 1.08, 1.05, 1.02, 0.98, 0.95, 0.94, 0.90, 0.88, 0.85] 
-    }, 
+// Inside mockData object
+pcr: {
+    current: 0.85,
+    // Add times corresponding to the history points
+    time: ["09:15", "09:45", "10:15", "10:45", "11:15", "11:45", "12:15", "12:45", "13:15", "13:45", "14:15"],
+    history: [1.12, 1.10, 1.08, 1.05, 1.02, 0.98, 0.95, 0.94, 0.90, 0.88, 0.85] 
+},
+
 };
 
 // --- HELPER FUNCTION ---
