@@ -1,116 +1,87 @@
-// Helper: Generates 15-min slots for the full Indian trading day (09:15 - 15:30)
-function generateMarketTimeArray() {
-    const times = [];
-    let h = 9, m = 15;
-    while (h < 15 || (h === 15 && m <= 30)) {
-        const hh = h.toString().padStart(2, '0');
-        const mm = m.toString().padStart(2, '0');
-        times.push(`${hh}:${mm}`);
-        m += 15;
-        if (m === 60) { m = 0; h++; }
-    }
-    return times;
-}
-
 export function renderPCRSpark(containerId, pcrData) {
     const container = document.getElementById(containerId);
     if (!container || !pcrData || !pcrData.history) return;
 
-    // 1. Generate Master Timeline (Fixed 15-min X-Axis)
-    const fullTimeline = generateMarketTimeArray();
-    
-    // 2. Map Data to Timeline
-    const yValues = [];
-    const colorValues = [];
-    const textValues = [];
+    const currentVal = pcrData.history[pcrData.history.length - 1];
 
-    // Lookup map for incoming data
-    const dataMap = {};
-    if (pcrData.time && pcrData.history) {
-        pcrData.time.forEach((t, i) => {
-            dataMap[t] = pcrData.history[i];
-        });
-    }
-
-    fullTimeline.forEach(t => {
-        const val = dataMap[t];
-        if (val !== undefined) {
-            yValues.push(1); // Full height bar
-            textValues.push(val.toFixed(2));
-            
-            // Color Logic
-            if (val > 1.0) colorValues.push('#D32F2F');      // Red (Bearish)
-            else if (val >= 0.7) colorValues.push('#757575'); // Grey (Neutral)
-            else colorValues.push('#388E3C');                 // Green (Bullish)
-        } else {
-            // Future placeholder (Transparent)
-            yValues.push(null); 
-            textValues.push('');
-            colorValues.push('transparent');
-        }
-    });
-
-    // 3. HTML Structure
+    // 1. Structure
     container.innerHTML = `
         <div class="pcr-spark-box">
             <div class="pcr-header-centered">
-                <span class="pcr-title-text">Intraday PCR</span>
+                <span class="pcr-title-text">PCR: ${currentVal.toFixed(2)}</span>
             </div>
             <div id="pcr-spark-chart"></div>
         </div>
     `;
 
-    // 4. Trace Configuration
+    // 2. Determine Marker Colors
+    // Red (>1), Grey (0.7-1), Green (<0.7)
+    const markerColors = pcrData.history.map(val => {
+        if (val > 1.0) return '#FF5252';       // Bearish (Red)
+        if (val >= 0.7) return '#B0B0B0';      // Neutral (White/Grey)
+        return '#00E676';                      // Bullish (Green)
+    });
+
+    // 3. Dynamic Range Safety
+    // If PCR spikes to 1.8, we don't want the line to cut off.
+    const minP = Math.min(...pcrData.history);
+    const maxP = Math.max(...pcrData.history);
+    // Base range is 0.4 to 1.6. If data exceeds, expand the view.
+    const lowerBound = Math.min(0.4, minP - 0.1);
+    const upperBound = Math.max(1.6, maxP + 0.1);
+
     const trace = {
-        x: fullTimeline,
-        y: yValues,
-        text: textValues,
-        textposition: 'inside',          // Force text inside the block
-        insidetextorientation: 'horizontal', // NEVER ROTATE
-        type: 'bar',
-        marker: {
-            color: colorValues,
-            line: {
-                color: '#121212',        // Dark separator
-                width: 2
-            }
+        x: pcrData.time,
+        y: pcrData.history,
+        type: 'scatter',
+        mode: 'lines+markers',
+        line: { 
+            color: '#FF9800', 
+            width: 1,       
+            dash: 'dot'     
         },
-        hoverinfo: 'x+text',             // Tooltip: Time + Value
-        insidetextfont: {
-            family: 'Segoe UI',
-            size: 9,                     // Small enough to fit horizontally
-            color: '#fff',
-            weight: 'bold'
-        }
+        marker: { 
+            color: markerColors,
+            size: 6,
+            line: { color: '#121212', width: 1 } 
+        },
+        hoverinfo: 'y+x'
     };
 
-    // 5. Layout Configuration
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
-        margin: { t: 5, b: 25, l: 0, r: 0 },
+        // Left margin allows space for axis labels
+        margin: { t: 10, b: 25, l: 55, r: 15 }, 
         
         xaxis: { 
             visible: true, 
             type: 'category', 
             fixedrange: true,
-            
-            // Show tick only every hour (4 * 15min)
-            tickmode: 'array',
-            tickvals: fullTimeline.filter((_, i) => i % 4 === 0), 
-            
-            tickfont: { size: 10, color: '#666' },
+            tickfont: { size: 9, color: '#666' },
             showgrid: false,
             zeroline: false
         },
         
         yaxis: { 
-            visible: false, 
+            visible: true, 
             fixedrange: true,
-            range: [0, 1] 
+            range: [lowerBound, upperBound], // Safe Dynamic Range
+            
+            // Custom Text Labels anchored to specific values
+            tickmode: 'array',
+            tickvals: [0.55, 1.0, 1.45], 
+            ticktext: ['BULL', 'NEUTRAL', 'BEAR'],
+            tickfont: { 
+                size: 9, 
+                color: '#888', 
+                family: 'Segoe UI', 
+                weight: 'bold' 
+            },
+            showgrid: false, 
+            zeroline: false
         },
         
-        bargap: 0, // GANTT STRIP EFFECT
         dragmode: false
     };
 
