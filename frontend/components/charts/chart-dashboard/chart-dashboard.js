@@ -1,7 +1,7 @@
 // GO UP ONE LEVEL (..) THEN INTO SPECIFIC FOLDERS
 import { renderTermChart } from '../term-structure/chart-term.js';
 import { renderSkewChart } from '../volatility-skew/chart-skew.js';
-import { renderSurfaceChart } from '../volatility-surface/chart-surface.js';
+import { renderSurfaceCharts } from '../volatility-surface/chart-surface.js';
 import { renderIntradayChart } from '../intraday-iv-rv/chart-intraday.js';
 
 const tabs = [
