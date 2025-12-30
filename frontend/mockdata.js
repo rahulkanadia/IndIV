@@ -1,8 +1,8 @@
 export const mockData = {
     spot: 26150,
     strikes: Array.from({length: 21}, (_, i) => 26000 + (i * 50)),
-    
-    // --- SK CHART DATA ---
+
+    // --- SKEW CHART DATA ---
     skew: {
         call: [13.5, 13.2, 13.0, 12.8, 12.6, 12.5, 12.4, 12.4, 12.5, 12.6, 12.8, 13.0, 13.3, 13.6, 13.9, 14.3, 14.7, 15.2, 15.8, 16.4, 17.0],
         put: [15.5, 15.0, 14.6, 14.2, 13.9, 13.6, 13.4, 13.2, 13.0, 12.9, 12.8, 12.8, 12.9, 13.0, 13.2, 13.5, 13.9, 14.4, 15.0, 15.7, 16.5],
@@ -12,14 +12,14 @@ export const mockData = {
         call: [14.5, 14.4, 14.3, 14.2, 14.1, 14.0, 14.0, 14.0, 14.1, 14.2, 14.3, 14.5, 14.7, 15.0, 15.3, 15.7, 16.1, 16.6, 17.1, 17.7, 18.3],
         put: [16.0, 15.8, 15.6, 15.4, 15.2, 15.0, 14.8, 14.7, 14.6, 14.5, 14.5, 14.6, 14.7, 14.9, 15.2, 15.5, 15.9, 16.4, 17.0, 17.7]
     },
-    
+
     // --- TERM STRUCTURE DATA ---
     term: {
         weekly: [12.8, 14.5, 15.2, 15.8, 16.2],
         monthly: [14.5, 15.0, 15.5, 16.0, 16.5],
         expiries: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '30 Jan']
     },
-    
+
     // --- SURFACE DATA (MONTHLY DEFAULT) ---
     surfMoney: { 
         // 3 Rows (Months) x 11 Cols (Moneyness)
@@ -77,7 +77,7 @@ export const mockData = {
         x: ['20D', '50D', '80D'], // 3 Items matches Z-row length
         y: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '23 Jan', '30 Jan', '06 Feb', '13 Feb', '20 Feb'] 
     }, 
-    
+
     // --- INTRADAY DATA ---
     intraday: {
         time: ["09:15", "10:15", "11:15", "12:15", "13:15"],
@@ -103,23 +103,30 @@ export const mockData = {
         rv: "11.0%", ivr: "IVR 52", ivp: "IVP 65"
     },
 
-    // NEW: PCR Data
+    // --- SD TABLE DATA (Restored) ---
+    sdTable: {
+        levels: ["+2 SD", "+1 SD", "Mean", "-1 SD", "-2 SD"],
+        call: ["26,800", "26,500", "26,150", "25,800", "25,500"],
+        put: ["26,850", "26,550", "26,180", "25,850", "25,550"]
+    },
+
+    // --- GREEKS DATA (Restored) ---
+    greeks: {
+        delta: { call: "0.52", put: "-0.48" },
+        gamma: { call: "0.0018", put: "0.0018" },
+        theta: { call: "-12.5", put: "-11.8" },
+        vega: { call: "18.2", put: "18.2" }
+    },
+
+    // --- PCR DATA ---
     pcr: {
-        current: 0.85, // Current value (Bullish < 1.0)
-        
-        // History for the Sparkline (Option 3)
-        // Represents 15-min intervals or similar
+        current: 0.85, 
         history: [1.12, 1.10, 1.08, 1.05, 1.02, 0.98, 0.95, 0.94, 0.90, 0.88, 0.85] 
     }, 
 };
 
-// NEW HELPER FUNCTION: Calculates Dynamic Y-Axis Range
-// frontend/mockdata.js
-
-// ... (mockData object) ...
-
+// --- HELPER FUNCTION ---
 export function getGlobalIVRange() {
-    // 1. Collect ALL data points from both charts
     const allIVs = [
         ...mockData.skew.call,
         ...mockData.skew.put,
@@ -132,7 +139,5 @@ export function getGlobalIVRange() {
     const minV = Math.min(...allIVs);
     const maxV = Math.max(...allIVs);
 
-    // 2. Return a strict integer range
-    // Floor - 1 and Ceil + 1 ensures we never touch the edge
     return [Math.floor(minV) - 1, Math.ceil(maxV) + 1];
 }
