@@ -9,7 +9,7 @@
     overflow: hidden;
 }
 
-/* --- CONTROLS STRIP (Restored) --- */
+/* --- CONTROLS STRIP --- */
 .greeks-controls {
     display: flex;
     justify-content: space-between;
@@ -18,66 +18,68 @@
     background: #111;
     border-bottom: 1px solid #222;
     flex-shrink: 0;
+    gap: 10px;
 }
 
+/* Expiry Tabs Styling */
 .expiry-tabs {
     display: flex;
-    gap: 5px;
+    gap: 4px;
+    flex-wrap: nowrap;
+    overflow-x: auto; /* Allow scroll if too many expiries */
 }
 
 .expiry-btn {
     background: #1a1a1a;
     border: 1px solid #333;
     color: #888;
-    padding: 4px 8px;
+    padding: 4px 10px;
     font-size: 10px;
+    font-weight: 600;
     border-radius: 4px;
     cursor: pointer;
     font-family: 'Segoe UI', sans-serif;
+    transition: 0.2s;
+    white-space: nowrap;
+}
+
+.expiry-btn:hover {
+    background: #222;
+    color: #bbb;
 }
 
 .expiry-btn.active {
-    background: #007ACC;
-    border-color: #007ACC;
+    background: #2196F3; /* Blue highlight */
+    border-color: #2196F3;
     color: #fff;
 }
 
-.toggle-container {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+/* Major Strikes Button (Matches Chart Monthly Button) */
+.major-strikes-btn {
+    border: none;
+    padding: 0 12px;
+    height: 24px;
+    border-radius: 4px;
     font-size: 10px;
-    color: #ccc;
-}
-
-/* Toggle Switch */
-.toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 28px;
-    height: 16px;
-}
-.toggle-switch input { opacity: 0; width: 0; height: 0; }
-.slider {
-    position: absolute;
+    font-weight: 700;
     cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #333;
-    transition: .4s;
-    border-radius: 16px;
+    outline: none;
+    transition: 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    /* Default OFF State styling will be set via inline styles in JS, 
+       but basic structure is here */
+    background: rgba(255, 82, 82, 0.15); 
+    color: #FF5252; 
+    border: 1px solid rgba(255, 82, 82, 0.3);
 }
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 12px; width: 12px;
-    left: 2px; bottom: 2px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-input:checked + .slider { background-color: #fff; }
-input:checked + .slider:before { transform: translateX(12px); background-color: #000; }
 
+.major-strikes-btn.active {
+    background: rgba(0, 230, 118, 0.15); 
+    color: #00E676; 
+    border: 1px solid rgba(0, 230, 118, 0.3);
+}
 
 /* --- TABLE --- */
 .greeks-table-wrapper {
@@ -111,7 +113,7 @@ input:checked + .slider:before { transform: translateX(12px); background-color: 
     border-bottom: 1px solid #1f1f1f;
 }
 
-/* ATM Strike (No Border, Just Text Color) */
+/* ATM Strike */
 .col-strike {
     background: #1a1a1a;
     font-weight: 700;
@@ -121,8 +123,7 @@ input:checked + .slider:before { transform: translateX(12px); background-color: 
     width: 50px;
 }
 .row-atm .col-strike {
-    color: #FF9800 !important; /* Orange Text */
-    /* Border removed as requested */
+    color: #FF9800 !important;
 }
 
 /* Combined OI Column */
@@ -130,7 +131,7 @@ input:checked + .slider:before { transform: translateX(12px); background-color: 
     position: relative;
     font-family: 'Consolas', monospace;
     font-size: 10px;
-    width: 80px; /* Fixed width for better bar alignment */
+    width: 80px; 
     z-index: 1;
 }
 .oi-bar-bg {
