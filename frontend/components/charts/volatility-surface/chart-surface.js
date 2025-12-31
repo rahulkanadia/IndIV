@@ -10,7 +10,7 @@ const LAYOUT_BASE = {
 function generateSmartCommentary(zValues, showMonthly) {
     // Calculate average IV for Put side (left cols) vs Call side (right cols)
     let putSum = 0, callSum = 0, count = 0;
-    
+
     // Scan rows (expiries)
     zValues.forEach(row => {
         // Assuming 5 columns: 0,1 (Puts) | 2 (ATM) | 3,4 (Calls)
@@ -50,7 +50,6 @@ function updateLegend(showMonthly, zValues) {
 
     const commonStyle = 'width: 80px; text-align: center; border-radius: 4px; font-weight: 600; font-size: 10px; cursor: pointer; transition: all 0.2s; outline: none;';
 
-    // Fixed syntax error: $(...) -> ${...}
     const styleOn = `${commonStyle} background: #42A5F5; color: #fff; border: 1px solid #42A5F5;`;
     const styleOff = `${commonStyle} background: #fff; color: #42A5F5; border: 1px solid #42A5F5;`;
 
@@ -119,19 +118,24 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         yaxis: { 
             side: 'right',          
             color: '#fff',          
-            showline: true,
-            mirror: false,          
+            showline: true,         // KEEP: Y-Axis Line
+            mirror: true,           // ADD: Border effect
             tickfont: {size:11, weight:'bold'}, 
             tickprefix: '    ',
             fixedrange: true,
-            showgrid: false
+            showgrid: false,
+            ticks: 'outside',       // ADD: Dashes on border
+            ticklen: 5
         },
         xaxis: { 
             title: '', 
-            showline: false,     // CHANGED: Remove axis line
+            showline: true,         // CHANGED: Enable X-Axis Line
+            mirror: true,
             tickfont: {color:'#ccc', size:9}, 
             fixedrange: true,
-            showgrid: false
+            showgrid: false,
+            ticks: 'outside',
+            ticklen: 5
         },
         margin: { t: 30, b: 30, l: 30, r: 65 }, 
     }, { displayModeBar: false, responsive: true });
@@ -155,27 +159,29 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         },
         yaxis: { 
             side: 'left',
-            showticklabels: false, 
-            showline: false,     // CHANGED: Remove axis line
-            mirror: false,
+            showticklabels: true,    // CHANGED: Enabled labels as requested previously
+            showline: true,          // CHANGED: Enable Y-Axis Line
+            mirror: true,            // ADD: Border effect
             fixedrange: true,
-            ticks: '',           // CHANGED: Removed ticks to clean up the edge
-            ticks: 'outside', tickcolor: '#fff', ticklen: 5 
+            ticks: 'outside',        // FIXED: Syntax error resolved & dashes enabled
+            tickcolor: '#fff', 
+            ticklen: 5,
             showgrid: false 
         },
         xaxis: { 
             title: '', 
             type: 'category', 
-            showline: false,     // CHANGED: Remove axis line
+            showline: true,          // CHANGED: Enable X-Axis Line
+            mirror: true,
             tickfont: {color:'#ccc', size:9}, 
             fixedrange: true,
-            showgrid: false
+            showgrid: false,
+            ticks: 'outside',
+            ticklen: 5
         },
-        margin: { t: 30, b: 30, l: 10, r: 30 }, 
+        margin: { t: 30, b: 30, l: 30, r: 30 }, // Adjusted Left Margin slightly for labels
     }, { displayModeBar: false, responsive: true });
 
     // UPDATED: Pass zValues for smart text analysis
     updateLegend(showMonthly, zValues);
 }
-
-
