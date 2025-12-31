@@ -47,7 +47,7 @@ export function renderPCRSpark(containerId, data) {
             font: { size: 12, color: '#FF9800', weight: 700 }, // ORANGE
             x: 0.01,
             y: 0.98,
-            xanchor: 'center',
+            xanchor: 'middle',
             yanchor: 'top'
         },
         
