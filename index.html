@@ -94,18 +94,28 @@
             height: 100%; 
         }
 
-        .split-row {
-            flex: 0 0 35%; /* Reduced height to remove blank space */
-            display: flex; border-bottom: 1px solid #222;
-        }
+/* Right Top: Split Row (PCR + SD Table) */
+.split-row {
+    flex: 0 0 10%;   /* CHANGED: Fixed to 10% of panel height */
+    display: flex;
+    border-bottom: 1px solid #222;
+}
+
+
         
         /* UPDATED WIDTHS */
         .split-pcr { width: 65%; height: 100%; border-right: 1px solid #222; position: relative; }
         .split-sd  { width: 35%; height: 100%; }
 
         /* Middle: Greeks */
-        #greeks-table-container { flex: 1; min-height: 0; border-bottom: 1px solid #222; overflow: hidden; }
-
+ 
+/* Right Middle: Greeks Table */
+#greeks-table-container { 
+    flex: 1;         /* REMAINING SPACE: Automatically takes whatever is left */
+    min-height: 0; 
+    border-bottom: 1px solid #222; 
+    overflow: hidden; 
+}
         /* Bottom: Quotes */
         #quote-box-container { 
             flex: 0 0 32px; background: #080808; 
