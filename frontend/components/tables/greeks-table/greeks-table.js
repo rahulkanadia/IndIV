@@ -120,7 +120,7 @@ export function renderGreeksTable(containerId, mockData) {
     // 3. BUILD CONTROLS HTML
     // REMOVED INLINE STYLES HERE
     const activeClass = majorStrikesOn ? 'active' : '';
-    const btnText = majorStrikesOn ? 'MAJOR STRIKES' : 'ALL STRIKES'
+    const btnText = majorStrikesOn ? 'ALL STRIKES' : 'MAJOR STRIKES'
 
     const expiries = [
         '26 Dec (Wk)', '02 Jan (Wk)', '09 Jan (Wk)', 
@@ -140,6 +140,7 @@ export function renderGreeksTable(containerId, mockData) {
             </div>
             
             <div class="control-separator"></div>
+            <span class="control-label"> show </span>
 
             <div class="toggle-container">
                 <button id="btn-major-strikes" class="major-strikes-btn ${activeClass}">
