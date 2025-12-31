@@ -2,18 +2,18 @@ export function renderPCRSpark(containerId, data) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // 1. Filter X-Axis labels (Reduce density to 1/3)
+    // 1. Filter X-Axis labels (Reduce density)
     const tickVals = [];
     const tickText = [];
     data.time.forEach((t, i) => {
-        if (i % 3 === 0) { // Take every 3rd point
+        if (i % 3 === 0) { 
             tickVals.push(t);
             tickText.push(t);
         }
     });
 
-    // 2. Generate Color-Coded Markers based on Value
-    // > 1.0 = Green, < 0.7 = Red, Middle = Grey
+    // 2. Color Logic
+    const currentVal = data.current;
     const markerColors = data.history.map(val => {
         if (val >= 1.0) return '#00E676';
         if (val <= 0.7) return '#FF5252';
@@ -23,14 +23,11 @@ export function renderPCRSpark(containerId, data) {
     const trace = {
         x: data.time,
         y: data.history,
-        mode: 'lines+markers', // RESTORED: Line + Markers
-        line: { 
-            color: '#444', // Neutral line color connecting the dots
-            width: 1 
-        },
+        mode: 'lines+markers',
+        line: { color: '#444', width: 1 },
         marker: {
-            color: markerColors, // RESTORED: Dynamic Colors
-            size: 5,
+            color: markerColors,
+            size: 4,
             symbol: 'circle',
             line: { width: 0 }
         },
@@ -40,7 +37,16 @@ export function renderPCRSpark(containerId, data) {
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
-        margin: { t: 10, r: 10, b: 10, l: 30 }, // Reduced margins to fit tight space
+        // UPDATED: Margins adjusted for Title
+        margin: { t: 30, r: 15, b: 20, l: 30 }, 
+        title: {
+            text: `PCR: ${currentVal.toFixed(2)}`,
+            font: { size: 12, color: '#FF9800', weight: 700 }, // ORANGE TITLE
+            x: 0.05, // Left align
+            y: 0.98,
+            xanchor: 'left',
+            yanchor: 'top'
+        },
         xaxis: {
             tickmode: 'array',
             tickvals: tickVals,
@@ -48,7 +54,7 @@ export function renderPCRSpark(containerId, data) {
             showgrid: false,
             color: '#666',
             tickfont: { size: 9 },
-            tickangle: 0, // No Rotation
+            tickangle: 0,
             fixedrange: true
         },
         yaxis: {
@@ -56,24 +62,16 @@ export function renderPCRSpark(containerId, data) {
             gridcolor: '#222',
             color: '#666',
             tickfont: { size: 9 },
-            fixedrange: true
+            fixedrange: true,
+            // UPDATED: Fixed Range 0.0 to 2.0, Steps of 0.4
+            range: [0, 2],
+            dtick: 0.4
         },
         showlegend: false
     };
 
-    // Header Overlay (Absolute position)
-    const currentVal = data.current;
-    const colorClass = currentVal >= 1 ? '#00E676' : (currentVal <= 0.7 ? '#FF5252' : '#E0E0E0');
-    
-    container.innerHTML = `
-        <div style="position: absolute; top: 5px; left: 10px; z-index: 10;">
-            <div style="font-size: 10px; color: #888; font-weight: 600;">PCR</div>
-            <div style="font-size: 14px; font-weight: 700; color: ${colorClass};">
-                ${currentVal.toFixed(2)}
-            </div>
-        </div>
-        <div id="${containerId}-plot" style="width: 100%; height: 100%;"></div>
-    `;
+    // Remove previous HTML overlay, Plotly handles title now
+    container.innerHTML = `<div id="${containerId}-plot" style="width: 100%; height: 100%;"></div>`;
 
     Plotly.newPlot(`${containerId}-plot`, [trace], layout, { displayModeBar: false, responsive: true });
 }
