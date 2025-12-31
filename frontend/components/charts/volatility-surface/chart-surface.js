@@ -119,7 +119,7 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         yaxis: { 
             side: 'right',          
             color: '#fff',          
-            showline: false,     // CHANGED: Remove axis line
+            showline: true,
             mirror: false,          
             tickfont: {size:11, weight:'bold'}, 
             tickprefix: '    ',
@@ -160,7 +160,7 @@ export function renderSurfaceCharts(containerId, showMonthly) {
             mirror: false,
             fixedrange: true,
             ticks: '',           // CHANGED: Removed ticks to clean up the edge
-//          ticks: 'outside', tickcolor: '#fff', ticklen: 5 
+            ticks: 'outside', tickcolor: '#fff', ticklen: 5 
             showgrid: false 
         },
         xaxis: { 
