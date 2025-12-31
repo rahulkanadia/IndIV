@@ -1,6 +1,5 @@
 import { mockData } from '../../../mockdata.js';
 
-// Margins tuned for central axis meeting point
 const LAYOUT_BASE = {
     paper_bgcolor: 'rgba(0,0,0,0)', 
     plot_bgcolor: 'rgba(0,0,0,0)',
@@ -15,23 +14,24 @@ function updateLegend(showMonthly) {
     const styleOn = `background: rgba(0, 230, 118, 0.15); color: #00E676; border-color: rgba(0,230,118,0.3);`;
     const styleOff = `background: rgba(255, 82, 82, 0.15); color: #FF5252; border-color: rgba(255,82,82,0.3);`;
 
-    // Controls: Toggle + Axis Explanations
     inp.innerHTML = `
         <div style="display:flex; align-items:center; gap:15px;">
             <button id="surf-toggle-btn" class="chart-toggle-btn" style="${showMonthly ? styleOn : styleOff}">
                 ${showMonthly ? 'MONTHLY VIEWS' : 'WEEKLY VIEWS'}
             </button>
-            <span style="color:#888; font-size:10px;">| L: Moneyness | R: Delta |</span>
         </div>
     `;
 
-    // Legend: IV Gradient
+    // Dual Gradient Legend
     leg.innerHTML = `
-        <div style="display:flex; align-items:center; gap:10px;">
+        <div style="display:flex; align-items:center; gap:15px;">
              <div class="leg-item">
-                <span style="font-size:9px; color:#ccc; margin-right:6px;">Lower IV</span>
-                <span style="background:linear-gradient(90deg, #FF9800, #42A5F5); width:60px; height:8px; border-radius:2px; border:1px solid #333;"></span>
-                <span style="font-size:9px; color:#ccc; margin-left:6px;">Higher IV</span>
+                <span style="font-size:9px; color:#ccc; margin-right:6px;">Moneyness</span>
+                <span style="background:linear-gradient(90deg, #E3F2FD, #0D47A1); width:40px; height:8px; border-radius:2px;"></span>
+            </div>
+            <div class="leg-item">
+                <span style="font-size:9px; color:#ccc; margin-right:6px;">Delta</span>
+                <span style="background:linear-gradient(90deg, #FFFDE7, #FF3D00); width:40px; height:8px; border-radius:2px;"></span>
             </div>
         </div>
     `;
@@ -41,17 +41,69 @@ function updateLegend(showMonthly) {
     };
 }
 
+// HELPER: Generate Shapes & Annotations for Signals
+function createSignalOverlay(signalMatrix, xLabels, yLabels, xref, yref) {
+    const shapes = [];
+    const annotations = [];
+
+    // Iterate matrix
+    signalMatrix.forEach((row, rowIndex) => {
+        row.forEach((sig, colIndex) => {
+            if (!sig) return;
+
+            const color = sig === 'buy' ? '#00E676' : '#FF5252';
+            const labelText = sig === 'buy' ? 'PoP: Buy' : 'PoP: Sell';
+            
+            // Plotly Heatmap coordinates align with indices/labels
+            // x0, x1 around the center point
+            const xVal = xLabels[colIndex];
+            const yVal = yLabels[rowIndex];
+
+            // 1. Border Box (Shape)
+            shapes.push({
+                type: 'rect',
+                xref: xref, yref: yref,
+                x0: colIndex - 0.45, x1: colIndex + 0.45, // Use indices for discrete heatmap placement
+                y0: rowIndex - 0.45, y1: rowIndex + 0.45,
+                line: { color: color, width: 2 },
+                fillcolor: color,
+                opacity: 0.2 // Transparent fill
+            });
+
+            // 2. Text Label (Annotation)
+            annotations.push({
+                xref: xref, yref: yref,
+                x: colIndex,
+                y: rowIndex,
+                text: `<b>${labelText}</b>`,
+                showarrow: false,
+                font: { color: '#fff', size: 9, family: 'Segoe UI' },
+                bgcolor: 'rgba(0,0,0,0.6)',
+                borderpad: 2,
+                borderwidth: 0
+            });
+        });
+    });
+
+    return { shapes, annotations };
+}
+
 export function renderSurfaceCharts(containerId, showMonthly) {
     if (typeof showMonthly === 'undefined') showMonthly = true; 
 
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // 1. DATA SELECTION (Dynamic based on toggle)
+    // 1. DATA SELECTION
     const expiries = showMonthly ? mockData.surface.expiriesMonthly : mockData.surface.expiriesWeekly;
     const zValues = showMonthly ? mockData.surface.zMo : mockData.surface.zWk;
+    const signals = showMonthly ? mockData.surface.sigMo : mockData.surface.sigWk;
+    
+    // Axis Labels
+    const xMoneyness = mockData.surface.moneyness;
+    const xDelta = mockData.surface.delta;
 
-    // 2. CONTAINER SETUP (Just two divs, no separator line div needed now)
+    // 2. CONTAINER
     container.innerHTML = `
         <div style="display: flex; width: 100%; height: 100%;">
             <div id="surf-left" style="flex: 1; height: 100%;"></div>
@@ -59,57 +111,76 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         </div>
     `;
 
-    // SHARED COLOR SCALE
-    const colorscale = [ [0, '#FF9800'], [1, '#42A5F5'] ];
+    // 3. GENERATE OVERLAYS
+    // Left Chart (Moneyness)
+    const overlayLeft = createSignalOverlay(signals, xMoneyness, expiries, 'x', 'y');
+    // Right Chart (Delta) - reusing same signal logic for demo (or use separate if available)
+    const overlayRight = createSignalOverlay(signals, xDelta, expiries, 'x', 'y');
 
     // --- CHART 1: MONEYNESS (Left) ---
-    // Configured to show Y-axis line and labels on the RIGHT edge.
+    // Color: Blues
+    // Y-Axis: Labels + Line on RIGHT
     Plotly.newPlot('surf-left', [{
         type: 'heatmap',
-        x: mockData.surface.moneyness, 
+        x: xMoneyness, 
         y: expiries,
         z: zValues,
-        colorscale: colorscale, showscale: false,
-        xgap: 1, ygap: 1
+        colorscale: 'Blues', 
+        showscale: false,
+        xgap: 2, ygap: 2 // Gaps for grid look
     }], {
         ...LAYOUT_BASE,
-        // THE CENTRAL AXIS TRICK:
+        title: { text: 'By Moneyness', font: {size:11, color:'#bbb'}, x:0.05, y:0.98 },
         yaxis: { 
-            side: 'right',          // Put labels on right side
-            color: '#fff',          // Text color
-            showline: true,         // Draw the axis line
-            linecolor: '#fff',      // Line color white
-            linewidth: 2,           // Make it visible
-            mirror: false,          // Only draw on the right side
+            side: 'right',          
+            color: '#fff',          
+            showline: true,         
+            linecolor: '#fff',      
+            linewidth: 2,           
+            mirror: false,          
             tickfont: {size:11, weight:'bold'}, 
             fixedrange: true
         },
         xaxis: { 
-            title: 'Moneyness (%)', titlefont:{size:10, color:'#888'}, 
-            tickfont: {color:'#ccc', size:9}, fixedrange: true
+            title: '', 
+            tickfont: {color:'#ccc', size:9}, fixedrange: true 
         },
-        // Right margin must accommodate labels to sit exactly in the middle
-        margin: { t: 10, b: 30, l: 30, r: 65 } 
+        margin: { t: 30, b: 30, l: 30, r: 65 }, // Right margin for labels
+        shapes: overlayLeft.shapes,
+        annotations: overlayLeft.annotations
     }, { displayModeBar: false, responsive: true });
 
     // --- CHART 2: DELTA (Right) ---
-    // Y-axis completely hidden. Left margin meets the central line.
+    // Color: YlOrRd (Yellow-Orange-Red)
+    // Y-Axis: Line ONLY on LEFT (No labels)
     Plotly.newPlot('surf-right', [{
         type: 'heatmap',
-        x: mockData.surface.delta,
+        x: xDelta,
         y: expiries,
         z: zValues, 
-        colorscale: colorscale, showscale: false,
-        xgap: 1, ygap: 1
+        colorscale: 'YlOrRd', 
+        showscale: false,
+        xgap: 2, ygap: 2
     }], {
         ...LAYOUT_BASE,
-        yaxis: { visible: false, fixedrange: true }, 
-        xaxis: { 
-            title: 'Delta', titlefont:{size:10, color:'#888'}, 
-            type: 'category', tickfont: {color:'#ccc', size:9}, fixedrange: true
+        title: { text: 'By Delta', font: {size:11, color:'#bbb'}, x:0.05, y:0.98 },
+        yaxis: { 
+            side: 'left',
+            showticklabels: false, // Hide Text
+            showline: true,        // Show Line
+            linecolor: '#fff',
+            linewidth: 2,
+            mirror: false,
+            fixedrange: true,
+            ticks: 'outside', tickcolor: '#fff', ticklen: 5 // Ticks point out to meet left chart
         },
-        // Left margin near zero to abut the central line
-        margin: { t: 10, b: 30, l: 5, r: 30 }
+        xaxis: { 
+            title: '', 
+            type: 'category', tickfont: {color:'#ccc', size:9}, fixedrange: true 
+        },
+        margin: { t: 30, b: 30, l: 10, r: 30 }, // Left margin near zero
+        shapes: overlayRight.shapes,
+        annotations: overlayRight.annotations
     }, { displayModeBar: false, responsive: true });
 
     updateLegend(showMonthly);
