@@ -1,13 +1,13 @@
 // --- HEATMAP HELPER (UPDATED FOR LIGHTER COLORS) ---
 function getBgColor(value, min, max, isCall) {
     if (min === max || value === undefined) return 'transparent';
-    
+
     let pct = (Math.abs(value) - min) / (max - min);
     if (pct < 0) pct = 0; if (pct > 1) pct = 1;
 
     // REDUCED OPACITY: Base 0.05, Max add 0.15 = Total Max 0.20
     const opacity = 0.05 + (pct * 0.15);
-    
+
     const color = isCall ? `0, 230, 118` : `255, 82, 82`;
     return `rgba(${color}, ${opacity.toFixed(3)})`;
 }
@@ -66,7 +66,7 @@ function calculateStrike(atm, index, isMajor) {
     if (atm % 100 === 0) {
         return atm + (index * 100);
     }
-    
+
     // Case B: ATM ends in 50 (e.g., 26150)
     if (index === 0) return atm;
     if (index > 0) {
@@ -88,12 +88,11 @@ export function renderGreeksTable(containerId, mockData) {
     // 1. GENERATE DUMMY DATA
     const centerStrike = 26150; 
     let rows = [];
-    
+
     for (let i = -10; i <= 10; i++) {
         const strike = calculateStrike(centerStrike, i, majorStrikesOn);
         const dist = Math.abs((strike - centerStrike) / 50); 
-        
-        // Simulating curve
+
         const gamma = Math.max(0.0005, (0.0035 - (dist * 0.0001))).toFixed(4);
         const vega = Math.max(10, (15.0 - (dist * 0.2))).toFixed(1);
         const theta = Math.min(-5, (-14.2 + (dist * 0.2))).toFixed(1);
@@ -115,13 +114,12 @@ export function renderGreeksTable(containerId, mockData) {
         });
     }
 
-    // 2. CALCULATE RANGES (Only Delta/Gamma)
+    // 2. CALCULATE RANGES
     const rng = getColumnRanges(rows);
 
     // 3. BUILD CONTROLS HTML
-    const styleOn = `background: rgba(0, 230, 118, 0.2); color: #00E676; border: 1px solid rgba(0,230,118,0.3);`;
-    const styleOff = `background: rgba(255, 82, 82, 0.2); color: #FF5252; border: 1px solid rgba(255,82,82,0.3);`;
-    const currentBtnStyle = majorStrikesOn ? styleOn : styleOff;
+    // REMOVED INLINE STYLES HERE
+    const activeClass = majorStrikesOn ? 'active' : '';
 
     const expiries = [
         '26 Dec (Wk)', '02 Jan (Wk)', '09 Jan (Wk)', 
@@ -143,7 +141,7 @@ export function renderGreeksTable(containerId, mockData) {
             <div class="control-separator"></div>
 
             <div class="toggle-container">
-                <button id="btn-major-strikes" class="major-strikes-btn" style="${currentBtnStyle}">
+                <button id="btn-major-strikes" class="major-strikes-btn ${activeClass}">
                     MAJOR STRIKES
                 </button>
             </div>
@@ -155,7 +153,6 @@ export function renderGreeksTable(containerId, mockData) {
         const isATM = r.strike === centerStrike || r.strike === 26150; 
         const rowClass = isATM ? 'row-atm' : '';
 
-        // CALL SIDE
         const cOI = renderCombinedOI(r.call.oi, r.call.oiChg);
         const cG = `<td style="background:${getBgColor(r.call.gamma, rng.gamma.min, rng.gamma.max, true)}">${r.call.gamma}</td>`;
         const cV = `<td>${r.call.vega}</td>`;
@@ -163,7 +160,6 @@ export function renderGreeksTable(containerId, mockData) {
         const cD = `<td style="background:${getBgColor(r.call.delta, rng.delta.min, rng.delta.max, true)}">${r.call.delta}</td>`;
         const cI = `<td>${r.call.iv}</td>`;
 
-        // PUT SIDE
         const pI = `<td>${r.put.iv}</td>`;
         const pD = `<td style="background:${getBgColor(r.put.delta, rng.delta.min, rng.delta.max, false)}">${r.put.delta}</td>`;
         const pT = `<td>${r.put.theta}</td>`;
@@ -205,7 +201,6 @@ export function renderGreeksTable(containerId, mockData) {
     `;
 
     // 6. ATTACH EVENT LISTENERS
-    
     const btn = document.getElementById('btn-major-strikes');
     if(btn) {
         btn.onclick = () => {
