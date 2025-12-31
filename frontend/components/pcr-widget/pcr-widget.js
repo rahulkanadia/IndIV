@@ -37,20 +37,20 @@ export function renderPCRSpark(containerId, data) {
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
-        
-        // CRITICAL: Tighter margins to remove blank space
-        // 't: 30' leaves room for Title. 'b: 20' is minimal for X-axis labels.
+
+        // Tighter margins: 't:35' reserves space for the title
         margin: { t: 35, r: 15, b: 20, l: 30 }, 
-        
+
         title: {
             text: `PCR: ${currentVal.toFixed(2)}`,
             font: { size: 12, color: '#FF9800', weight: 700 }, // ORANGE
-            x: 0.01,
+            // UPDATED: Center the title
+            x: 0.5,
             y: 0.98,
-            xanchor: 'middle',
+            xanchor: 'center',
             yanchor: 'top'
         },
-        
+
         xaxis: {
             tickmode: 'array',
             tickvals: tickVals,
@@ -58,30 +58,27 @@ export function renderPCRSpark(containerId, data) {
             showgrid: false,
             color: '#666',
             tickfont: { size: 9 },
-            tickangle: 0, // No rotation
+            tickangle: 0, 
             fixedrange: true
         },
-        
+
         yaxis: {
             showgrid: true,
             gridcolor: '#222',
             color: '#666',
             tickfont: { size: 9 },
             fixedrange: true,
-            
-            // EXACT REQUIREMENT: 0.0 to 2.0 in steps of 0.4
             range: [0, 2], 
             dtick: 0.4
         },
-        
+
         showlegend: false,
         autosize: true
     };
 
-    // Clear and Inject
-    container.innerHTML = `<div id="${containerId}-plot"></div>`;
-    
-    // Create Plot with 'responsive: true'
+    // UPDATED: Explicitly set width/height to fill container
+    container.innerHTML = `<div id="${containerId}-plot" style="width: 100%; height: 100%;"></div>`;
+
     Plotly.newPlot(`${containerId}-plot`, [trace], layout, { 
         displayModeBar: false, 
         responsive: true 
