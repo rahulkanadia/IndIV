@@ -34,7 +34,6 @@
     background: #1a1a1a;
     border: 1px solid #333;
     color: #888;
-    /* Updated Width for 9 buttons */
     min-width: 80px; 
     padding: 5px 0;
     text-align: center;
@@ -82,13 +81,15 @@
 .greeks-table-wrapper {
     overflow-y: auto;
     flex: 1;
+    width: 100%; /* Ensure wrapper fills container */
 }
 
 .greeks-table {
     width: 100%;
+    table-layout: fixed; /* UPDATED: Forces columns to respect container width */
     border-collapse: collapse;
     font-family: 'Segoe UI', sans-serif;
-    font-size: 11px;
+    font-size: 10px; /* UPDATED: Reduced slightly to fit content */
     text-align: center;
 }
 
@@ -98,16 +99,22 @@
     background: #111;
     color: #666;
     font-weight: 700;
-    padding: 6px 4px;
+    padding: 6px 2px; /* UPDATED: Tightened padding */
     border-bottom: 1px solid #333;
     z-index: 10;
     font-size: 10px;
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .greeks-table td {
-    padding: 5px 2px;
+    padding: 4px 2px; /* UPDATED: Tightened padding */
     color: #ccc;
     border-bottom: 1px solid #1f1f1f;
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .col-strike {
@@ -116,7 +123,7 @@
     color: #fff !important;
     border-left: 1px solid #222;
     border-right: 1px solid #222;
-    width: 50px;
+    width: 15%; /* UPDATED: Percentage width for responsiveness */
 }
 .row-atm .col-strike {
     color: #FF9800 !important;
@@ -126,9 +133,13 @@
     position: relative;
     font-family: 'Consolas', monospace;
     font-size: 10px;
-    width: 80px; 
+    width: 20%; /* UPDATED: Percentage width (leaves ~65% for Greeks) */
     z-index: 1;
 }
+
+/* NOTE: Since table-layout is fixed, the remaining columns (Gamma, Delta, etc.) 
+   will automatically share the remaining space equally. */
+
 .oi-bar-bg {
     position: absolute;
     bottom: 2px;
