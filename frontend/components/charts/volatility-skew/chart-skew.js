@@ -15,8 +15,8 @@ function updateLegend(showMonthly) {
 
     const commonStyle = 'width: 80px; text-align: center; border-radius: 4px; font-weight: 600; font-size: 10px; cursor: pointer; transition: all 0.2s; outline: none;';
 
-    const styleOn = `$(commonStyle) background: #42A5F5; color: #fff; border: 1px solid #42A5F5;`;
-    const styleOff = `$(commonStyle) background: #fff; color: #42A5F5; border: 1px solid #42A5F5;`;
+    const styleOn = `${commonStyle} background: #42A5F5; color: #fff; border: 1px solid #42A5F5;`;
+    const styleOff = `${commonStyle} background: #fff; color: #42A5F5; border: 1px solid #42A5F5;`;
 
     inp.innerHTML = `
         <button id="skew-toggle-btn" class="chart-toggle-btn" style="${showMonthly ? styleOn : styleOff}">
