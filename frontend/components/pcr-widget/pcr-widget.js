@@ -12,7 +12,7 @@ export function renderPCRSpark(containerId, data) {
         }
     });
 
-    // 2. Color Logic for Markers
+    // 2. Color Logic
     const currentVal = data.current;
     const markerColors = data.history.map(val => {
         if (val >= 1.0) return '#00E676';
@@ -38,16 +38,21 @@ export function renderPCRSpark(containerId, data) {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
 
-        // Tighter margins: 't:35' reserves space for the title
-        margin: { t: 35, r: 15, b: 20, l: 30 }, 
+        // --- SPACING ADJUSTMENTS ---
+        // t: 25 (Reduced from 35) -> Brings plot closer to title
+        // b: 12 (Reduced from 20) -> Removes space below labels
+        margin: { t: 25, r: 15, b: 12, l: 30 }, 
 
         title: {
             text: `PCR: ${currentVal.toFixed(2)}`,
-            font: { size: 12, color: '#FF9800', weight: 700 }, // ORANGE
-            // UPDATED: Center the title
+            font: { size: 12, color: '#FF9800', weight: 700 },
+            
+            // Positioning
             x: 0.5,
-            y: 0.98,
             xanchor: 'center',
+            
+            // y: 0.92 (Lowered from 0.98) -> Moves title away from top border
+            y: 0.92, 
             yanchor: 'top'
         },
 
@@ -76,7 +81,6 @@ export function renderPCRSpark(containerId, data) {
         autosize: true
     };
 
-    // UPDATED: Explicitly set width/height to fill container
     container.innerHTML = `<div id="${containerId}-plot" style="width: 100%; height: 100%;"></div>`;
 
     Plotly.newPlot(`${containerId}-plot`, [trace], layout, { 
