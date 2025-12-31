@@ -13,155 +13,81 @@
 .greeks-controls {
     display: flex;
     align-items: center;
-    padding: 8px 10px;
+    padding: 4px 8px;
     background: #111;
     border-bottom: 1px solid #222;
     flex-shrink: 0;
-    gap: 15px;
+    gap: 10px;
 }
 
 .expiry-tabs {
-    display: flex;
-    gap: 6px;
-    flex-wrap: nowrap;
-    overflow-x: auto; 
-    flex: 1;
-    scrollbar-width: none; 
+    display: flex; gap: 4px; flex-wrap: nowrap; overflow-x: auto; flex: 1; scrollbar-width: none; 
 }
 .expiry-tabs::-webkit-scrollbar { display: none; }
 
 .expiry-btn {
-    background: #1a1a1a;
-    border: 1px solid #333;
-    color: #888;
-    min-width: 80px; 
-    padding: 5px 0;
-    text-align: center;
-    font-size: 10px;
-    font-weight: 600;
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: 'Segoe UI', sans-serif;
-    transition: 0.2s;
-    white-space: nowrap;
+    background: #1a1a1a; border: 1px solid #333; color: #888;
+    min-width: 60px; padding: 4px 0; text-align: center;
+    font-size: 10px; font-weight: 600; border-radius: 4px;
+    cursor: pointer; font-family: 'Segoe UI', sans-serif; transition: 0.2s; white-space: nowrap;
 }
+.expiry-btn:hover { background: #222; color: #bbb; }
+.expiry-btn.active { background: #2196F3; border-color: #2196F3; color: #fff; }
 
-.expiry-btn:hover {
-    background: #222;
-    color: #bbb;
-}
+.control-separator { width: 1px; height: 16px; background: #333; }
 
-.expiry-btn.active {
-    background: #2196F3;
-    border-color: #2196F3;
-    color: #fff;
-}
-
-.control-separator {
-    width: 1px;
-    height: 20px;
-    background: #333;
-}
-
-/* UPDATED: Major Strikes Button (Matches Chart Toggle Style) */
+/* FIXED BUTTON STYLE */
 .major-strikes-btn {
-    width: 110px;       /* Keep dimensions as requested */
-    height: 24px;       /* Keep dimensions as requested */
-    
-    /* New Styling */
+    width: 110px; 
+    height: 24px;
     background: #fff;   
     color: #42A5F5;
     border: 1px solid #42A5F5;
     border-radius: 4px;
-    
-    font-size: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    outline: none;
-    transition: all 0.2s;
-    text-transform: uppercase;
-    white-space: nowrap;
-    text-align: center;
+    font-size: 10px; font-weight: 600; cursor: pointer; outline: none;
+    transition: all 0.2s; text-transform: uppercase; white-space: nowrap; text-align: center;
 }
+.major-strikes-btn:hover { background: #E3F2FD; }
+.major-strikes-btn.active { background: #42A5F5; color: #fff; }
 
-.major-strikes-btn:hover {
-    background: #E3F2FD; /* Light blue hover */
-}
-
-.major-strikes-btn.active {
-    background: #42A5F5;
-    color: #fff;
-}
-
-/* --- TABLE --- */
+/* --- TABLE WRAPPER --- */
 .greeks-table-wrapper {
     overflow-y: auto;
     flex: 1;
-    width: 100%; /* Ensure wrapper fills container */
-    height: 100%;
+    width: 100%;
+    height: 100%; /* Ensure full height */
 }
 
 .greeks-table {
     width: 100%;
-    table-layout: fixed; /* UPDATED: Forces columns to respect container width */
+    table-layout: fixed;
     border-collapse: collapse;
     font-family: 'Segoe UI', sans-serif;
-    font-size: 10px; /* UPDATED: Reduced slightly to fit content */
+    font-size: 10px;
     text-align: center;
 }
 
 .greeks-table thead th {
-    position: sticky;
-    top: 0;
-    background: #111;
-    color: #666;
-    font-weight: 700;
-    padding: 6px 2px; /* UPDATED: Tightened padding */
-    border-bottom: 1px solid #333;
-    z-index: 10;
-    font-size: 10px;
-    white-space: nowrap; /* Prevent wrapping */
-    overflow: hidden;
-    text-overflow: ellipsis;
+    position: sticky; top: 0; background: #111; color: #666; font-weight: 700;
+    padding: 6px 2px; border-bottom: 1px solid #333; z-index: 10; font-size: 10px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 .greeks-table td {
-    padding: 4px 2px; /* UPDATED: Tightened padding */
-    color: #ccc;
-    border-bottom: 1px solid #1f1f1f;
-    white-space: nowrap; /* Prevent wrapping */
-    overflow: hidden;
-    text-overflow: ellipsis;
+    padding: 4px 2px; color: #ccc; border-bottom: 1px solid #1f1f1f;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 .col-strike {
-    background: #1a1a1a;
-    font-weight: 700;
-    color: #fff !important;
-    border-left: 1px solid #222;
-    border-right: 1px solid #222;
-    width: 15%; /* UPDATED: Percentage width for responsiveness */
+    background: #1a1a1a; font-weight: 700; color: #fff !important;
+    border-left: 1px solid #222; border-right: 1px solid #222; width: 15%;
 }
-.row-atm .col-strike {
-    color: #FF9800 !important;
-}
+.row-atm .col-strike { color: #FF9800 !important; }
 
 .col-oi-combined {
-    position: relative;
-    font-family: 'Consolas', monospace;
-    font-size: 10px;
-    width: 20%; /* UPDATED: Percentage width (leaves ~65% for Greeks) */
-    z-index: 1;
+    position: relative; font-family: 'Consolas', monospace; font-size: 10px; width: 20%; z-index: 1;
 }
 
-/* NOTE: Since table-layout is fixed, the remaining columns (Gamma, Delta, etc.) 
-   will automatically share the remaining space equally. */
-
 .oi-bar-bg {
-    position: absolute;
-    bottom: 2px;
-    left: 0;
-    height: 3px;
-    z-index: -1;
-    opacity: 0.6;
+    position: absolute; bottom: 2px; left: 0; height: 3px; z-index: -1; opacity: 0.6;
 }
