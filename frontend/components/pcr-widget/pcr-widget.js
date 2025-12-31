@@ -40,7 +40,7 @@ export function renderPCRSpark(containerId, data) {
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
-        margin: { t: 10, r: 10, b: 25, l: 30 }, // Reduced margins to fit tight space
+        margin: { t: 10, r: 10, b: 10, l: 30 }, // Reduced margins to fit tight space
         xaxis: {
             tickmode: 'array',
             tickvals: tickVals,
