@@ -1,30 +1,15 @@
-.pcr-spark-box {
+#pcr-container {
     width: 100%;
-    height: 140px; 
-    padding: 10px 0 0 0; /* Remove side padding to let chart fill */
-    background: #121212;
-    border-top: 1px solid #222;
+    height: 100%; /* Critical: Fills the flex parent (.split-pcr) */
+    background: #000; /* Matches panel background */
     display: flex;
     flex-direction: column;
-    box-sizing: border-box;
+    overflow: hidden;
+    /* Removed padding/border that conflicts with index.html layout */
 }
 
-.pcr-header-centered {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 5px;
-}
-
-.pcr-title-text {
-    font-size: 14px;
-    font-weight: 800; 
-    color: #FF9800; /* Title Color */
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-#pcr-spark-chart {
-    width: 100%;
-    flex: 1;
-    min-height: 0;
+/* Ensure inner Plotly div fills space */
+#pcr-container > div {
+    width: 100% !important;
+    height: 100% !important;
 }
