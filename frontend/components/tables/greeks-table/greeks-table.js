@@ -185,9 +185,9 @@ export function renderGreeksTable(containerId, mockData) {
             <table class="greeks-table">
                 <thead>
                     <tr>
-                        <th colspan="6" style="border-bottom:2px solid #00E676; color:#00E676;">CALLS</th>
+                        <th colspan="6" style="border-bottom:2px solid #4CAF50; color:#4CAF50;">CALLS</th>
                         <th style="background:#000;"></th>
-                        <th colspan="6" style="border-bottom:2px solid #FF5252; color:#FF5252;">PUTS</th>
+                        <th colspan="6" style="border-bottom:2px solid #E57373; color:#E57373;">PUTS</th>
                     </tr>
                     <tr>
                         <th>OI (Lakhs)</th> <th>Gamma</th> <th>Vega</th> <th>Theta</th> <th>Delta</th> <th>IV%</th>
