@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndIV Monitor</title>
+    <title>IndIV Monitor V26</title>
     
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 
@@ -15,9 +15,7 @@
     <link rel="stylesheet" href="frontend/components/pcr-widget/pcr-widget.css">
 
     <style>
-        /* --- LAYOUT RESET & BASE --- */
-        * { box-sizing: border-box; }
-        
+        /* --- LAYOUT OVERRIDES --- */
         body {
             background-color: #000;
             color: #e0e0e0;
@@ -27,12 +25,12 @@
             width: 100vw;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Critical to prevent scrollbar shifting layout */
+            overflow: hidden;
         }
 
-        /* --- HEADER STYLING --- */
+        /* HEADER STYLING */
         header {
-            height: 42px;
+            height: 54px; /* Increased height */
             background-color: #111;
             border-bottom: 1px solid #222;
             display: flex;
@@ -43,37 +41,22 @@
             flex-shrink: 0;
         }
 
-        /* LEFT: ASSET & DATA */
-        .header-left {
-            display: flex; align-items: center; gap: 20px;
-        }
+        /* LEFT: DATA CLUSTER */
+        .header-left { display: flex; align-items: center; gap: 20px; }
 
-        /* Asset Button (Highlighted) */
         .asset-btn {
-            background: #212121; 
-            color: #fff;
-            border: 1px solid #444; 
-            padding: 5px 12px;
-            border-radius: 4px; 
-            font-size: 13px; font-weight: 700;
-            cursor: pointer; 
-            display: flex; align-items: center; gap: 8px;
+            background: #212121; color: #fff;
+            border: 1px solid #444; padding: 6px 14px;
+            border-radius: 4px; font-size: 13px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; gap: 8px;
             transition: all 0.2s;
-            outline: none;
         }
         .asset-btn:hover { background: #333; border-color: #666; }
-        
-        /* Mono-color Search Icon */
-        .search-icon { 
-            font-size: 12px; 
-            color: #fff; /* Mono white */
-            opacity: 0.7;
-        }
+        .search-icon { font-size: 12px; color: #fff; opacity: 0.7; }
 
-        /* Price Group styling */
         .price-group { display: flex; flex-direction: column; justify-content: center; line-height: 1.1; }
         .price-label { font-size: 9px; color: #888; font-weight: 600; text-transform: uppercase; }
-        .price-val { font-size: 12px; font-weight: 600; font-family: 'Segoe UI', monospace; }
+        .price-val { font-size: 13px; font-weight: 600; font-family: 'Segoe UI', monospace; }
         
         .market-status {
             display: flex; align-items: center; gap: 6px;
@@ -86,113 +69,78 @@
         /* CENTER: BRAND */
         .header-center {
             position: absolute; left: 50%; transform: translateX(-50%);
-            font-weight: 700; font-size: 16px; color: #fff;
-            letter-spacing: 1px;
+            font-weight: 700; font-size: 18px; color: #fff; letter-spacing: 1px;
         }
 
         /* RIGHT: CONTROLS */
         .header-right { display: flex; align-items: center; gap: 15px; }
-        
         .help-btn { 
-            color: #fff; /* White text */
-            text-decoration: none; font-size: 11px; font-weight: 600; 
-            border: 1px solid #333; padding: 5px 10px; border-radius: 4px; 
-            background: #1a1a1a;
-            transition: 0.2s;
+            color: #fff; text-decoration: none; font-size: 11px; font-weight: 600; 
+            border: 1px solid #333; padding: 6px 12px; border-radius: 4px; background: #1a1a1a;
         }
-        .help-btn:hover { background: #333; }
-
-        .last-update { 
-            font-size: 11px; 
-            color: #fff; /* White text */
-            font-family: 'Segoe UI', sans-serif; 
-        }
-
+        .last-update { font-size: 11px; color: #fff; font-family: 'Segoe UI', sans-serif; }
+        
         .text-up { color: #00E676 !important; }
         .text-down { color: #FF5252 !important; }
 
-
-        /* --- MAIN DASHBOARD LAYOUT (Fixed Grid) --- */
+        /* --- DASHBOARD GRID --- */
         .dashboard-container {
             flex: 1;
-            display: flex; /* Using Flex for strict left/right split */
+            display: flex; /* Flex Layout */
             width: 100%;
-            height: calc(100vh - 42px);
+            height: calc(100vh - 54px);
             overflow: hidden;
         }
 
         /* LEFT PANEL (45%) */
         .left-panel { 
-            width: 45%; 
-            min-width: 45%;
-            display: flex; 
-            flex-direction: column; 
-            border-right: 1px solid #222; 
+            width: 45%; min-width: 45%;
+            display: flex; flex-direction: column; 
+            border-right: 1px solid #222; /* Subtle border, not a full separator */
             height: 100%; 
         }
-        
-        /* Left Top: Grids (55% Height) */
-        .lp-top { 
-            height: 55%; 
-            min-height: 55%;
-            display: flex; flex-direction: column; 
-            border-bottom: 1px solid #222;
-        }
-        
-        /* Left Bottom: Charts (Remaining 45%) */
-        .lp-bottom { 
-            flex: 1; 
-            min-height: 0; /* Important for Chart resizing */
-            background: #000; 
-            position: relative;
-        }
+
+        /* Left Items: Weekly, Charts, Monthly */
+        #weekly-grid-container { flex: 0 0 auto; min-height: 120px; border-bottom: 1px solid #222; }
+        #main-chart-dashboard { flex: 1; min-height: 0; background: #000; border-bottom: 1px solid #222; }
+        #monthly-grid-container { flex: 0 0 auto; min-height: 120px; }
 
         /* RIGHT PANEL (55%) */
         .right-panel { 
-            width: 55%; 
-            min-width: 55%;
-            display: flex; 
-            flex-direction: column; 
+            width: 55%; min-width: 55%;
+            display: flex; flex-direction: column; 
             height: 100%; 
         }
         
-        /* Right Top: PCR, Greeks, Quotes (55% Height to align with Left) */
-        .rp-top { 
-            height: 55%;
-            min-height: 55%;
-            display: flex; 
-            flex-direction: column;
-            border-bottom: 1px solid #222; 
+        /* Right Top: Split Row (PCR + SD Table) */
+        .split-row {
+            flex: 0 0 40%; /* Adjust height percentage as needed */
+            display: flex;
+            border-bottom: 1px solid #222;
         }
-        
-        /* Right Bottom: SD Table (Remaining 45%) */
-        .rp-bottom { 
-            flex: 1; 
-            min-height: 0;
-            overflow: hidden; 
-        }
-
-        /* Internal Components Sizing */
-        #weekly-grid-container { flex: 1; overflow: hidden; }
-        #monthly-grid-container { flex: 1; overflow: hidden; }
-        
-        #pcr-container { height: 40%; border-bottom: 1px solid #222; position: relative; }
-        #greeks-table-container { height: 50%; border-bottom: 1px solid #222; overflow: hidden; }
-        #quote-box-container { height: 10%; padding: 8px 12px; background: #080808; font-size: 11px; color: #888; display: flex; align-items: center; }
-
+        .split-half { width: 50%; height: 100%; position: relative; }
+        #pcr-container { height: 100%; border-right: 1px solid #222; }
         #sd-table-container { height: 100%; }
+
+        /* Right Middle: Greeks */
+        #greeks-table-container { flex: 1; min-height: 0; border-bottom: 1px solid #222; overflow: hidden; }
+
+        /* Right Bottom: Quotes */
+        #quote-box-container { 
+            flex: 0 0 40px; /* Fixed small height */
+            background: #080808; 
+            display: flex; align-items: center; padding: 0 15px;
+            font-size: 11px; color: #888; white-space: nowrap; overflow: hidden;
+        }
 
     </style>
 </head>
 <body>
 
     <header>
-        <div class="header-left" id="header-cluster">
-            </div>
+        <div class="header-left" id="header-cluster"></div>
 
-        <div class="header-center">
-            IndIV
-        </div>
+        <div class="header-center">IndIV</div>
 
         <div class="header-right">
             <a href="#" class="help-btn">How to use?</a>
@@ -201,29 +149,25 @@
     </header>
 
     <div class="dashboard-container">
-        
+
         <div class="left-panel">
-            <div class="lp-top">
-                <div id="weekly-grid-container"></div>
-                <div style="height: 1px; background: #222;"></div> <div id="monthly-grid-container"></div>
-            </div>
-            
-            <div class="lp-bottom">
-                <div id="main-chart-dashboard" style="height:100%; width:100%;"></div>
-            </div>
+            <div id="weekly-grid-container"></div>
+            <div id="main-chart-dashboard"></div>
+            <div id="monthly-grid-container"></div>
         </div>
 
         <div class="right-panel">
-            <div class="rp-top">
-                <div id="pcr-container"></div>
-                <div id="greeks-table-container"></div>
-                <div id="quote-box-container">
-                    RELIANCE 2450.00 (+1.2%) &nbsp;|&nbsp; HDFCBANK 1520.00 (-0.5%) &nbsp;|&nbsp; INFY 1450.00 (+0.8%)
+            <div class="split-row">
+                <div class="split-half">
+                    <div id="pcr-container"></div>
+                </div>
+                <div class="split-half">
+                    <div id="sd-table-container"></div>
                 </div>
             </div>
-            
-            <div class="rp-bottom">
-                 <div id="sd-table-container"></div>
+            <div id="greeks-table-container"></div>
+            <div id="quote-box-container">
+                Quotes: RELIANCE 2450.00 (+1.2%) &nbsp;|&nbsp; HDFCBANK 1520.00 (-0.5%) &nbsp;|&nbsp; INFY 1450.00 (+0.8%)
             </div>
         </div>
     </div>
@@ -240,9 +184,8 @@
         const container = document.getElementById(containerId);
         if(!container) return;
 
-        const spotVal = data.spot;
+        // Mock Changes
         const spotChg = 120.50; const spotPct = 0.46;
-        const futVal = 26210.00;
         const futChg = 130.00; const futPct = 0.50;
         
         const getCls = (v) => v >= 0 ? 'text-up' : 'text-down';
@@ -260,14 +203,14 @@
             <div class="price-group">
                 <div class="price-label">Spot</div>
                 <div class="price-val ${getCls(spotChg)}">
-                    ${spotVal.toLocaleString()} <span style="font-size:10px;">${fmt(spotChg, spotPct)}</span>
+                    ${data.spot.toLocaleString()} <span style="font-size:10px;">${fmt(spotChg, spotPct)}</span>
                 </div>
             </div>
 
             <div class="price-group">
                 <div class="price-label">Future</div>
                 <div class="price-val ${getCls(futChg)}">
-                    ${futVal.toLocaleString()} <span style="font-size:10px;">${fmt(futChg, futPct)}</span>
+                    26,210 <span style="font-size:10px;">${fmt(futChg, futPct)}</span>
                 </div>
             </div>
 
@@ -278,28 +221,30 @@
         `;
     }
 
-    function updateTime() {
+    function setStaticTime() {
         const el = document.getElementById('last-update-time');
         if(el) {
-            const now = new Date();
-            el.innerText = 'last updated: ' + now.toLocaleTimeString('en-GB');
+            // Static time as per request (data fetch time)
+            el.innerText = 'last updated: 15:30:05'; 
         }
     }
 
     function init() {
         console.log("Initializing IndIV Monitor...");
         
+        // 1. Header
         renderHeaderCluster('header-cluster', mockData);
-        updateTime();
-        setInterval(updateTime, 1000);
+        setStaticTime();
 
-        // Render Components
+        // 2. Left Panel Components
         renderMarketGrid('weekly-grid-container', 'WEEKLY', mockData.gridWeekly, 't-week');
-        renderMarketGrid('monthly-grid-container', 'MONTHLY', mockData.gridMonthly, 't-month');
         renderChartDashboard('main-chart-dashboard');
+        renderMarketGrid('monthly-grid-container', 'MONTHLY', mockData.gridMonthly, 't-month');
+        
+        // 3. Right Panel Components
         renderPCRSpark('pcr-container', mockData.pcr);
-        renderGreeksTable('greeks-table-container', mockData); 
-        renderSDTable('sd-table-container', mockData); 
+        renderSDTable('sd-table-container', mockData);
+        renderGreeksTable('greeks-table-container', mockData);
     }
 
     init();
