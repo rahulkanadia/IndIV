@@ -140,7 +140,7 @@ export function renderGreeksTable(containerId, mockData) {
             </div>
             
             <div class="control-separator"></div>
-            <span class="control-label"> show </span>
+            <span class="control-label">show</span>
 
             <div class="toggle-container">
                 <button id="btn-major-strikes" class="major-strikes-btn ${activeClass}">
