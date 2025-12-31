@@ -2,7 +2,7 @@ export function renderPCRSpark(containerId, data) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // 1. Filter X-Axis labels (Reduce density)
+    // 1. Filter X-Axis labels (Reduce density to 1/3)
     const tickVals = [];
     const tickText = [];
     data.time.forEach((t, i) => {
@@ -37,12 +37,12 @@ export function renderPCRSpark(containerId, data) {
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
-        // UPDATED: Margins adjusted for Title
-        margin: { t: 30, r: 15, b: 20, l: 30 }, 
+        // UPDATED: Tight margins to remove blank space
+        margin: { t: 30, r: 10, b: 10, l: 30 }, 
         title: {
             text: `PCR: ${currentVal.toFixed(2)}`,
-            font: { size: 12, color: '#FF9800', weight: 700 }, // ORANGE TITLE
-            x: 0.05, // Left align
+            font: { size: 12, color: '#FF9800', weight: 700 },
+            x: 0.02,
             y: 0.98,
             xanchor: 'left',
             yanchor: 'top'
@@ -63,14 +63,13 @@ export function renderPCRSpark(containerId, data) {
             color: '#666',
             tickfont: { size: 9 },
             fixedrange: true,
-            // UPDATED: Fixed Range 0.0 to 2.0, Steps of 0.4
             range: [0, 2],
             dtick: 0.4
         },
         showlegend: false
     };
 
-    // Remove previous HTML overlay, Plotly handles title now
+    // Clear and Inject Plot Container
     container.innerHTML = `<div id="${containerId}-plot" style="width: 100%; height: 100%;"></div>`;
 
     Plotly.newPlot(`${containerId}-plot`, [trace], layout, { displayModeBar: false, responsive: true });
