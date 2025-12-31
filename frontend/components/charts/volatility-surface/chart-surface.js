@@ -119,17 +119,19 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         yaxis: { 
             side: 'right',          
             color: '#fff',          
-            showline: true,         
-            linecolor: '#fff',      
-            linewidth: 2,           
+            showline: false,     // CHANGED: Remove axis line
             mirror: false,          
             tickfont: {size:11, weight:'bold'}, 
             tickprefix: '    ',
-            fixedrange: true
+            fixedrange: true,
+            showgrid: false
         },
         xaxis: { 
             title: '', 
-            tickfont: {color:'#ccc', size:9}, fixedrange: true 
+            showline: false,     // CHANGED: Remove axis line
+            tickfont: {color:'#ccc', size:9}, 
+            fixedrange: true,
+            showgrid: false
         },
         margin: { t: 30, b: 30, l: 30, r: 65 }, 
     }, { displayModeBar: false, responsive: true });
@@ -154,16 +156,20 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         yaxis: { 
             side: 'left',
             showticklabels: false, 
-            showline: true,        
-            linecolor: '#fff',
-            linewidth: 2,
+            showline: false,     // CHANGED: Remove axis line
             mirror: false,
             fixedrange: true,
-            ticks: 'outside', tickcolor: '#fff', ticklen: 5 
+            ticks: '',           // CHANGED: Removed ticks to clean up the edge
+//          ticks: 'outside', tickcolor: '#fff', ticklen: 5 
+            showgrid: false 
         },
         xaxis: { 
             title: '', 
-            type: 'category', tickfont: {color:'#ccc', size:9}, fixedrange: true 
+            type: 'category', 
+            showline: false,     // CHANGED: Remove axis line
+            tickfont: {color:'#ccc', size:9}, 
+            fixedrange: true,
+            showgrid: false
         },
         margin: { t: 30, b: 30, l: 10, r: 30 }, 
     }, { displayModeBar: false, responsive: true });
@@ -171,3 +177,5 @@ export function renderSurfaceCharts(containerId, showMonthly) {
     // UPDATED: Pass zValues for smart text analysis
     updateLegend(showMonthly, zValues);
 }
+
+
