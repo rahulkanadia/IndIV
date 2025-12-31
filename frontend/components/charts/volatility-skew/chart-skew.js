@@ -13,12 +13,14 @@ function updateLegend(showMonthly) {
     const inp = document.getElementById('dynamicInputs');
     if(!leg || !inp) return;
 
-    const styleOn = `background: rgba(0, 230, 118, 0.15); color: #00E676; border-color: rgba(0,230,118,0.3);`;
-    const styleOff = `background: rgba(255, 82, 82, 0.15); color: #FF5252; border-color: rgba(255,82,82,0.3);`;
+    const commonStyle = 'width: 80px; text-align: center; border-radius: 4px; font-weight: 600; font-size: 10px; cursor: pointer; transition: all 0.2s; outline: none;';
+
+    const styleOn = `$(commonStyle) background: #42A5F5; color: #fff; border: 1px solid #42A5F5;`;
+    const styleOff = `$(commonStyle) background: #fff; color: #42A5F5; border: 1px solid #42A5F5;`;
 
     inp.innerHTML = `
         <button id="skew-toggle-btn" class="chart-toggle-btn" style="${showMonthly ? styleOn : styleOff}">
-            MONTHLY
+            ${showMonthly ? 'MONTHLY' : 'WEEKLY'}
         </button>
     `;
 
