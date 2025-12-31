@@ -95,10 +95,10 @@
 /* In frontend/components/tables/greeks-table/greeks-table.css */
 
 .control-label {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 600;
     color: #888;       /* Muted text color */
-    margin-left: 10px; /* Space from separator */
-    margin-right: 4px; /* Space from button */
+    margin-left: 4px; /* Space from separator */
+    margin-right: 1px; /* Space from button */
     text-transform: lowercase;
 }
