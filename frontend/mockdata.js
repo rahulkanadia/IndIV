@@ -26,9 +26,7 @@ function generatePath(start, steps, volatility) {
     return path;
 }
 
-// ... (Keep existing helper functions: generateTimeArray, generatePath) ...
-
-// Helper: Generate Expiry Dates (Weekly & Monthly for next ~3 months)
+// Generate Expiry Dates (Weekly & Monthly for next ~3 months)
 function generateExpiries() {
     const weeklies = [];
     const monthlies = [];
@@ -50,38 +48,40 @@ function generateExpiries() {
             monthlies.push(dateStr);
         }
         
+        // Move to next week
         date.setDate(date.getDate() + 7);
     }
+    // Ensure we return at least 3 monthlies for the view
     return { weeklies, monthlies: monthlies.slice(0, 3) };
 }
 
-// Helper: Generate Mock Surface Data (Z-values)
+// Generate Mock Surface Data (Z-values) fitting the expiry count
 function generateSurfaceZ(rowCount, colCount) {
     const matrix = [];
     let baseIV = 14.0;
     for (let r = 0; r < rowCount; r++) {
         const row = [];
         for (let c = 0; c < colCount; c++) {
-            // Random walk + structure to prevent blanks
-            // Add variation based on column (smile shape)
+            // Create a "smile" shape across columns: Higher at edges, lower at center (ATM)
+            // c-2 centers the smile at index 2 (ATM)
             const smileFactor = Math.pow(c - 2, 2) * 0.5; 
             const val = (baseIV + smileFactor + Math.random()).toFixed(2);
             row.push(parseFloat(val));
         }
         matrix.push(row);
-        baseIV += 0.2; 
+        baseIV += 0.2; // Contango effect
     }
     return matrix;
 }
 
-// NEW HELPER: Generate Signals (Buy/Sell/Null)
+// Generate Signal Matrix (Buy/Sell/Null) matching Z-data dimensions
 function generateSurfaceSignals(rowCount, colCount) {
     const matrix = [];
     for (let r = 0; r < rowCount; r++) {
         const row = [];
         for (let c = 0; c < colCount; c++) {
             const rand = Math.random();
-            // 5% chance of Buy, 5% chance of Sell, rest Null
+            // 5% Buy, 5% Sell, 90% Null
             if (rand > 0.95) row.push('sell');
             else if (rand < 0.05) row.push('buy');
             else row.push(null);
@@ -91,64 +91,108 @@ function generateSurfaceSignals(rowCount, colCount) {
     return matrix;
 }
 
+// =========================================
+// 2. INITIALIZATION
+// =========================================
+
 const times = generateTimeArray();
+const steps = times.length;
 const expData = generateExpiries();
 const colsMoneyness = 5;
 const colsDelta = 5;
 
-export const mockData = {
-    spot: 26150.00,
-    spotVix: 13.8,
+// =========================================
+// 3. EXPORTED DATA OBJECT
+// =========================================
 
-    // ... (Keep grids, intraday, pcr, sdTable, term, skew as is) ...
-    gridWeekly: [ /*... same as before ...*/ ],
-    gridMonthly: [ /*... same as before ...*/ ],
-    intraday: { 
+export const mockData = {
+    // HEADER DATA
+    spot: 26150.00,
+    spotVix: 13.8, // Used for Term Structure Reference Line
+
+    // MARKET GRIDS
+    gridWeekly: [
+        { label: 'ATM CALL', value: '145.20', chg: '+12 (9%)', color: 'up' },
+        { label: 'CALL IV', value: '12.4%', chg: '+2%', color: 'up' },
+        { label: 'ATM PUT', value: '139.30', chg: '-18 (-11%)', color: 'down' },
+        { label: 'PUT IV', value: '13.1%', chg: '-1%', color: 'down' },
+        { label: 'STRADDLE', value: '284.50', chg: '-5 (-1%)', color: 'down' },
+        { label: 'IV', value: '12.8%', chg: '+0.5%', color: 'up' },
+        { label: 'RV (20D)', value: '10.5%', chg: '-', color: 'neutral' },
+        { label: 'IVR', value: '45', chg: '', color: 'neutral' },
+        { label: 'IVP', value: '60', chg: '', color: 'neutral' }
+    ],
+    gridMonthly: [
+        { label: 'ATM CALL', value: '310.50', chg: '+15 (5%)', color: 'up' },
+        { label: 'CALL IV', value: '14.2%', chg: '+1%', color: 'up' },
+        { label: 'ATM PUT', value: '284.50', chg: '-12 (-4%)', color: 'down' },
+        { label: 'PUT IV', value: '14.8%', chg: '-0.3%', color: 'down' },
+        { label: 'STRADDLE', value: '595.00', chg: '+2 (0.4%)', color: 'up' },
+        { label: 'IV', value: '14.5%', chg: '+0.8%', color: 'up' },
+        { label: 'RV (20D)', value: '11.0%', chg: '-', color: 'neutral' },
+        { label: 'IVR', value: '52', chg: '', color: 'neutral' },
+        { label: 'IVP', value: '65', chg: '', color: 'neutral' }
+    ],
+
+    // CHART: INTRADAY IV & RV
+    intraday: {
         time: times,
-        wk: generatePath(12.4, times.length, 0.2),    
-        mo: generatePath(14.2, times.length, 0.15),   
-        wkRv: generatePath(10.5, times.length, 0.1),  
-        moRv: generatePath(11.0, times.length, 0.1)   
+        wk: generatePath(12.4, steps, 0.2),    
+        mo: generatePath(14.2, steps, 0.15),   
+        wkRv: generatePath(10.5, steps, 0.1),  
+        moRv: generatePath(11.0, steps, 0.1)   
     },
+
+    // WIDGET: PCR
     pcr: {
         current: 0.85,
         time: times,
-        history: generatePath(1.1, times.length, 0.15).map(v => Math.max(0.5, Math.min(1.5, v)))
+        history: generatePath(1.1, steps, 0.15).map(v => Math.max(0.5, Math.min(1.5, v)))
     },
+
+    // WIDGET: SD TABLE
     sdTable: {
         levels: ["+2 SD", "+1 SD", "Mean", "-1 SD", "-2 SD"],
         call: ["26,750", "26,450", "26,150", "25,850", "25,550"],
         put: ["26,800", "26,500", "26,150", "25,900", "25,600"]
     },
+
+    // CHART: TERM STRUCTURE
     term: {
         expiries: ['26 Dec', '02 Jan', '09 Jan', '16 Jan', '30 Jan', '27 Feb'],
         weekly: [12.8, 13.2, 13.5, 13.9, 14.5, 15.1],
         monthly: [13.1, 13.4, 13.8, 14.2, 14.8, 15.4]
     },
+
+    // CHART: VOLATILITY SKEW
     skew: {
         strikes: [25500, 25750, 26000, 26250, 26500, 26750],
         weekly: [14.5, 13.8, 12.8, 12.5, 12.9, 13.5], 
         monthly: [15.2, 14.5, 13.5, 13.2, 13.6, 14.2]
+        // Note: The "Spread" (Bars) and "Risk Reversal" are calculated dynamically 
+        // in chart-skew.js using (Weekly IV - ATM IV).
     },
 
-    // UPDATED SURFACE DATA
+    // CHART: VOLATILITY SURFACE
     surface: {
         moneyness: ['-10%', '-5%', 'ATM', '+5%', '+10%'],
         delta: ['90 (ITM)', '75', '50 (ATM)', '25', '10 (OTM)'],
         
+        // Dynamic Dates
         expiriesWeekly: expData.weeklies,
         expiriesMonthly: expData.monthlies,
 
-        // Data Matrices
+        // Dynamic Z-Data Matrices
         zWk: generateSurfaceZ(expData.weeklies.length, colsMoneyness),
         zMo: generateSurfaceZ(expData.monthlies.length, colsMoneyness),
-        
-        // Signal Matrices (Parallel to Z data)
+
+        // Dynamic Signal Matrices (Pop Overlays)
         sigWk: generateSurfaceSignals(expData.weeklies.length, colsMoneyness),
         sigMo: generateSurfaceSignals(expData.monthlies.length, colsMoneyness)
     }
 };
 
+// Global Y-Axis Range for consistent scaling across charts
 export function getGlobalIVRange() {
     return [10, 18]; 
 }
