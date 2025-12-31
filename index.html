@@ -103,9 +103,22 @@
 
 
         
-        /* UPDATED WIDTHS */
-        .split-pcr { width: 65%; height: 100%; border-right: 1px solid #222; position: relative; }
-        .split-sd  { width: 35%; height: 100%; }
+/* PCR Section (Left Side of Split) */
+.split-pcr { 
+    flex: 0 0 65%;       /* CHANGED: Uses flex-basis for width */
+    height: 100%; 
+    border-right: 1px solid #222; 
+    position: relative; 
+    min-width: 0;        /* Prevents Plotly from overflowing */
+}
+
+/* SD Table Section (Right Side of Split) */
+.split-sd { 
+    flex: 1;             /* CHANGED: Automatically takes remaining space (35%) */
+    height: 100%; 
+    min-width: 0;        /* Prevents table from overflowing */
+}
+
 
         /* Middle: Greeks */
  
