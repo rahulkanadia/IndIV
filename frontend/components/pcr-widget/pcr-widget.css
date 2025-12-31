@@ -1,15 +1,16 @@
 #pcr-container {
     width: 100%;
-    height: 100%; /* Critical: Fills the flex parent (.split-pcr) */
-    background: #000; /* Matches panel background */
+    height: 100%;
+    background: #000;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    /* Removed padding/border that conflicts with index.html layout */
+    position: relative; /* Anchor for Plotly */
 }
 
-/* Ensure inner Plotly div fills space */
-#pcr-container > div {
+/* Force the inner Plotly div to respect container size */
+#pcr-container .js-plotly-plot,
+#pcr-container .plot-container {
     width: 100% !important;
     height: 100% !important;
 }
