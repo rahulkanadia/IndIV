@@ -71,16 +71,18 @@ export function renderSurfaceCharts(containerId, showMonthly) {
     const xMoneyness = mockData.surface.moneyness;
     const xDelta = mockData.surface.delta;
 
-    // 2. CONTAINER
+    // 2. CONTAINER (Asymmetric Split)
+    // Left side needs 60px MORE than Right side to account for the central labels (65px margin vs 5px margin).
+    // Math: (Width + 60) + Width = 100%  =>  2*Width = 100% - 60  => Width = 50% - 30px.
+    // So Left = 50% + 30px, Right = 50% - 30px.
     container.innerHTML = `
         <div style="display: flex; width: 100%; height: 100%;">
-            <div id="surf-left" style="flex: 1; height: 100%;"></div>
-            <div id="surf-right" style="flex: 1; height: 100%;"></div>
+            <div id="surf-left" style="flex: 0 0 calc(50% + 30px); height: 100%;"></div>
+            <div id="surf-right" style="flex: 0 0 calc(50% - 30px); height: 100%;"></div>
         </div>
     `;
 
     // --- CHART 1: MONEYNESS (Left) ---
-    // Total H-Margin = 30 + 65 = 95px
     Plotly.newPlot('surf-left', [{
         type: 'heatmap',
         x: xMoneyness, 
@@ -123,11 +125,11 @@ export function renderSurfaceCharts(containerId, showMonthly) {
             showgrid: false,
             dtick: 5
         },
+        // RIGHT MARGIN: 65px for labels
         margin: { t: 30, b: 30, l: 30, r: 65 }, 
     }, { displayModeBar: false, responsive: true });
 
     // --- CHART 2: DELTA (Right) ---
-    // Total H-Margin = 5 + 90 = 95px (BALANCED)
     Plotly.newPlot('surf-right', [{
         type: 'heatmap',
         x: xDelta,
@@ -168,8 +170,8 @@ export function renderSurfaceCharts(containerId, showMonthly) {
             fixedrange: true,
             showgrid: false
         },
-        // CHANGED: Increased 'r' to 90 to match Left Chart's total margin sacrifice
-        margin: { t: 30, b: 30, l: 5, r: 90 }, 
+        // RIGHT MARGIN: Normal (30px), no extra blank space needed
+        margin: { t: 30, b: 30, l: 5, r: 30 }, 
     }, { displayModeBar: false, responsive: true });
 
     updateLegend(showMonthly, zValues);
