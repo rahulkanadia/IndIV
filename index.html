@@ -66,34 +66,33 @@
         .text-down { color: #FF5252 !important; }
 
         /* --- DASHBOARD CONTAINER --- */
-/* --- DASHBOARD GRID --- */
-.dashboard-container {
-    flex: 1;
-    display: flex;
-    width: 100%;
-    height: calc(100vh - 54px);
-    overflow: hidden;
-}
-
-/* LEFT PANEL (Fixed Width) */
-.left-panel { 
-    width: 45%;       /* Keeps strict 45% width */
-    min-width: 45%;   /* Prevents shrinking */
-    display: flex; 
-    flex-direction: column; 
-    border-right: none; 
-    height: 100%; 
-}
-
-/* RIGHT PANEL (Fluid Width) */
-.right-panel { 
-    flex: 1;           /* UPDATED: Take all remaining space */
-    min-width: 0;      /* Standard flexbox fix for internal scrolling */
-    padding-left: 5px; /* UPDATED: 5px Padding */
-    display: flex; 
-    flex-direction: column; 
-    height: 100%; 
-}
+        .dashboard-container {
+            flex: 1;
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 54px);
+            overflow: hidden;
+        }
+        
+        /* LEFT PANEL (Fixed Width) */
+        .left-panel { 
+            width: 40%;       /* Keeps strict 45% width */
+            min-width: 40%;   /* Prevents shrinking */
+            display: flex; 
+            flex-direction: column; 
+//            border-right: none; 
+            height: 100%; 
+        }
+        
+        /* RIGHT PANEL (Fluid Width) */
+        .right-panel { 
+            flex: 1;           /* UPDATED: Take all remaining space */
+            min-width: 0;      /* Standard flexbox fix for internal scrolling */
+            padding-left: 5px; /* UPDATED: 5px Padding */
+            display: flex; 
+            flex-direction: column; 
+            height: 100%; 
+        }
 
         .split-row {
             flex: 0 0 35%; /* Reduced height to remove blank space */
