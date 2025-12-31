@@ -8,12 +8,9 @@ const LAYOUT_BASE = {
 
 // NEW: Helper to analyze data and return smart text
 function generateSmartCommentary(zValues, showMonthly) {
-    // Calculate average IV for Put side (left cols) vs Call side (right cols)
     let putSum = 0, callSum = 0, count = 0;
 
-    // Scan rows (expiries)
     zValues.forEach(row => {
-        // Assuming 5 columns: 0,1 (Puts) | 2 (ATM) | 3,4 (Calls)
         if(row.length >= 5) {
             putSum += (row[0] + row[1]); 
             callSum += (row[3] + row[4]); 
@@ -21,14 +18,12 @@ function generateSmartCommentary(zValues, showMonthly) {
         }
     });
 
-    // Avoid divide by zero if data is empty
     if (count === 0) return "Data loading...";
 
     const avgPutIV = putSum / count;
     const avgCallIV = callSum / count;
     const skewDiff = avgPutIV - avgCallIV;
 
-    // Determine Sentiment
     let sentiment = "";
     if (skewDiff > 1.5) {
         sentiment = "Moneyness shows high Put skew (Fear). Delta indicates expensive protection.";
@@ -42,7 +37,6 @@ function generateSmartCommentary(zValues, showMonthly) {
     return `${timeframe} view: ${sentiment}`;
 }
 
-// UPDATED: Accepts zValues to generate text
 function updateLegend(showMonthly, zValues) {
     const leg = document.getElementById('dynamicLegends');
     const inp = document.getElementById('dynamicInputs');
@@ -59,10 +53,8 @@ function updateLegend(showMonthly, zValues) {
         </button>
     `;
 
-    // Generate Smart Text
     const smartText = generateSmartCommentary(zValues, showMonthly);
 
-    // Updated Text Legend (White, Italics, No Prefix)
     leg.innerHTML = `
         <div style="display:flex; align-items:center; gap:15px;">
              <div class="leg-item" style="color:#fff; font-style:italic; font-size: 11px;">
@@ -86,7 +78,6 @@ export function renderSurfaceCharts(containerId, showMonthly) {
     const expiries = showMonthly ? mockData.surface.expiriesMonthly : mockData.surface.expiriesWeekly;
     const zValues = showMonthly ? mockData.surface.zMo : mockData.surface.zWk;
 
-    // Axis Labels
     const xMoneyness = mockData.surface.moneyness;
     const xDelta = mockData.surface.delta;
 
@@ -118,24 +109,23 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         yaxis: { 
             side: 'right',          
             color: '#fff',          
-            showline: true,         // KEEP: Y-Axis Line
-            mirror: true,           // ADD: Border effect
+            showline: true,         // KEEP: Line on Right
+            mirror: false,          // FIX: Disable reflection to left
             tickfont: {size:11, weight:'bold'}, 
             tickprefix: '    ',
             fixedrange: true,
             showgrid: false,
-            ticks: 'outside',       // ADD: Dashes on border
+            ticks: 'outside',
             ticklen: 5
         },
         xaxis: { 
             title: '', 
-            showline: true,         // CHANGED: Enable X-Axis Line
-            mirror: true,
+            showline: false,        // FIX: Removed border
+            mirror: false,
             tickfont: {color:'#ccc', size:9}, 
             fixedrange: true,
             showgrid: false,
-            ticks: 'outside',
-            ticklen: 5
+            dtick: 5                // FIX: Restore -5, 5 labels
         },
         margin: { t: 30, b: 30, l: 30, r: 65 }, 
     }, { displayModeBar: false, responsive: true });
@@ -159,11 +149,11 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         },
         yaxis: { 
             side: 'left',
-            showticklabels: true,    // CHANGED: Enabled labels as requested previously
-            showline: true,          // CHANGED: Enable Y-Axis Line
-            mirror: true,            // ADD: Border effect
+            showticklabels: false,   // FIX: No labels requested
+            showline: true,          // FIX: Line on Left
+            mirror: false,           // FIX: No reflection
             fixedrange: true,
-            ticks: 'outside',        // FIXED: Syntax error resolved & dashes enabled
+            ticks: 'outside',        
             tickcolor: '#fff', 
             ticklen: 5,
             showgrid: false 
@@ -171,17 +161,14 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         xaxis: { 
             title: '', 
             type: 'category', 
-            showline: true,          // CHANGED: Enable X-Axis Line
-            mirror: true,
+            showline: false,         // FIX: Removed border
+            mirror: false,
             tickfont: {color:'#ccc', size:9}, 
             fixedrange: true,
-            showgrid: false,
-            ticks: 'outside',
-            ticklen: 5
+            showgrid: false
         },
-        margin: { t: 30, b: 30, l: 30, r: 30 }, // Adjusted Left Margin slightly for labels
+        margin: { t: 30, b: 30, l: 30, r: 30 }, 
     }, { displayModeBar: false, responsive: true });
 
-    // UPDATED: Pass zValues for smart text analysis
     updateLegend(showMonthly, zValues);
 }
