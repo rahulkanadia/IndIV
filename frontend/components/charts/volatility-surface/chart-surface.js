@@ -6,10 +6,8 @@ const LAYOUT_BASE = {
     font: { family: 'Segoe UI', color: '#fff', size: 10 },
 };
 
-// NEW: Helper to analyze data and return smart text
 function generateSmartCommentary(zValues, showMonthly) {
     let putSum = 0, callSum = 0, count = 0;
-
     zValues.forEach(row => {
         if(row.length >= 5) {
             putSum += (row[0] + row[1]); 
@@ -32,7 +30,6 @@ function generateSmartCommentary(zValues, showMonthly) {
     } else {
         sentiment = "Moneyness is balanced (Neutral). Delta shows ATMs are fair value.";
     }
-
     const timeframe = showMonthly ? "Monthly" : "Weekly";
     return `${timeframe} view: ${sentiment}`;
 }
@@ -43,7 +40,6 @@ function updateLegend(showMonthly, zValues) {
     if(!leg || !inp) return;
 
     const commonStyle = 'width: 80px; text-align: center; border-radius: 4px; font-weight: 600; font-size: 10px; cursor: pointer; transition: all 0.2s; outline: none;';
-
     const styleOn = `${commonStyle} background: #42A5F5; color: #fff; border: 1px solid #42A5F5;`;
     const styleOff = `${commonStyle} background: #fff; color: #42A5F5; border: 1px solid #42A5F5;`;
 
@@ -52,17 +48,12 @@ function updateLegend(showMonthly, zValues) {
             ${showMonthly ? 'MONTHLY' : 'WEEKLY'}
         </button>
     `;
-
     const smartText = generateSmartCommentary(zValues, showMonthly);
-
     leg.innerHTML = `
         <div style="display:flex; align-items:center; gap:15px;">
-             <div class="leg-item" style="color:#fff; font-style:italic; font-size: 11px;">
-                ${smartText}
-            </div>
+             <div class="leg-item" style="color:#fff; font-style:italic; font-size: 11px;">${smartText}</div>
         </div>
     `;
-
     document.getElementById('surf-toggle-btn').onclick = () => {
         renderSurfaceCharts('chart-canvas', !showMonthly);
     };
@@ -77,7 +68,6 @@ export function renderSurfaceCharts(containerId, showMonthly) {
     // 1. DATA SELECTION
     const expiries = showMonthly ? mockData.surface.expiriesMonthly : mockData.surface.expiriesWeekly;
     const zValues = showMonthly ? mockData.surface.zMo : mockData.surface.zWk;
-
     const xMoneyness = mockData.surface.moneyness;
     const xDelta = mockData.surface.delta;
 
@@ -109,24 +99,30 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         yaxis: { 
             side: 'right',          
             color: '#fff',          
-            showline: true,         // KEEP: Line on Right
-            mirror: false,          // FIX: Disable reflection to left
+            showline: true,         
+            linecolor: '#fff',      // FIX: Explicit White Line
+            linewidth: 1,
+            mirror: false,          
             tickfont: {size:11, weight:'bold'}, 
-            tickprefix: '    ',
+            tickprefix: '   ',      // PADDING: Pushes text slightly left to center it in the gap
             fixedrange: true,
             showgrid: false,
             ticks: 'outside',
-            ticklen: 5
+            ticklen: 5,
+            tickcolor: '#fff'
         },
         xaxis: { 
             title: '', 
-            showline: false,        // FIX: Removed border
+            showline: true,         // FIX: Enable X-Axis Line
+            linecolor: '#fff',      // FIX: Explicit White Line
+            linewidth: 1,
             mirror: false,
             tickfont: {color:'#ccc', size:9}, 
             fixedrange: true,
             showgrid: false,
-            dtick: 5                // FIX: Restore -5, 5 labels
+            dtick: 5
         },
+        // MARGIN RIGHT: Holds the labels. 65px is usually enough.
         margin: { t: 30, b: 30, l: 30, r: 65 }, 
     }, { displayModeBar: false, responsive: true });
 
@@ -149,9 +145,11 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         },
         yaxis: { 
             side: 'left',
-            showticklabels: false,   // FIX: No labels requested
-            showline: true,          // FIX: Line on Left
-            mirror: false,           // FIX: No reflection
+            showticklabels: false,   
+            showline: true,          // FIX: Enable Y-Axis Line
+            linecolor: '#fff',       // FIX: Explicit White Line
+            linewidth: 1,
+            mirror: false,           
             fixedrange: true,
             ticks: 'outside',        
             tickcolor: '#fff', 
@@ -161,13 +159,16 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         xaxis: { 
             title: '', 
             type: 'category', 
-            showline: false,         // FIX: Removed border
+            showline: true,          // FIX: Enable X-Axis Line
+            linecolor: '#fff',       // FIX: Explicit White Line
+            linewidth: 1,
             mirror: false,
             tickfont: {color:'#ccc', size:9}, 
             fixedrange: true,
             showgrid: false
         },
-        margin: { t: 30, b: 30, l: 30, r: 30 }, 
+        // MARGIN LEFT: Set to 0 or 5 to bring chart closer to the shared labels
+        margin: { t: 30, b: 30, l: 5, r: 30 }, 
     }, { displayModeBar: false, responsive: true });
 
     updateLegend(showMonthly, zValues);
