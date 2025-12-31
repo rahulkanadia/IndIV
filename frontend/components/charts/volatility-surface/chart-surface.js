@@ -80,6 +80,7 @@ export function renderSurfaceCharts(containerId, showMonthly) {
     `;
 
     // --- CHART 1: MONEYNESS (Left) ---
+    // Total H-Margin = 30 + 65 = 95px
     Plotly.newPlot('surf-left', [{
         type: 'heatmap',
         x: xMoneyness, 
@@ -100,11 +101,11 @@ export function renderSurfaceCharts(containerId, showMonthly) {
             side: 'right',          
             color: '#fff',          
             showline: true,         
-            linecolor: '#fff',      // FIX: Explicit White Line
+            linecolor: '#fff', 
             linewidth: 1,
             mirror: false,          
             tickfont: {size:11, weight:'bold'}, 
-            tickprefix: '   ',      // PADDING: Pushes text slightly left to center it in the gap
+            tickprefix: '   ',
             fixedrange: true,
             showgrid: false,
             ticks: 'outside',
@@ -113,8 +114,8 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         },
         xaxis: { 
             title: '', 
-            showline: true,         // FIX: Enable X-Axis Line
-            linecolor: '#fff',      // FIX: Explicit White Line
+            showline: true,
+            linecolor: '#fff',
             linewidth: 1,
             mirror: false,
             tickfont: {color:'#ccc', size:9}, 
@@ -122,11 +123,11 @@ export function renderSurfaceCharts(containerId, showMonthly) {
             showgrid: false,
             dtick: 5
         },
-        // MARGIN RIGHT: Holds the labels. 65px is usually enough.
         margin: { t: 30, b: 30, l: 30, r: 65 }, 
     }, { displayModeBar: false, responsive: true });
 
     // --- CHART 2: DELTA (Right) ---
+    // Total H-Margin = 5 + 90 = 95px (BALANCED)
     Plotly.newPlot('surf-right', [{
         type: 'heatmap',
         x: xDelta,
@@ -146,8 +147,8 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         yaxis: { 
             side: 'left',
             showticklabels: false,   
-            showline: true,          // FIX: Enable Y-Axis Line
-            linecolor: '#fff',       // FIX: Explicit White Line
+            showline: true,
+            linecolor: '#fff',
             linewidth: 1,
             mirror: false,           
             fixedrange: true,
@@ -159,16 +160,16 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         xaxis: { 
             title: '', 
             type: 'category', 
-            showline: true,          // FIX: Enable X-Axis Line
-            linecolor: '#fff',       // FIX: Explicit White Line
+            showline: true,
+            linecolor: '#fff',
             linewidth: 1,
             mirror: false,
             tickfont: {color:'#ccc', size:9}, 
             fixedrange: true,
             showgrid: false
         },
-        // MARGIN LEFT: Set to 0 or 5 to bring chart closer to the shared labels
-        margin: { t: 30, b: 30, l: 5, r: 30 }, 
+        // CHANGED: Increased 'r' to 90 to match Left Chart's total margin sacrifice
+        margin: { t: 30, b: 30, l: 5, r: 90 }, 
     }, { displayModeBar: false, responsive: true });
 
     updateLegend(showMonthly, zValues);
