@@ -22,16 +22,13 @@ function updateLegend(showMonthly) {
         </div>
     `;
 
-    // Dual Gradient Legend
+    // Updated Text Legend
     leg.innerHTML = `
         <div style="display:flex; align-items:center; gap:15px;">
-             <div class="leg-item">
-                <span style="font-size:9px; color:#ccc; margin-right:6px;">Moneyness</span>
-                <span style="background:linear-gradient(90deg, #E3F2FD, #0D47A1); width:40px; height:8px; border-radius:2px;"></span>
-            </div>
-            <div class="leg-item">
-                <span style="font-size:9px; color:#ccc; margin-right:6px;">Delta</span>
-                <span style="background:linear-gradient(90deg, #FFFDE7, #FF3D00); width:40px; height:8px; border-radius:2px;"></span>
+             <div class="leg-item" style="color:#aaa; font-style:italic;">
+                <span style="color:#42A5F5; font-weight:700;">Note:</span>
+                Moneyness view (Left) is strike-neutral. Delta view (Right) is directional.
+                Brighter colors indicate higher IV / Cost.
             </div>
         </div>
     `;
@@ -39,53 +36,6 @@ function updateLegend(showMonthly) {
     document.getElementById('surf-toggle-btn').onclick = () => {
         renderSurfaceCharts('chart-canvas', !showMonthly);
     };
-}
-
-// HELPER: Generate Shapes & Annotations for Signals
-function createSignalOverlay(signalMatrix, xLabels, yLabels, xref, yref) {
-    const shapes = [];
-    const annotations = [];
-
-    // Iterate matrix
-    signalMatrix.forEach((row, rowIndex) => {
-        row.forEach((sig, colIndex) => {
-            if (!sig) return;
-
-            const color = sig === 'buy' ? '#00E676' : '#FF5252';
-            const labelText = sig === 'buy' ? 'PoP: Buy' : 'PoP: Sell';
-            
-            // Plotly Heatmap coordinates align with indices/labels
-            // x0, x1 around the center point
-            const xVal = xLabels[colIndex];
-            const yVal = yLabels[rowIndex];
-
-            // 1. Border Box (Shape)
-            shapes.push({
-                type: 'rect',
-                xref: xref, yref: yref,
-                x0: colIndex - 0.45, x1: colIndex + 0.45, // Use indices for discrete heatmap placement
-                y0: rowIndex - 0.45, y1: rowIndex + 0.45,
-                line: { color: color, width: 2 },
-                fillcolor: color,
-                opacity: 0.2 // Transparent fill
-            });
-
-            // 2. Text Label (Annotation)
-            annotations.push({
-                xref: xref, yref: yref,
-                x: colIndex,
-                y: rowIndex,
-                text: `<b>${labelText}</b>`,
-                showarrow: false,
-                font: { color: '#fff', size: 9, family: 'Segoe UI' },
-                bgcolor: 'rgba(0,0,0,0.6)',
-                borderpad: 2,
-                borderwidth: 0
-            });
-        });
-    });
-
-    return { shapes, annotations };
 }
 
 export function renderSurfaceCharts(containerId, showMonthly) {
@@ -97,7 +47,6 @@ export function renderSurfaceCharts(containerId, showMonthly) {
     // 1. DATA SELECTION
     const expiries = showMonthly ? mockData.surface.expiriesMonthly : mockData.surface.expiriesWeekly;
     const zValues = showMonthly ? mockData.surface.zMo : mockData.surface.zWk;
-    const signals = showMonthly ? mockData.surface.sigMo : mockData.surface.sigWk;
     
     // Axis Labels
     const xMoneyness = mockData.surface.moneyness;
@@ -111,15 +60,8 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         </div>
     `;
 
-    // 3. GENERATE OVERLAYS
-    // Left Chart (Moneyness)
-    const overlayLeft = createSignalOverlay(signals, xMoneyness, expiries, 'x', 'y');
-    // Right Chart (Delta) - reusing same signal logic for demo (or use separate if available)
-    const overlayRight = createSignalOverlay(signals, xDelta, expiries, 'x', 'y');
-
     // --- CHART 1: MONEYNESS (Left) ---
-    // Color: Blues
-    // Y-Axis: Labels + Line on RIGHT
+    // Color: Blues, Opacity 0.8, No Borders
     Plotly.newPlot('surf-left', [{
         type: 'heatmap',
         x: xMoneyness, 
@@ -127,10 +69,15 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         z: zValues,
         colorscale: 'Blues', 
         showscale: false,
-        xgap: 2, ygap: 2 // Gaps for grid look
+        opacity: 0.8,      // Lighter colors
+        xgap: 0, ygap: 0   // Remove borders
     }], {
         ...LAYOUT_BASE,
-        title: { text: 'By Moneyness', font: {size:11, color:'#bbb'}, x:0.05, y:0.98 },
+        title: { 
+            text: 'Moneyness by expiry', 
+            font: {size:11, color:'#bbb'}, 
+            x: 0.5, y: 0.98, xanchor: 'center' // Centered Title
+        },
         yaxis: { 
             side: 'right',          
             color: '#fff',          
@@ -139,20 +86,18 @@ export function renderSurfaceCharts(containerId, showMonthly) {
             linewidth: 2,           
             mirror: false,          
             tickfont: {size:11, weight:'bold'}, 
+            tickprefix: '    ', // Shift labels 4 spaces right
             fixedrange: true
         },
         xaxis: { 
             title: '', 
             tickfont: {color:'#ccc', size:9}, fixedrange: true 
         },
-        margin: { t: 30, b: 30, l: 30, r: 65 }, // Right margin for labels
-        shapes: overlayLeft.shapes,
-        annotations: overlayLeft.annotations
+        margin: { t: 30, b: 30, l: 30, r: 65 }, 
     }, { displayModeBar: false, responsive: true });
 
     // --- CHART 2: DELTA (Right) ---
-    // Color: YlOrRd (Yellow-Orange-Red)
-    // Y-Axis: Line ONLY on LEFT (No labels)
+    // Color: YlOrRd, Opacity 0.8, No Borders
     Plotly.newPlot('surf-right', [{
         type: 'heatmap',
         x: xDelta,
@@ -160,27 +105,30 @@ export function renderSurfaceCharts(containerId, showMonthly) {
         z: zValues, 
         colorscale: 'YlOrRd', 
         showscale: false,
-        xgap: 2, ygap: 2
+        opacity: 0.8,      // Lighter colors
+        xgap: 0, ygap: 0   // Remove borders
     }], {
         ...LAYOUT_BASE,
-        title: { text: 'By Delta', font: {size:11, color:'#bbb'}, x:0.05, y:0.98 },
+        title: { 
+            text: 'Delta by expiry', 
+            font: {size:11, color:'#bbb'}, 
+            x: 0.5, y: 0.98, xanchor: 'center' // Centered Title
+        },
         yaxis: { 
             side: 'left',
-            showticklabels: false, // Hide Text
-            showline: true,        // Show Line
+            showticklabels: false, 
+            showline: true,        
             linecolor: '#fff',
             linewidth: 2,
             mirror: false,
             fixedrange: true,
-            ticks: 'outside', tickcolor: '#fff', ticklen: 5 // Ticks point out to meet left chart
+            ticks: 'outside', tickcolor: '#fff', ticklen: 5 
         },
         xaxis: { 
             title: '', 
             type: 'category', tickfont: {color:'#ccc', size:9}, fixedrange: true 
         },
-        margin: { t: 30, b: 30, l: 10, r: 30 }, // Left margin near zero
-        shapes: overlayRight.shapes,
-        annotations: overlayRight.annotations
+        margin: { t: 30, b: 30, l: 10, r: 30 }, 
     }, { displayModeBar: false, responsive: true });
 
     updateLegend(showMonthly);
