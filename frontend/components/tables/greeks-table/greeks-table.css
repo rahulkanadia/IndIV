@@ -92,3 +92,14 @@
 .oi-bar-bg {
     position: absolute; bottom: 2px; left: 0; height: 3px; z-index: -1; opacity: 0.6;
 }
+
+/* In frontend/components/tables/greeks-table/greeks-table.css */
+
+.control-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #888;       /* Muted text color */
+    margin-left: 10px; /* Space from separator */
+    margin-right: 4px; /* Space from button */
+    text-transform: uppercase;
+}
