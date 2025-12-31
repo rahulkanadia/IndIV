@@ -66,22 +66,35 @@
         .text-down { color: #FF5252 !important; }
 
         /* --- DASHBOARD CONTAINER --- */
-        .dashboard-container { flex: 1; display: flex; width: 100%; height: calc(100vh - 54px); overflow: hidden; }
+/* --- DASHBOARD GRID --- */
+.dashboard-container {
+    flex: 1;
+    display: flex;
+    width: 100%;
+    height: calc(100vh - 54px);
+    overflow: hidden;
+}
 
-        /* LEFT PANEL (45%) */
-        .left-panel { 
-            width: 45%; min-width: 45%;
-            display: flex; flex-direction: column; 
-            border-right: 1px solid #222; height: 100%; 
-        }
-        #weekly-grid-container { flex: 0 0 auto; min-height: 120px; border-bottom: 1px solid #222; }
-        #main-chart-dashboard { flex: 1; min-height: 0; background: #000; border-bottom: 1px solid #222; }
-        #monthly-grid-container { flex: 0 0 auto; min-height: 120px; }
+/* LEFT PANEL (Fixed Width) */
+.left-panel { 
+    width: 45%;       /* Keeps strict 45% width */
+    min-width: 45%;   /* Prevents shrinking */
+    display: flex; 
+    flex-direction: column; 
+    border-right: none; 
+    height: 100%; 
+}
 
-        /* RIGHT PANEL (55%) */
-        .right-panel { width: 55%; min-width: 55%; display: flex; flex-direction: column; height: 100%; }
-        
-        /* Top Row: Split PCR / SD Table */
+/* RIGHT PANEL (Fluid Width) */
+.right-panel { 
+    flex: 1;           /* UPDATED: Take all remaining space */
+    min-width: 0;      /* Standard flexbox fix for internal scrolling */
+    padding-left: 5px; /* UPDATED: 5px Padding */
+    display: flex; 
+    flex-direction: column; 
+    height: 100%; 
+}
+
         .split-row {
             flex: 0 0 35%; /* Reduced height to remove blank space */
             display: flex; border-bottom: 1px solid #222;
