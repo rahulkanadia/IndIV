@@ -99,6 +99,5 @@
     font-weight: 600;
     color: #888;       /* Muted text color */
     margin-left: 4px; /* Space from separator */
-    margin-right: 1px; /* Space from button */
     text-transform: lowercase;
 }
