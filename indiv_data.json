@@ -1,7 +1,7 @@
 {
   "NIFTY": {
     "asset": "NIFTY",
-    "timestamp": 1767264814646,
+    "timestamp": 1767266688461,
     "futures": 26291,
     "headline": {
       "weekly": 0.08045615998779762
@@ -280,7 +280,7 @@
   },
   "BANKNIFTY": {
     "asset": "BANKNIFTY",
-    "timestamp": 1767264877779,
+    "timestamp": 1767266751599,
     "futures": 59962.2,
     "headline": {
       "weekly": 0
