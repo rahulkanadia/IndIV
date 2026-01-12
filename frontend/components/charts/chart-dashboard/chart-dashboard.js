@@ -11,51 +11,56 @@ const tabs = [
 ];
 
 const descriptions = {
-    't-intra': "Intraday IV & RV: Divergence signals regime shifts. High IV + Low RV = Options Expensive.",
-    't-skew': "Volatility Skew: The 'Smile'. Bars show the premium spread relative to ATM.",
-    't-term': "Term Structure: Slope indicates market stress. Up = Normal, Down = Fear.",
-    't-surf': "Volatility Surface: A visual scan of cheap vs. expensive options. Brighter colors (Blue) = Higher IV. The central white line shows expiry dates. Left Side: Shows IV across strikes relative to ATM price. Right Side: Shows IV across Delta levels, useful for hedging."
+    't-intra': "Intraday IV & RV: Divergence signals regime shifts.",
+    't-skew': "Volatility Skew: The 'Smile'. Bars show premium spread.",
+    't-term': "Term Structure: Slope indicates market stress.",
+    't-surf': "Volatility Surface: Visual scan of cheap vs. expensive options."
 };
 
 let activeTab = 0; 
+let currentData = null; // Store data here
 
-export function renderChartDashboard(containerId) {
+// NEW: Accepts 'data' as the second argument
+export function renderChartDashboard(containerId, data) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = `
-        <div class="chart-dashboard-wrapper">
-            <div class="chart-tabs">
-                ${tabs.map((t, i) => `
-                    <div class="chart-tab ${i === activeTab ? 'active' : ''}" data-index="${i}">
-                        ${t.label}
-                    </div>
-                `).join('')}
-            </div>
+    // Store data for tab switching
+    currentData = data;
 
-            <div class="chart-controls">
-                <div id="dynamicInputs" class="control-section left"></div>
-                <div id="dynamicCenterControls" class="control-section center"></div>
-                <div id="dynamicLegends" class="control-section right"></div>
+    // Only build DOM if it's empty (First Run)
+    if (!container.innerHTML.trim()) {
+        container.innerHTML = `
+            <div class="chart-dashboard-wrapper">
+                <div class="chart-tabs">
+                    ${tabs.map((t, i) => `
+                        <div class="chart-tab ${i === activeTab ? 'active' : ''}" data-index="${i}">
+                            ${t.label}
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="chart-controls">
+                    <div id="dynamicInputs" class="control-section left"></div>
+                    <div id="dynamicCenterControls" class="control-section center"></div>
+                    <div id="dynamicLegends" class="control-section right"></div>
+                </div>
+                <div id="chart-canvas-container" style="flex:1; width:100%; min-height:0; position:relative; overflow:hidden;">
+                    <div id="chart-canvas" style="width:100%; height:100%;"></div>
+                </div>
+                <div id="chart-help-text" class="chart-help-text"></div>
             </div>
+        `;
 
-            <div id="chart-canvas-container" style="flex:1; width:100%; min-height:0; position:relative; overflow:hidden;">
-                <div id="chart-canvas" style="width:100%; height:100%;"></div>
-            </div>
-            
-            <div id="chart-help-text" class="chart-help-text"></div>
-        </div>
-    `;
-
-    const tabEls = container.querySelectorAll('.chart-tab');
-    tabEls.forEach(el => {
-        el.addEventListener('click', (e) => {
-            tabEls.forEach(t => t.classList.remove('active'));
-            e.target.classList.add('active');
-            activeTab = parseInt(e.target.getAttribute('data-index'));
-            loadActiveChart();
+        const tabEls = container.querySelectorAll('.chart-tab');
+        tabEls.forEach(el => {
+            el.addEventListener('click', (e) => {
+                tabEls.forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                activeTab = parseInt(e.target.getAttribute('data-index'));
+                loadActiveChart();
+            });
         });
-    });
+    }
 
     loadActiveChart();
 }
@@ -65,33 +70,22 @@ function loadActiveChart() {
     const canvasId = 'chart-canvas';
     const canvas = document.getElementById(canvasId);
 
-    if (tab && canvas) {
-        // 1. NUCLEAR CLEANUP
-        try {
-            Plotly.purge(canvasId); // Kill existing Plotly instance
-        } catch (e) { console.warn("Plotly purge failed", e); }
-        
-        canvas.innerHTML = ''; // Wipe DOM
-        canvas.removeAttribute('class'); // Remove any lingering styles
+    if (tab && canvas && currentData) {
+        // 1. Cleanup Plotly
+        try { Plotly.purge(canvasId); } catch (e) {}
+
+        // 2. Reset DOM
+        canvas.innerHTML = ''; 
         canvas.removeAttribute('style'); 
-        canvas.style.width = "100%"; // Reset basic style
+        canvas.style.width = "100%"; 
         canvas.style.height = "100%";
 
-        // 2. Clear Controls
-        document.getElementById('dynamicCenterControls').innerHTML = '';
-        document.getElementById('dynamicInputs').innerHTML = '';
-        document.getElementById('dynamicLegends').innerHTML = '';
+        // 3. Render with specific data slice
+        // We pass the WHOLE charts object so sub-charts can pick what they need
+        tab.render(canvasId, currentData, true);
 
-        // 3. Render New Chart
-        // We use a small timeout to let the DOM settle after the wipe
-        setTimeout(() => {
-            tab.render(canvasId, true);
-        }, 10);
-
-        // 4. Update Help Text
+        // 4. Update Help
         const helpContainer = document.getElementById('chart-help-text');
-        if(helpContainer) {
-            helpContainer.textContent = descriptions[tab.id] || "";
-        }
+        if(helpContainer) helpContainer.textContent = descriptions[tab.id] || "";
     }
 }
