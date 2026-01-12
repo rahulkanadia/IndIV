@@ -192,12 +192,11 @@ async function processAsset(assetName, previousData) {
     const uiData = {
         meta: {
             timestamp: Date.now(),
-            log: logMessages // Send logs to UI text box
+            log: logMessages
         },
         header: {
-            spot: F, // Using Fut as proxy for now
+            spot: F,
             futures: F,
-            // Calculate changes based on previous run's stored price
             futuresChange: formatChg(F, prevAsset.header ? prevAsset.header.futures : F)
         },
 
@@ -231,23 +230,32 @@ async function processAsset(assetName, previousData) {
             intraday: {
                 time: newTime,
                 wk: newIV,
-                // Fill others
-                wkRv: newIV.map(x => x * 0.8), // Placeholder until RV calc added
+                wkRv: newIV.map(x => x * 0.8), // Placeholder logic
                 mo: newIV, 
                 moRv: newIV
             },
-pcr: {
-                current: 0.85, // Placeholder until OI fetch is implemented
+            // 1. ADDED PCR SKELETON
+            pcr: {
+                current: 0.85, 
                 time: newTime,
-                history: newTime.map(() => 0.85) // Flat line for now
+                history: newTime.map(() => 0.85) 
             },
             term: {
                 expiries: termX,
                 weekly: termY,
-                monthly: termY // Map correctly if separating lines
+                monthly: termY
             },
-            // Pass raw greeks for the table
-            greeks: greeksData 
+            greeks: greeksData,
+            skew: { strikes: [], weekly: [] }, // Add empty skew to be safe
+            surface: { expiriesWeekly: [], zWk: [] } // Add empty surface to be safe
+        },
+        
+        // 2. ADDED SD TABLE SKELETON
+        sdTable: {
+            // These placeholders ensure the table renders something until logic update
+            levels: ["+2 SD", "+1 SD", "Mean", "-1 SD", "-2 SD"],
+            call: ["-", "-", "-", "-", "-"],
+            put: ["-", "-", "-", "-", "-"]
         }
     };
 
