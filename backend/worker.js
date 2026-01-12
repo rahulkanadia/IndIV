@@ -200,13 +200,32 @@ async function processAsset(assetName, previousData) {
             // Calculate changes based on previous run's stored price
             futuresChange: formatChg(F, prevAsset.header ? prevAsset.header.futures : F)
         },
-        // GRID DATA (Mock-like structure for UI compatibility)
+
+        // GRID DATA - FULL 9-ITEM ARRAY TO PREVENT CRASH
+        // Mapping: 0:ATM_C, 1:IV_C, 2:ATM_P, 3:IV_P, 4:STRADDLE, 5:IV, 6:RV, 7:IVR, 8:IVP
         gridWeekly: [
-            { label: 'ATM CALL', value: '-', chg: '-', color: 'neutral' }, // Fill with real
+            { label: 'ATM CALL', value: '-', chg: '-', color: 'neutral' },
+            { label: 'CALL IV', value: '-', chg: '-', color: 'neutral' },
+            { label: 'ATM PUT', value: '-', chg: '-', color: 'neutral' },
+            { label: 'PUT IV', value: '-', chg: '-', color: 'neutral' },
+            { label: 'STRADDLE', value: '-', chg: '-', color: 'neutral' },
             { label: 'IV', value: `${currentWeeklyIV.toFixed(2)}%`, chg: '-', color: 'up' },
-             // ... Populate others similarly
+            { label: 'RV (20D)', value: '-', chg: '-', color: 'neutral' },
+            { label: 'IVR', value: '-', chg: '', color: 'neutral' },
+            { label: 'IVP', value: '-', chg: '', color: 'neutral' }
         ],
-        gridMonthly: [], // Populate
+        gridMonthly: [
+            // Repeat the same 9 items for Monthly to be safe
+             { label: 'ATM CALL', value: '-', chg: '-', color: 'neutral' },
+             { label: 'CALL IV', value: '-', chg: '-', color: 'neutral' },
+             { label: 'ATM PUT', value: '-', chg: '-', color: 'neutral' },
+             { label: 'PUT IV', value: '-', chg: '-', color: 'neutral' },
+             { label: 'STRADDLE', value: '-', chg: '-', color: 'neutral' },
+             { label: 'IV', value: '-', chg: '-', color: 'neutral' },
+             { label: 'RV (20D)', value: '-', chg: '-', color: 'neutral' },
+             { label: 'IVR', value: '-', chg: '', color: 'neutral' },
+             { label: 'IVP', value: '-', chg: '', color: 'neutral' }
+        ],
         
         charts: {
             intraday: {
