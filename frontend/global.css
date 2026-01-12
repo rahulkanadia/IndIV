@@ -9,67 +9,138 @@ html, body {
 }
 
 /* =========================================
-   2. HEADER STYLES
+   2. HEADER STYLES (Brand Left, Data Center)
    ========================================= */
-.header-row {
-    height: 60px;
-    background: #121212; border-bottom: 1px solid #333;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 20px; flex-shrink: 0;
+header {
+    height: 64px;
+    background-color: #050505;
+    border-bottom: 1px solid #222;
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+    padding: 0 20px; 
+    flex-shrink: 0;
+    z-index: 100;
 }
 
-.header-left h1 { margin: 0; font-size: 18px; color: #fff; }
-.sub-title { font-size: 11px; color: #666; margin-left: 10px; font-weight: 400; }
-
-.header-center { display: flex; align-items: center; gap: 30px; } /* Increased gap */
-
-/* Header Stat Blocks */
-.stat-block { display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
-.stat-label { font-size: 9px; color: #888; font-weight: 700; margin-bottom: 2px; }
-
-/* Dynamic Price Colors */
-.stat-price { font-size: 16px; font-weight: 700; }
-.stat-price.up { color: #00E676; }
-.stat-price.down { color: #FF5252; }
-
-.stat-change { font-size: 10px; font-weight: 500; margin-top: 1px; }
-.stat-change.up { color: #00E676; }
-.stat-change.down { color: #FF5252; }
-
-.asset-select {
-    background: #1a1a1a; color: #fff; border: 1px solid #333;
-    padding: 6px 15px; border-radius: 4px; outline: none; height: 32px;
-    font-weight: 600; cursor: pointer;
+/* --- LEFT: Brand & Status --- */
+.header-left { 
+    display: flex; 
+    align-items: center; 
+    gap: 25px; 
+    width: 250px; /* Fixed width to prevent shifting center */
 }
 
-.header-right { display: flex; align-items: center; gap: 15px; }
+/* Brand Name */
+.brand-title {
+    font-weight: 900; 
+    font-size: 24px; 
+    color: #fff; 
+    letter-spacing: -0.5px;
+    margin: 0;
+}
 
+/* Neon Sign (Reduced Glow, 2 Lines) */
+.neon-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
 
-/* ... Keep previous CSS ... */
-
-/* "How to use?" Button - Polished */
-.help-btn {
-    display: inline-block;
-    color: #e0e0e0;
-    font-size: 11px;
-    font-weight: 600;
-    text-decoration: none;
-    border: 1px solid #333;
-    padding: 5px 12px;
-    border-radius: 4px; /* Rounded corners */
-    background: #1a1a1a;
+.neon-line-1 {
     font-family: 'Segoe UI', sans-serif;
-    transition: all 0.2s ease;
-    line-height: 1.2;
+    font-size: 9px;
+    color: #FFD700; /* Yellow */
+    font-weight: 600;
+    margin-bottom: 2px;
+    text-shadow: 0 0 2px rgba(255, 215, 0, 0.5); /* Subtle glow */
 }
 
-.help-btn:hover {
-    background: #222;
-    border-color: #666;
-    color: #fff;
+.neon-status {
+    font-family: sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-/* ... Keep rest of CSS ... */
+.status-open {
+    color: #00E676;
+    text-shadow: 0 0 4px rgba(0, 230, 118, 0.4); /* Reduced Green Glow */
+}
+.status-closed {
+    color: #FF5252;
+    text-shadow: 0 0 4px rgba(255, 82, 82, 0.4); /* Reduced Red Glow */
+}
+
+
+/* --- CENTER: Prices & Search --- */
+.header-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 30px; /* Space between Spot - Search - Fut */
+}
+
+/* Price Groups */
+.price-display-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Spot aligns right towards search */
+}
+.price-display-group.align-left {
+    align-items: flex-start; /* Futures aligns left away from search */
+}
+
+.price-label {
+    font-size: 10px;
+    color: #fff; /* White Label */
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.price-data-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 700;
+    font-size: 16px; /* Same size for Price & Change */
+}
+
+.val-up { color: #4CAF50; }
+.val-down { color: #FF5252; }
+
+
+/* Search Pill */
+.search-pill {
+    background: #1a1a1a;
+    width: 260px;
+    height: 38px;
+    border-radius: 999px; /* Proper Pill */
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 10px;
+    transition: background 0.2s;
+    cursor: text;
+}
+.search-pill:hover { background: #222; }
+
+.search-icon { font-size: 14px; color: #666; }
+.search-text { font-size: 13px; color: #888; font-weight: 500; }
+
+
+/* --- RIGHT: Utilities --- */
+.header-right { display: flex; align-items: center; gap: 15px; }
+.help-link { font-size: 11px; color: #666; text-decoration: none; font-weight: 600; transition: 0.2s; }
+.help-link:hover { color: #fff; }
+.last-update { font-family: 'Consolas', monospace; font-size: 11px; color: #444; border-left: 1px solid #222; padding-left: 10px; }
 
 /* =========================================
    3. MAIN LAYOUT (45/55 SPLIT)
