@@ -8,7 +8,7 @@ export const ASSETS = {
     optionPrefix: "NIFTY",
     exchange: "NSE",
     strikeStep: 50,
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "INDEX_TUE"
   },
   BANKNIFTY: {
@@ -17,7 +17,7 @@ export const ASSETS = {
     optionPrefix: "BANKNIFTY",
     exchange: "NSE",
     strikeStep: 100,
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "INDEX_TUE"
   },
   FINNIFTY: {
@@ -26,7 +26,7 @@ export const ASSETS = {
     optionPrefix: "FINNIFTY",
     exchange: "NSE",
     strikeStep: 50,
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "INDEX_TUE"
   },
   MIDCPNIFTY: {
@@ -35,7 +35,7 @@ export const ASSETS = {
     optionPrefix: "MIDCPNIFTY",
     exchange: "NSE",
     strikeStep: 25,
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "INDEX_TUE"
   },
   NIFTYNXT50: {
@@ -44,7 +44,7 @@ export const ASSETS = {
     optionPrefix: "NIFTYNXT50",
     exchange: "NSE",
     strikeStep: 100,
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "INDEX_TUE"
   },
 
@@ -57,7 +57,7 @@ export const ASSETS = {
     optionPrefix: "BSX",
     exchange: "BSE",
     strikeStep: 100,
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "INDEX_THU"
   },
   BANKEX: {
@@ -66,7 +66,7 @@ export const ASSETS = {
     optionPrefix: "BANKEX",
     exchange: "BSE",
     strikeStep: 100,
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "INDEX_THU"
   },
   SENSEX50: {
@@ -75,7 +75,7 @@ export const ASSETS = {
     optionPrefix: "SX50",
     exchange: "BSE",
     strikeStep: 50, 
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "INDEX_THU"
   },
 
@@ -89,7 +89,7 @@ export const ASSETS = {
     optionPrefix: "CRUDEOIL",
     exchange: "MCX",
     strikeStep: 50,
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "MCX_CRUDE"
   },
   NATURALGAS: {
@@ -98,7 +98,7 @@ export const ASSETS = {
     optionPrefix: "NATURALGAS",
     exchange: "MCX",
     strikeStep: 5,
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "MCX_NATGAS"
   },
   GOLD: {
@@ -107,7 +107,7 @@ export const ASSETS = {
     optionPrefix: "GOLD",
     exchange: "MCX",
     strikeStep: 100,
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "MCX_GOLD"
   },
   SILVER: {
@@ -116,7 +116,7 @@ export const ASSETS = {
     optionPrefix: "SILVER",
     exchange: "MCX",
     strikeStep: 500,
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "MCX_SILVER"
   },
   COPPER: {
@@ -125,7 +125,7 @@ export const ASSETS = {
     optionPrefix: "COPPER",
     exchange: "MCX",
     strikeStep: 2.5,
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "MCX_BASE"
   },
   ZINC: {
@@ -134,7 +134,7 @@ export const ASSETS = {
     optionPrefix: "ZINC",
     exchange: "MCX",
     strikeStep: 0.5,
-    strikesEachSide: 10,
+    strikesEachSide: 25,
     type: "MCX_BASE"
   }
 };
