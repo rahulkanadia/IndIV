@@ -36,7 +36,7 @@ html, body {
 }
 
 /* =========================================
-   3. HEADER STYLES (Neon Terminal)
+   2. HEADER STYLES (Neon Terminal)
    ========================================= */
 header {
     height: var(--header-height);
@@ -49,11 +49,29 @@ header {
 /* LEFT: Brand & Neon */
 .header-left { display: flex; align-items: center; gap: 25px; width: 250px; }
 .brand-title { font-weight: 900; font-size: 24px; color: #fff; letter-spacing: -0.5px; margin: 0; }
-.neon-container { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; line-height: 1; }
-.neon-line-1 { font-family: 'Segoe UI', sans-serif; font-size: 9px; color: #FFD700; font-weight: 600; margin-bottom: 3px; text-shadow: 0 0 2px rgba(255, 215, 0, 0.3); }
-.neon-status { font-family: sans-serif; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-.status-open { color: #00E676; text-shadow: 0 0 4px rgba(0, 230, 118, 0.4); }
-.status-closed { color: #FF5252; text-shadow: 0 0 4px rgba(255, 82, 82, 0.4); }
+
+/* NEON SIGN */
+.neon-container { 
+    display: flex; flex-direction: column; 
+    align-items: center; /* Center Aligned */
+    justify-content: center; line-height: 1; 
+}
+.neon-line-1 { 
+    font-family: 'Segoe UI', sans-serif; 
+    font-size: 9px; color: #FFD700; font-weight: 700; 
+    margin-bottom: 3px; 
+    text-transform: uppercase; /* All Caps */
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.6); /* Slight Glow */
+}
+.neon-status { 
+    font-family: sans-serif; font-size: 14px; font-weight: 800; 
+    text-transform: uppercase; letter-spacing: 1px;
+    
+    /* Fixed width so "CLOSED" doesn't shift layout compared to "OPEN" */
+    display: inline-block; width: 60px; text-align: center;
+}
+.status-open { color: #00E676; text-shadow: 0 0 8px rgba(0, 230, 118, 0.6); }
+.status-closed { color: #FF5252; text-shadow: 0 0 8px rgba(255, 82, 82, 0.6); }
 
 /* CENTER: Price & Search */
 .header-center { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 30px; }
@@ -64,17 +82,32 @@ header {
 .val-up { color: #4CAF50 !important; }
 .val-down { color: #FF5252 !important; }
 
-/* Search Pill */
-.search-pill { background: #1a1a1a; width: 260px; height: 38px; border-radius: 999px; display: flex; align-items: center; padding: 0 16px; gap: 10px; transition: background 0.2s; cursor: pointer; }
+/* SEARCH PILL */
+.search-pill { 
+    background: #1a1a1a; width: 260px; height: 38px; 
+    border-radius: 999px; display: flex; align-items: center; justify-content: space-between; /* Icon moves to right */
+    padding: 0 16px; gap: 10px; transition: background 0.2s; cursor: pointer; 
+}
 .search-pill:hover { background: #222; }
-.search-icon { font-size: 14px; color: #666; }
-.search-text { font-size: 13px; color: #888; font-weight: 500; }
+.search-icon { font-size: 14px; color: #888; opacity: 0.8; } /* Flat design look */
+.search-text { font-size: 13px; color: #fff; font-weight: 700; } /* White & Bold */
 
 /* RIGHT: Utils */
 .header-right { display: flex; align-items: center; gap: 15px; }
-.help-link { font-size: 11px; color: #666; text-decoration: none; font-weight: 600; transition: 0.2s; }
-.help-link:hover { color: #fff; }
-.last-update { font-family: 'Consolas', monospace; font-size: 11px; color: #444; border-left: 1px solid #222; padding-left: 10px; }
+
+/* Help Button (White Box) */
+.help-link { 
+    font-size: 11px; color: #fff; text-decoration: none; font-weight: 600; 
+    border: 1px solid #fff; padding: 5px 10px; border-radius: 4px;
+    transition: 0.2s; 
+}
+.help-link:hover { background: #fff; color: #000; }
+
+/* Last Updated (White) */
+.last-update { 
+    font-family: 'Consolas', monospace; font-size: 11px; color: #fff; 
+    border-left: 1px solid #333; padding-left: 10px; 
+}
 
 /* =========================================
    4. DASHBOARD LAYOUT (Fixed 40/60 Split)
