@@ -27,68 +27,114 @@
             overflow: hidden;
         }
 
-        /* --- HEADER --- */
+        /* --- HEADER (NEON TERMINAL DESIGN) --- */
         header {
-            height: 54px;
-            background-color: #111;
+            height: 64px; /* Increased height */
+            background-color: #050505;
             border-bottom: 1px solid #222;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 15px; position: relative; flex-shrink: 0;
+            padding: 0 16px; position: relative; flex-shrink: 0;
+            z-index: 100;
         }
 
+        /* LEFT: Instrument Cluster */
         .header-left { display: flex; align-items: center; gap: 20px; }
-        .asset-btn {
-            background: #212121; color: #fff;
-            border: 1px solid #444; padding: 6px 14px;
-            border-radius: 4px; font-size: 13px; font-weight: 700;
-            cursor: pointer; display: flex; align-items: center; gap: 8px;
-        }
-        .asset-btn:hover { background: #333; border-color: #666; }
-        
-        .price-group { display: flex; flex-direction: column; justify-content: center; line-height: 1.1; }
-        .price-label { font-size: 9px; color: #888; font-weight: 600; text-transform: uppercase; }
-        .price-val { font-size: 13px; font-weight: 600; font-family: 'Segoe UI', monospace; }
-        
-        .market-status {
-            display: flex; align-items: center; gap: 6px;
-            font-size: 11px; font-weight: 600; color: #aaa;
-            border-left: 1px solid #333; padding-left: 15px; height: 24px;
-        }
-        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #00E676; }
 
-        .header-center { position: absolute; left: 50%; transform: translateX(-50%); font-weight: 700; font-size: 18px; color: #fff; letter-spacing: 1px; }
+        /* 1. Asset Trigger (Orange Pill) */
+        .asset-trigger {
+            background: #141414;
+            border: 1px solid #FF9800; /* ORANGE BORDER */
+            border-radius: 6px;
+            padding: 6px 10px;
+            display: flex; align-items: center; gap: 10px;
+            cursor: pointer; transition: all 0.2s ease;
+            height: 36px; box-sizing: border-box;
+        }
 
+        .asset-trigger:hover {
+            background: #1f1f1f;
+            border-color: #FFB74D;
+            box-shadow: 0 0 10px rgba(255, 152, 0, 0.3); /* Orange Glow */
+        }
+
+        .asset-symbol { font-size: 14px; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
+        .asset-search-hint {
+            font-size: 10px; color: #FF9800; background: #331500;
+            padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #5c2b00;
+        }
+
+        /* 2. Price Grid */
+        .price-cluster { display: flex; align-items: center; gap: 12px; }
+        .price-item { display: flex; flex-direction: column; justify-content: center; height: 36px; padding-right: 12px; border-right: 1px solid #222; }
+        .price-item:last-child { border-right: none; }
+
+        .price-label-row { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+        .price-tag { font-size: 9px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .price-main { font-family: 'Segoe UI', sans-serif; font-size: 15px; font-weight: 700; line-height: 1; color: #e0e0e0; }
+
+        /* Price Color Utilities */
+        .val-up { color: #4CAF50 !important; }
+        .val-down { color: #FF5252 !important; }
+
+        /* 3. Neon Signboard */
+        .neon-signboard {
+            display: flex; align-items: center; justify-content: center;
+            padding: 6px 14px;
+            background: #080808;
+            border: 2px solid #222; /* Metal frame */
+            border-radius: 4px;
+            height: 32px;
+            box-shadow: inset 0 0 10px #000;
+        }
+
+        .neon-text {
+            font-family: sans-serif;
+            font-size: 11px; font-weight: 800;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            text-shadow:
+                0 0 2px #fff,
+                0 0 5px #0f0,  /* Green Glow Layers */
+                0 0 10px #0f0,
+                0 0 20px #0f0,
+                0 0 25px #0f0;
+        }
+
+        /* CENTER & RIGHT */
+        .header-center { font-weight: 900; font-size: 20px; color: #444; letter-spacing: -0.5px; }
         .header-right { display: flex; align-items: center; gap: 15px; }
-        .help-btn { color: #fff; text-decoration: none; font-size: 11px; font-weight: 600; border: 1px solid #333; padding: 6px 12px; border-radius: 4px; background: #1a1a1a; }
-        .last-update { font-size: 11px; color: #fff; font-family: 'Segoe UI', sans-serif; }
-        
-        .text-up { color: #00E676 !important; }
-        .text-down { color: #FF5252 !important; }
+        .help-link { font-size: 11px; color: #666; text-decoration: none; font-weight: 600; transition: 0.2s; }
+        .help-link:hover { color: #fff; }
+        .last-update { font-family: 'Consolas', monospace; font-size: 11px; color: #444; border-left: 1px solid #222; padding-left: 10px; }
+
 
         /* --- DASHBOARD CONTAINER --- */
         .dashboard-container {
             flex: 1;
             display: flex;
             width: 100%;
-            height: calc(100vh - 54px);
+            /* UPDATED: Matches new 64px header */
+            height: calc(100vh - 64px); 
             overflow: hidden;
         }
-        
+
         /* LEFT PANEL (Fixed Width) */
         .left-panel { 
-            width: 40%;       /* Keeps strict 45% width */
-            min-width: 40%;   /* Prevents shrinking */
+            width: 40%;       
+            min-width: 40%;   
             display: flex; 
             flex-direction: column; 
             border-right: none; 
             height: 100%; 
         }
-        
+
         /* RIGHT PANEL (Fluid Width) */
         .right-panel { 
-            flex: 1;           /* UPDATED: Take all remaining space */
-            min-width: 0;      /* Standard flexbox fix for internal scrolling */
-            padding-left: 5px; /* UPDATED: 5px Padding */
+            flex: 1;           
+            min-width: 0;      
+            padding-left: 5px; 
             display: flex; 
             flex-direction: column; 
             height: 100%; 
@@ -96,32 +142,32 @@
 
         /* Right Top: Split Row (PCR + SD Table) */
         .split-row {
-            flex: 0 0 135px;   /* CHANGED: Fixed to 10% of panel height */
+            flex: 0 0 135px;   
             display: flex;
             border-bottom: none;
             margin: 0;
             padding: 0;
         }
-                
+
         /* PCR Section (Left Side of Split) */
         .split-pcr { 
-            flex: 0 0 65%;       /* CHANGED: Uses flex-basis for width */
+            flex: 0 0 65%;       
             height: 100%; 
             border-right: 1px solid #222; 
             position: relative; 
-            min-width: 0;        /* Prevents Plotly from overflowing */
+            min-width: 0;        
         }
-        
+
         /* SD Table Section (Right Side of Split) */
         .split-sd { 
-            flex: 1;             /* CHANGED: Automatically takes remaining space (35%) */
+            flex: 1;             
             height: 100%; 
-            min-width: 0;        /* Prevents table from overflowing */
+            min-width: 0;        
         }
-        
+
         /* Right Middle: Greeks Table */
         #greeks-table-container { 
-            flex: 1;         /* REMAINING SPACE: Automatically takes whatever is left */
+            flex: 1;         
             min-height: 0; 
             border-bottom: 1px solid #222; 
             overflow: hidden; 
@@ -140,7 +186,7 @@
         <div class="header-left" id="header-cluster"></div>
         <div class="header-center">IndIV</div>
         <div class="header-right">
-            <a href="#" class="help-btn">How to use?</a>
+            <a href="#" class="help-link">How to use?</a>
             <div class="last-update" id="last-update-time">last updated: --:--:--</div>
         </div>
     </header>
@@ -179,25 +225,34 @@
     function renderHeaderCluster(containerId, data) {
         const container = document.getElementById(containerId);
         if(!container) return;
+
         const spotChg = 120.50; const spotPct = 0.46;
         const futChg = 130.00; const futPct = 0.50;
-        const getCls = (v) => v >= 0 ? 'text-up' : 'text-down';
-        const fmt = (v, p) => `${v>=0?'+':''}${v} (${p}%)`;
+        
+        // Helper to color just the change value, not the main price
+        const getCls = (v) => v >= 0 ? 'val-up' : 'val-down';
+        const fmtChg = (v, p) => `${v>=0?'+':''}${v} (${p}%)`;
 
         container.innerHTML = `
-            <button class="asset-btn" title="Change Asset (Ctrl+K)">
-                <span style="opacity:0.7;">&#128269;</span> NIFTY 50 <span style="font-size:8px;">▼</span>
-            </button>
-            <div style="width:1px; height:20px; background:#333;"></div>
-            <div class="price-group">
-                <div class="price-label">Spot</div>
-                <div class="price-val ${getCls(spotChg)}">${data.spot.toLocaleString()} <span style="font-size:10px;">${fmt(spotChg, spotPct)}</span></div>
+            <div class="asset-trigger" title="Search Asset (Ctrl+K)">
+                <span class="asset-symbol">NIFTY 50</span>
+                <span class="asset-search-hint">CTRL K</span>
             </div>
-            <div class="price-group">
-                <div class="price-label">Future</div>
-                <div class="price-val ${getCls(futChg)}">26,210 <span style="font-size:10px;">${fmt(futChg, futPct)}</span></div>
+
+            <div class="price-cluster">
+                <div class="price-item">
+                    <div class="price-label-row"><span class="price-tag">SPOT</span></div>
+                    <div class="price-main">${data.spot.toLocaleString()} <span style="font-size:11px; margin-left:4px;" class="${getCls(spotChg)}">${fmtChg(spotChg, spotPct)}</span></div>
+                </div>
+                <div class="price-item">
+                    <div class="price-label-row"><span class="price-tag" style="color:#42A5F5;">FUT</span></div>
+                    <div class="price-main">26,210 <span style="font-size:11px; margin-left:4px;" class="${getCls(futChg)}">${fmtChg(futChg, futPct)}</span></div>
+                </div>
             </div>
-            <div class="market-status"><div class="status-dot"></div>Casino is Open</div>
+
+            <div class="neon-signboard">
+                <span class="neon-text">CASINO IS OPEN</span>
+            </div>
         `;
     }
 
@@ -209,7 +264,7 @@
         renderMarketGrid('weekly-grid-container', 'WEEKLY', mockData.gridWeekly, 't-week');
         renderChartDashboard('main-chart-dashboard');
         renderMarketGrid('monthly-grid-container', 'MONTHLY', mockData.gridMonthly, 't-month');
-        
+
         renderPCRSpark('pcr-container', mockData.pcr);
         renderSDTable('sd-table-container', mockData);
         renderGreeksTable('greeks-table-container', mockData);
