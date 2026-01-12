@@ -6,6 +6,10 @@
     width: 100%;
     background: #111;
     font-family: 'Segoe UI', sans-serif; /* Global Font Consistency */
+    
+    /* ENFORCE ZERO EXTERNAL SPACING */
+    margin: 0;
+    padding: 0;
 }
 
 /* TABS STRIP */
@@ -82,10 +86,6 @@
     min-height: 0;
 }
 
-/* ... Keep existing CSS ... */
-
-/* ... Keep existing CSS ... */
-
 /* CHART HELP TEXT - FIXED */
 .chart-help-text {
     width: 100%;
@@ -98,7 +98,7 @@
     font-weight: 400;
     flex-shrink: 0;
     font-family: 'Segoe UI', sans-serif;
-    
+
     /* PREVENT SPILL */
     box-sizing: border-box;
     word-wrap: break-word;
