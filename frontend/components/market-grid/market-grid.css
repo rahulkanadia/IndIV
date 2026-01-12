@@ -3,7 +3,12 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 8px; /* Internal gap between Title and Grid */
+    
+    /* ENFORCE ZERO EXTERNAL SPACING */
+    /* Spacing between this section and others is now handled by --left-panel-gap in global.css */
+    margin: 0;
+    padding: 0;
 }
 
 /* SECTION TITLE (e.g. "WEEKLY (26 DEC)") */
@@ -14,7 +19,7 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
-.t-month .section-title { color: #FF9800; /* Keep uniform or change to Blue #42A5F5 if preferred */ }
+.t-month .section-title { color: #FF9800; }
 
 /* GRID LAYOUT (5 Columns) */
 .grid-layout {
