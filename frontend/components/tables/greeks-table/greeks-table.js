@@ -19,7 +19,6 @@ function getColumnRanges(rows) {
             if(valP) { ranges[key].min = Math.min(ranges[key].min, valP); ranges[key].max = Math.max(ranges[key].max, valP); }
         });
     });
-    // Fallback if data is empty
     if(ranges.gamma.min === Infinity) ranges.gamma = { min:0, max:1 };
     if(ranges.delta.min === Infinity) ranges.delta = { min:0, max:1 };
     return ranges;
@@ -51,9 +50,8 @@ export function renderGreeksTable(containerId, data) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Check if we received the specific greeks object or the full data object
     const tableData = data.rows ? data : (data.greeks || { rows: [] });
-    const rows = tableData.rows || [];
+    let rows = tableData.rows || [];
     const atmStrike = tableData.atmStrike || 0;
 
     if(rows.length === 0) {
@@ -61,15 +59,52 @@ export function renderGreeksTable(containerId, data) {
         return;
     }
 
-    // Filter Logic
-    const displayRows = majorStrikesOn ? rows.filter(r => r.strike % 100 === 0) : rows;
-    const rng = getColumnRanges(displayRows);
+    // --- 1. FILTER LOGIC ---
+    let displayRows = [...rows].sort((a,b) => a.strike - b.strike);
 
-    // Controls
+    if (majorStrikesOn) {
+        // Rule: If ATM is Minor (ends in 50), show +/- 50 neighbors, then 100 steps.
+        // If ATM is Major (ends in 00), show 100 steps.
+        const isAtmMinor = atmStrike % 100 !== 0;
+
+        displayRows = displayRows.filter(r => {
+            // Always keep ATM
+            if (r.strike === atmStrike) return true;
+            
+            // Major Strikes (Step 100) are always candidates
+            if (r.strike % 100 === 0) return true;
+
+            // Minor ATM Exception: Keep immediate neighbors (+/- 50)
+            if (isAtmMinor && Math.abs(r.strike - atmStrike) === 50) return true;
+
+            return false;
+        });
+    }
+
+    // --- 2. SLICE LOGIC (Center ATM +/- 10) ---
+    // Find closest match to ATM in the filtered list
+    let atmIndex = -1;
+    let minDiff = Infinity;
+    
+    displayRows.forEach((r, i) => {
+        const diff = Math.abs(r.strike - atmStrike);
+        if (diff < minDiff) {
+            minDiff = diff;
+            atmIndex = i;
+        }
+    });
+
+    if (atmIndex !== -1) {
+        const start = Math.max(0, atmIndex - 10);
+        const end = Math.min(displayRows.length, atmIndex + 11); // +11 because slice end is exclusive
+        displayRows = displayRows.slice(start, end);
+    }
+
+    // --- 3. RENDER ---
+    const rng = getColumnRanges(displayRows);
     const activeClass = majorStrikesOn ? 'active' : '';
     const btnText = majorStrikesOn ? 'ALL STRIKES' : 'MAJOR STRIKES';
     
-    // We only show one expiry tab for now as the backend currently only processes one detailed chain
     const controlsHtml = `
         <div class="greeks-controls">
             <div class="expiry-tabs"><button class="expiry-btn active">Current Expiry</button></div>
@@ -81,20 +116,17 @@ export function renderGreeksTable(containerId, data) {
         </div>
     `;
 
-    // Table Body
     const tableRows = displayRows.map(r => {
-        const isATM = r.strike === atmStrike;
+        const isATM = Math.abs(r.strike - atmStrike) < 1; // Tolerance check
         const rowClass = isATM ? 'row-atm' : '';
         const C = r.call || {}; 
         const P = r.put || {};
-        
-        // Safety formatting
         const fmt = (v, f) => (v !== undefined && v !== null) ? v.toFixed(f) : '-';
 
         return `
             <tr class="${rowClass}">
                 ${renderCombinedOI(C.oi, C.oiChg)}
-                <td style="background:${getBgColor(C.gamma, rng.gamma.min, rng.gamma.max, true)}">${fmt(C.greeks?.gamma, 4)}</td>
+                <td style="background:${getBgColor(C.greeks?.gamma, rng.gamma.min, rng.gamma.max, true)}">${fmt(C.greeks?.gamma, 4)}</td>
                 <td>${fmt(C.greeks?.vega, 1)}</td>
                 <td>${fmt(C.greeks?.theta, 1)}</td>
                 <td style="background:${getBgColor(C.greeks?.delta, rng.delta.min, rng.delta.max, true)}">${fmt(C.greeks?.delta, 2)}</td>
@@ -130,7 +162,6 @@ export function renderGreeksTable(containerId, data) {
         </div>
     `;
 
-    // Event Listener
     const btn = document.getElementById('btn-major-strikes');
     if(btn) btn.onclick = () => { majorStrikesOn = !majorStrikesOn; renderGreeksTable(containerId, data); };
 }
