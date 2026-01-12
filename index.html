@@ -121,9 +121,9 @@
         renderMarketGrid('weekly-grid-container', 'WEEKLY', data.gridWeekly, 't-week');
         renderMarketGrid('monthly-grid-container', 'MONTHLY', data.gridMonthly, 't-month');
 
-        // Charts (Currently these still internally reference mockData imports, 
-        // we will update them next, but this won't break anything yet)
-        renderChartDashboard('main-chart-dashboard');
+        // PASS 'data.charts' TO THE DASHBOARD
+renderChartDashboard('main-chart-dashboard', data.charts);
+
 
         renderPCRSpark('pcr-container', data.pcr);
         renderSDTable('sd-table-container', data); // This might look empty if backend doesn't send SD yet
