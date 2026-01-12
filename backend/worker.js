@@ -236,6 +236,11 @@ async function processAsset(assetName, previousData) {
                 mo: newIV, 
                 moRv: newIV
             },
+pcr: {
+                current: 0.85, // Placeholder until OI fetch is implemented
+                time: newTime,
+                history: newTime.map(() => 0.85) // Flat line for now
+            },
             term: {
                 expiries: termX,
                 weekly: termY,
