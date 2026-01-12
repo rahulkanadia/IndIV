@@ -9,15 +9,13 @@ import { greeks } from "./lib/greeks.js"
 
 // --- CONSTANTS ---
 const FILE_PATH = "indiv_data.json";
-const MAX_HISTORY_POINTS = 75; // Approx 1 full trading day
+const MAX_HISTORY_POINTS = 75; 
 const tv = new TradingViewAPI();
 
 // --- STATE MANAGEMENT ---
 function loadState() {
     try {
-        if (fs.existsSync(FILE_PATH)) {
-            return JSON.parse(fs.readFileSync(FILE_PATH, 'utf8'));
-        }
+        if (fs.existsSync(FILE_PATH)) return JSON.parse(fs.readFileSync(FILE_PATH, 'utf8'));
     } catch (e) { console.error("⚠️ Failed to load state:", e.message); }
     return {};
 }
@@ -38,25 +36,18 @@ function formatChg(price, prevPrice) {
     const pct = (diff / prevPrice) * 100;
     const cls = diff > 0 ? "up" : (diff < 0 ? "down" : "neutral");
     const sign = diff > 0 ? "+" : "";
-    return {
-        txt: `${sign}${diff.toFixed(2)} (${pct.toFixed(2)}%)`,
-        cls: cls
-    };
+    return { txt: `${sign}${diff.toFixed(2)} (${pct.toFixed(2)}%)`, cls };
 }
 
-// --- LOGIC: FETCH PRICE & OI ---
+// --- LOGIC: FETCH PRICE ---
 async function fetchTickerData(ticker) {
     try {
         const t = await tv.getTicker(ticker);
         const d = await t.fetch();
         if (!d) return null;
-        
-        // Try to capture Price and Open Interest
-        // Note: Field names vary by exchange/TV data source. 
-        // We look for common fields: lp (last price), ch (change), open_interest, etc.
         return {
             price: d.lp || d.last_price || d.close_price,
-            oi: d.open_interest || d.oi || 0, // Fallback 0 if API doesn't provide OI
+            oi: d.open_interest || d.oi || 0,
             volume: d.volume || 0
         };
     } catch (e) { return null; }
@@ -64,22 +55,21 @@ async function fetchTickerData(ticker) {
 
 // --- LOGIC: CALCULATE SD LEVELS ---
 function calculateSDLevels(spot, ivPercent) {
-    // Formula: Range = Spot * (IV/100) * sqrt(Days/365)
-    const iv = ivPercent / 100;
+    // FALLBACK: If IV is 0 or missing, use 12% to prevent table breaking
+    const safeIV = (ivPercent && ivPercent > 0) ? ivPercent : 12.0;
+    const iv = safeIV / 100;
     
+    // Formula: Range = Spot * IV * sqrt(Days/365)
     const getRange = (days) => spot * iv * Math.sqrt(days / 365);
     
-    // 1. Weekly (7 Days)
-    const wRange = getRange(7);
-    // 2. Monthly (30 Days)
-    const mRange = getRange(30);
+    const wRange = getRange(7);  // Weekly
+    const mRange = getRange(30); // Monthly
     
-    // Formatting helper
     const f = (n) => Math.round(n).toLocaleString();
 
     return {
-        spot: spot,
-        iv: ivPercent,
+        spot,
+        iv: safeIV,
         weekly: {
             range: Math.round(wRange),
             levels: {
@@ -105,30 +95,34 @@ async function processAsset(assetName, previousData) {
     
     pushLog(`🟦 Processing ${assetName}...`);
 
-    // 1. FETCH UNDERLYING
+    // 1. FETCH UNDERLYING (FUTURES & SPOT)
     const futuresSymbol = `${cfg.exchange}:${cfg.futuresSymbol}`;
+    const indexSymbol = cfg.indexSymbol || futuresSymbol; // Fallback to Fut if no Spot defined
+
     const futData = await fetchTickerData(futuresSymbol);
-    
+    const spotData = await fetchTickerData(indexSymbol);
+
     if (!futData || !futData.price) {
-        pushLog(`❌ CRITICAL: No data for ${futuresSymbol}`);
+        pushLog(`❌ CRITICAL: No Future data for ${futuresSymbol}`);
         return null;
     }
+
     const F = futData.price;
+    const S = spotData ? spotData.price : F; 
     const now = new Date();
     
     // 2. RESOLVE EXPIRIES
     const expiries = resolveExpiries(cfg);
     
-    // 3. ANALYZE EXPIRIES (Loop)
+    // 3. ANALYZE EXPIRIES
     const termX = [];
     const termY = [];
     let greeksData = { rows: [] };
     
-    // Accumulators for PCR
     let totalCallOI = 0;
     let totalPutOI = 0;
     
-    // Accumulators for Grid (ATM Values)
+    // Grid placeholders
     let atmCallPrice = 0;
     let atmPutPrice = 0;
     let atmStraddlePrice = 0;
@@ -142,7 +136,6 @@ async function processAsset(assetName, previousData) {
 
         const atmStrike = Math.round(F / cfg.strikeStep) * cfg.strikeStep;
         
-        // Detailed chain for nearest expiry (Weekly)
         const count = isWeekly ? cfg.strikesEachSide : 0; 
         const symbols = buildOptionSymbols(cfg.optionPrefix, exp, atmStrike, cfg.strikeStep, count);
         
@@ -156,11 +149,10 @@ async function processAsset(assetName, previousData) {
 
             if (!cData || !pData) continue;
             
-            // Capture PCR Data (If available)
             totalCallOI += (cData.oi || 0);
             totalPutOI += (pData.oi || 0);
 
-            // Capture ATM Data for Grid
+            // Capture ATM Data
             if (isWeekly && s.strike === atmStrike) {
                 atmCallPrice = cData.price;
                 atmPutPrice = pData.price;
@@ -198,42 +190,39 @@ async function processAsset(assetName, previousData) {
         }
     }
 
-    // 4. HISTORY UPDATES
+    // 4. HISTORY
     const prevAsset = previousData[assetName] || {};
     const prevIntraday = prevAsset.charts?.intraday || { time: [], wk: [] };
     const prevPCR = prevAsset.charts?.pcr || { history: [] };
     
-    // Calculate PCR
-    const currentPCR = totalCallOI > 0 ? (totalPutOI / totalCallOI) : 0.8; // Default 0.8 if 0
-    
-    // Time Strings
+    const currentPCR = totalCallOI > 0 ? (totalPutOI / totalCallOI) : 0.8;
     const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute:'2-digit' });
     
-    // Append History (Max 75)
+    // Accumulate Real History
     const newTime = [...prevIntraday.time, timeStr].slice(-MAX_HISTORY_POINTS);
     const newIV = [...prevIntraday.wk, frontMonthIV].slice(-MAX_HISTORY_POINTS);
     const newPCRHist = [...prevPCR.history, currentPCR].slice(-MAX_HISTORY_POINTS);
 
-    // 5. CALCULATE DERIVED DATA (SD & GRID)
-    const sdData = calculateSDLevels(F, frontMonthIV);
+    // 5. CALCULATE DERIVED DATA (Using S for Spot Display, but IV from Option Chain)
+    const sdData = calculateSDLevels(S, frontMonthIV);
     
-    // IV Rank (Simple Min/Max from history)
+    // IV Rank
     const allIVs = [...newIV];
-    const maxIV = Math.max(...allIVs, frontMonthIV + 5); // Fallback buffer
+    const maxIV = Math.max(...allIVs, frontMonthIV + 5);
     const minIV = Math.min(...allIVs, frontMonthIV - 5);
     const ivRank = allIVs.length > 0 ? ((frontMonthIV - minIV) / (maxIV - minIV)) * 100 : 50;
 
-    // 6. BUILD FINAL UI DATA
+    // 6. UI DATA
     const uiData = {
         meta: { timestamp: Date.now(), log: logMessages },
         header: {
-            spot: F,
-            futures: F,
+            spot: S, // DISPLAY SPOT
+            futures: F, // DISPLAY FUTURE
             futuresChange: formatChg(F, prevAsset.header?.futures)
         },
         gridWeekly: [
             { label: 'ATM CALL', value: fmt(atmCallPrice), chg: '-', color: 'up' },
-            { label: 'CALL IV', value: '-', chg: '-', color: 'neutral' }, // Todo: Calc specific IVs
+            { label: 'CALL IV', value: '-', chg: '-', color: 'neutral' },
             { label: 'ATM PUT', value: fmt(atmPutPrice), chg: '-', color: 'down' },
             { label: 'PUT IV', value: '-', chg: '-', color: 'neutral' },
             { label: 'STRADDLE', value: fmt(atmStraddlePrice), chg: '-', color: 'neutral' },
@@ -242,7 +231,7 @@ async function processAsset(assetName, previousData) {
             { label: 'IVR', value: fmt(ivRank, 0), chg: '', color: 'neutral' },
             { label: 'IVP', value: '-', chg: '', color: 'neutral' }
         ],
-        gridMonthly: [], // Can duplicate GridWeekly if needed
+        gridMonthly: [],
         charts: {
             intraday: {
                 time: newTime,
@@ -250,11 +239,7 @@ async function processAsset(assetName, previousData) {
                 wkRv: newIV.map(x => x * 0.8),
                 mo: newIV, moRv: newIV
             },
-            pcr: {
-                current: currentPCR,
-                time: newTime,
-                history: newPCRHist
-            },
+            pcr: { current: currentPCR, time: newTime, history: newPCRHist },
             term: { expiries: termX, weekly: termY, monthly: termY },
             greeks: greeksData,
             skew: { strikes: [], weekly: [] }, 
@@ -289,7 +274,6 @@ async function run() {
     const oldState = loadState();
     const newState = { ...oldState };
 
-    // Process List (Add more from CSV later)
     const targets = ["NIFTY"]; 
     
     for(const t of targets) {
