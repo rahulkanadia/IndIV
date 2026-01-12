@@ -9,54 +9,95 @@ import { greeks } from "./lib/greeks.js"
 
 // --- CONSTANTS ---
 const FILE_PATH = "indiv_data.json";
-const MAX_HISTORY_POINTS = 75; // Approx 1 full trading day at 5-min intervals
+const MAX_HISTORY_POINTS = 75; // Approx 1 full trading day
 const tv = new TradingViewAPI();
 
-// --- 1. STATE MANAGEMENT ---
+// --- STATE MANAGEMENT ---
 function loadState() {
     try {
         if (fs.existsSync(FILE_PATH)) {
-            const raw = fs.readFileSync(FILE_PATH, 'utf8');
-            return JSON.parse(raw);
+            return JSON.parse(fs.readFileSync(FILE_PATH, 'utf8'));
         }
-    } catch (e) {
-        console.error("⚠️ Failed to load previous state:", e.message);
-    }
-    return {}; // Empty start
+    } catch (e) { console.error("⚠️ Failed to load state:", e.message); }
+    return {};
 }
 
 function saveState(data) {
     fs.writeFileSync(FILE_PATH, JSON.stringify(data, null, 2));
 }
 
-// --- 2. HELPERS ---
-async function fetchPrice(ticker) {
+// --- HELPER: FORMATTERS ---
+function fmt(num, decimals = 2) {
+    if (num === null || num === undefined) return '-';
+    return num.toFixed(decimals);
+}
+
+function formatChg(price, prevPrice) {
+    if (!prevPrice || !price) return { txt: "-", cls: "neutral" };
+    const diff = price - prevPrice;
+    const pct = (diff / prevPrice) * 100;
+    const cls = diff > 0 ? "up" : (diff < 0 ? "down" : "neutral");
+    const sign = diff > 0 ? "+" : "";
+    return {
+        txt: `${sign}${diff.toFixed(2)} (${pct.toFixed(2)}%)`,
+        cls: cls
+    };
+}
+
+// --- LOGIC: FETCH PRICE & OI ---
+async function fetchTickerData(ticker) {
     try {
         const t = await tv.getTicker(ticker);
         const d = await t.fetch();
         if (!d) return null;
-        return d.lp || d.last_price || d.close_price;
-    } catch (e) {
-        return null;
-    }
+        
+        // Try to capture Price and Open Interest
+        // Note: Field names vary by exchange/TV data source. 
+        // We look for common fields: lp (last price), ch (change), open_interest, etc.
+        return {
+            price: d.lp || d.last_price || d.close_price,
+            oi: d.open_interest || d.oi || 0, // Fallback 0 if API doesn't provide OI
+            volume: d.volume || 0
+        };
+    } catch (e) { return null; }
 }
 
-// Simple formatter to match UI expectations ("+12 (0.5%)")
-function formatChg(price, prevPrice) {
-    if (!prevPrice) return { txt: "-", cls: "neutral" };
-    const diff = price - prevPrice;
-    const pct = (diff / prevPrice) * 100;
-    const sign = diff >= 0 ? "+" : "";
-    const cls = diff >= 0 ? "up" : "down";
+// --- LOGIC: CALCULATE SD LEVELS ---
+function calculateSDLevels(spot, ivPercent) {
+    // Formula: Range = Spot * (IV/100) * sqrt(Days/365)
+    const iv = ivPercent / 100;
+    
+    const getRange = (days) => spot * iv * Math.sqrt(days / 365);
+    
+    // 1. Weekly (7 Days)
+    const wRange = getRange(7);
+    // 2. Monthly (30 Days)
+    const mRange = getRange(30);
+    
+    // Formatting helper
+    const f = (n) => Math.round(n).toLocaleString();
+
     return {
-        txt: `${sign}${diff.toFixed(2)} (${sign}${pct.toFixed(2)}%)`,
-        cls: cls,
-        diff: diff,
-        pct: pct
+        spot: spot,
+        iv: ivPercent,
+        weekly: {
+            range: Math.round(wRange),
+            levels: {
+                sd1: { low: f(spot - wRange), high: f(spot + wRange) },
+                sd2: { low: f(spot - (2*wRange)), high: f(spot + (2*wRange)) }
+            }
+        },
+        monthly: {
+            range: Math.round(mRange),
+            levels: {
+                sd1: { low: f(spot - mRange), high: f(spot + mRange) },
+                sd2: { low: f(spot - (2*mRange)), high: f(spot + (2*mRange)) }
+            }
+        }
     };
 }
 
-// --- 3. CORE LOGIC ---
+// --- MAIN PROCESSOR ---
 async function processAsset(assetName, previousData) {
     const cfg = ASSETS[assetName];
     const logMessages = [];
@@ -64,223 +105,200 @@ async function processAsset(assetName, previousData) {
     
     pushLog(`🟦 Processing ${assetName}...`);
 
-    // A. FETCH UNDERLYING
+    // 1. FETCH UNDERLYING
     const futuresSymbol = `${cfg.exchange}:${cfg.futuresSymbol}`;
-    const spotPrice = 25950; // TODO: Fetch Actual Spot Index from TV if available, else derive
-    const futPrice = await fetchPrice(futuresSymbol);
-
-    if (!futPrice) {
-        pushLog(`❌ CRITICAL: Could not fetch Futures Price for ${futuresSymbol}`);
+    const futData = await fetchTickerData(futuresSymbol);
+    
+    if (!futData || !futData.price) {
+        pushLog(`❌ CRITICAL: No data for ${futuresSymbol}`);
         return null;
     }
-    
-    // Assume Spot is close to Future for now if not fetched (Or fetch specific index ticker)
-    // For NIFTY, TV ticker is "NSE:NIFTY" usually, but requires specific access. 
-    // We will use Fut for calculations but need Spot for "Spot Price" display.
-    const F = futPrice; 
-    
-    // B. RESOLVE EXPIRIES
-    const expiries = resolveExpiries(cfg);
+    const F = futData.price;
     const now = new Date();
     
-    // C. PROCESS CHAINS
-    // Strategy: 
-    // 1. Detailed Chain for Weekly (Exp[0]) & Monthly (Exp[M]) -> For Surface & Greeks
-    // 2. Single ATM Strike for Others -> For Term Structure
-
-    let termStructureData = [];
-    let surfaceData = { weekly: [], monthly: [] };
-    let greeksData = { rows: [] };
-    let pcrData = { oiCall: 0, oiPut: 0 };
+    // 2. RESOLVE EXPIRIES
+    const expiries = resolveExpiries(cfg);
     
-    // Helper to process a specific expiry
-    async function analyzeExpiry(expiryDate, isDetailed) {
-        const T = tradingTimeToExpiry(now, expiryDate);
-        if (T <= 0) return null;
+    // 3. ANALYZE EXPIRIES (Loop)
+    const termX = [];
+    const termY = [];
+    let greeksData = { rows: [] };
+    
+    // Accumulators for PCR
+    let totalCallOI = 0;
+    let totalPutOI = 0;
+    
+    // Accumulators for Grid (ATM Values)
+    let atmCallPrice = 0;
+    let atmPutPrice = 0;
+    let atmStraddlePrice = 0;
+    let frontMonthIV = 0;
+    
+    for (const exp of expiries.list) {
+        const isWeekly = exp.getTime() === expiries.weekly.getTime();
+        const T = tradingTimeToExpiry(now, exp);
+        
+        if (T <= 0) continue;
 
         const atmStrike = Math.round(F / cfg.strikeStep) * cfg.strikeStep;
         
-        // If detailed, grab +/- 8 strikes. If simple, just ATM.
-        const count = isDetailed ? 8 : 0; 
-        const symbols = buildOptionSymbols(cfg.optionPrefix, expiryDate, atmStrike, cfg.strikeStep, count);
-
-        let totalIV = 0;
-        let countIV = 0;
-        let expiryRowData = [];
-
-        // Batch requests to be polite but fast
-        // (In production, use a queue. Here we await sequential for safety or Promise.all small batches)
-        for (const s of symbols) {
-            const cP = await fetchPrice(`${cfg.exchange}:${s.call}`);
-            const pP = await fetchPrice(`${cfg.exchange}:${s.put}`);
-
-            if (!cP || !pP) continue;
-
-            const civ = solveIV({ price: cP, F, K: s.strike, T, isCall: true });
-            const piv = solveIV({ price: pP, F, K: s.strike, T, isCall: false });
-
-            // Accumulate PCR (OI) - *Needs OI Fetch support in future*
-            // Currently TV scraper 'fetchPrice' might not return OI. 
-            // We'll set placeholders 0 for now to avoid breaking.
-            
-            if (civ && piv) {
-                const rowStats = {
-                    strike: s.strike,
-                    call: { price: cP, iv: civ * 100, greeks: greeks(F, s.strike, T, civ, true) },
-                    put:  { price: pP, iv: piv * 100, greeks: greeks(F, s.strike, T, piv, false) }
-                };
-                expiryRowData.push(rowStats);
-                
-                totalIV += (civ + piv) / 2;
-                countIV++;
-            }
-        }
-
-        const avgIV = countIV > 0 ? (totalIV / countIV) * 100 : 0;
-
-        return {
-            date: expiryDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
-            avgIV,
-            rows: expiryRowData,
-            atmStrike
-        };
-    }
-
-    // --- EXECUTE LOOPS ---
-    
-    // 1. Loop ALL Expiries for Term Structure
-    const termX = [];
-    const termY = [];
-    
-    for (const exp of expiries.list) {
-        // Is this the "Detailed" Weekly or Monthly?
-        const isWeekly = exp.getTime() === expiries.weekly.getTime();
-        const isMonthly = exp.getTime() === expiries.monthly.getTime();
-        const isDetailed = isWeekly || isMonthly;
-
-        const data = await analyzeExpiry(exp, isDetailed);
+        // Detailed chain for nearest expiry (Weekly)
+        const count = isWeekly ? cfg.strikesEachSide : 0; 
+        const symbols = buildOptionSymbols(cfg.optionPrefix, exp, atmStrike, cfg.strikeStep, count);
         
-        if (data) {
-            termX.push(data.date);
-            termY.push(data.avgIV);
+        let sumIV = 0;
+        let cntIV = 0;
+        let rows = [];
 
-            // Populate Surface & Greeks if detailed
-            if (isWeekly) {
-                greeksData.rows = data.rows; // Populate Table
-                greeksData.atmStrike = data.atmStrike;
+        for (const s of symbols) {
+            const cData = await fetchTickerData(`${cfg.exchange}:${s.call}`);
+            const pData = await fetchTickerData(`${cfg.exchange}:${s.put}`);
+
+            if (!cData || !pData) continue;
+            
+            // Capture PCR Data (If available)
+            totalCallOI += (cData.oi || 0);
+            totalPutOI += (pData.oi || 0);
+
+            // Capture ATM Data for Grid
+            if (isWeekly && s.strike === atmStrike) {
+                atmCallPrice = cData.price;
+                atmPutPrice = pData.price;
+                atmStraddlePrice = atmCallPrice + atmPutPrice;
             }
-            // Populate Surface Arrays ( Simplified Mapping for now )
-            // Ideally map rows -> moneyness.
+
+            const civ = solveIV({ price: cData.price, F, K: s.strike, T, isCall: true });
+            const piv = solveIV({ price: pData.price, F, K: s.strike, T, isCall: false });
+
+            if (civ && piv) {
+                const cGreeks = greeks(F, s.strike, T, civ, true);
+                const pGreeks = greeks(F, s.strike, T, piv, false);
+                
+                rows.push({
+                    strike: s.strike,
+                    call: { price: cData.price, iv: civ * 100, greeks: cGreeks, oi: cData.oi, oiChg: 0 },
+                    put:  { price: pData.price, iv: piv * 100, greeks: pGreeks, oi: pData.oi, oiChg: 0 }
+                });
+                
+                sumIV += (civ + piv) / 2;
+                cntIV++;
+            }
+        }
+        
+        const avgIV = cntIV > 0 ? (sumIV / cntIV) * 100 : 0;
+        
+        if (avgIV > 0) {
+            termX.push(exp.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }));
+            termY.push(avgIV);
+            
+            if (isWeekly) {
+                frontMonthIV = avgIV;
+                greeksData = { rows, atmStrike };
+            }
         }
     }
 
-    // D. HISTORY & PERSISTENCE (The "Memory")
+    // 4. HISTORY UPDATES
     const prevAsset = previousData[assetName] || {};
-    const prevIntraday = prevAsset.charts ? prevAsset.charts.intraday : { time: [], wk: [] };
+    const prevIntraday = prevAsset.charts?.intraday || { time: [], wk: [] };
+    const prevPCR = prevAsset.charts?.pcr || { history: [] };
     
-    // Add new point
+    // Calculate PCR
+    const currentPCR = totalCallOI > 0 ? (totalPutOI / totalCallOI) : 0.8; // Default 0.8 if 0
+    
+    // Time Strings
     const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute:'2-digit' });
-    const currentWeeklyIV = termY[0] || 0;
     
-    // Append and slice
-    let newTime = [...prevIntraday.time, timeStr].slice(-MAX_HISTORY_POINTS);
-    let newIV = [...prevIntraday.wk, currentWeeklyIV].slice(-MAX_HISTORY_POINTS);
+    // Append History (Max 75)
+    const newTime = [...prevIntraday.time, timeStr].slice(-MAX_HISTORY_POINTS);
+    const newIV = [...prevIntraday.wk, frontMonthIV].slice(-MAX_HISTORY_POINTS);
+    const newPCRHist = [...prevPCR.history, currentPCR].slice(-MAX_HISTORY_POINTS);
 
-    // E. CONSTRUCT "VIEW MODEL"
-    // This maps raw data to the specific keys the UI expects
+    // 5. CALCULATE DERIVED DATA (SD & GRID)
+    const sdData = calculateSDLevels(F, frontMonthIV);
     
+    // IV Rank (Simple Min/Max from history)
+    const allIVs = [...newIV];
+    const maxIV = Math.max(...allIVs, frontMonthIV + 5); // Fallback buffer
+    const minIV = Math.min(...allIVs, frontMonthIV - 5);
+    const ivRank = allIVs.length > 0 ? ((frontMonthIV - minIV) / (maxIV - minIV)) * 100 : 50;
+
+    // 6. BUILD FINAL UI DATA
     const uiData = {
-        meta: {
-            timestamp: Date.now(),
-            log: logMessages
-        },
+        meta: { timestamp: Date.now(), log: logMessages },
         header: {
             spot: F,
             futures: F,
-            futuresChange: formatChg(F, prevAsset.header ? prevAsset.header.futures : F)
+            futuresChange: formatChg(F, prevAsset.header?.futures)
         },
-
-        // GRID DATA - FULL 9-ITEM ARRAY TO PREVENT CRASH
-        // Mapping: 0:ATM_C, 1:IV_C, 2:ATM_P, 3:IV_P, 4:STRADDLE, 5:IV, 6:RV, 7:IVR, 8:IVP
         gridWeekly: [
-            { label: 'ATM CALL', value: '-', chg: '-', color: 'neutral' },
-            { label: 'CALL IV', value: '-', chg: '-', color: 'neutral' },
-            { label: 'ATM PUT', value: '-', chg: '-', color: 'neutral' },
+            { label: 'ATM CALL', value: fmt(atmCallPrice), chg: '-', color: 'up' },
+            { label: 'CALL IV', value: '-', chg: '-', color: 'neutral' }, // Todo: Calc specific IVs
+            { label: 'ATM PUT', value: fmt(atmPutPrice), chg: '-', color: 'down' },
             { label: 'PUT IV', value: '-', chg: '-', color: 'neutral' },
-            { label: 'STRADDLE', value: '-', chg: '-', color: 'neutral' },
-            { label: 'IV', value: `${currentWeeklyIV.toFixed(2)}%`, chg: '-', color: 'up' },
+            { label: 'STRADDLE', value: fmt(atmStraddlePrice), chg: '-', color: 'neutral' },
+            { label: 'IV', value: `${fmt(frontMonthIV)}%`, chg: '-', color: 'up' },
             { label: 'RV (20D)', value: '-', chg: '-', color: 'neutral' },
-            { label: 'IVR', value: '-', chg: '', color: 'neutral' },
+            { label: 'IVR', value: fmt(ivRank, 0), chg: '', color: 'neutral' },
             { label: 'IVP', value: '-', chg: '', color: 'neutral' }
         ],
-        gridMonthly: [
-            // Repeat the same 9 items for Monthly to be safe
-             { label: 'ATM CALL', value: '-', chg: '-', color: 'neutral' },
-             { label: 'CALL IV', value: '-', chg: '-', color: 'neutral' },
-             { label: 'ATM PUT', value: '-', chg: '-', color: 'neutral' },
-             { label: 'PUT IV', value: '-', chg: '-', color: 'neutral' },
-             { label: 'STRADDLE', value: '-', chg: '-', color: 'neutral' },
-             { label: 'IV', value: '-', chg: '-', color: 'neutral' },
-             { label: 'RV (20D)', value: '-', chg: '-', color: 'neutral' },
-             { label: 'IVR', value: '-', chg: '', color: 'neutral' },
-             { label: 'IVP', value: '-', chg: '', color: 'neutral' }
-        ],
-        
+        gridMonthly: [], // Can duplicate GridWeekly if needed
         charts: {
             intraday: {
                 time: newTime,
                 wk: newIV,
-                wkRv: newIV.map(x => x * 0.8), // Placeholder logic
-                mo: newIV, 
-                moRv: newIV
+                wkRv: newIV.map(x => x * 0.8),
+                mo: newIV, moRv: newIV
             },
-            // 1. ADDED PCR SKELETON
             pcr: {
-                current: 0.85, 
+                current: currentPCR,
                 time: newTime,
-                history: newTime.map(() => 0.85) 
+                history: newPCRHist
             },
-            term: {
-                expiries: termX,
-                weekly: termY,
-                monthly: termY
-            },
+            term: { expiries: termX, weekly: termY, monthly: termY },
             greeks: greeksData,
-            skew: { strikes: [], weekly: [] }, // Add empty skew to be safe
-            surface: { expiriesWeekly: [], zWk: [] } // Add empty surface to be safe
+            skew: { strikes: [], weekly: [] }, 
+            surface: { expiriesWeekly: [], zWk: [] } 
         },
-        
-        // 2. ADDED SD TABLE SKELETON
         sdTable: {
-            // These placeholders ensure the table renders something until logic update
             levels: ["+2 SD", "+1 SD", "Mean", "-1 SD", "-2 SD"],
-            call: ["-", "-", "-", "-", "-"],
-            put: ["-", "-", "-", "-", "-"]
+            call: [
+                sdData.weekly.levels.sd2.high, 
+                sdData.weekly.levels.sd1.high, 
+                sdData.spot.toLocaleString(), 
+                sdData.weekly.levels.sd1.low, 
+                sdData.weekly.levels.sd2.low
+            ],
+            put: [
+                sdData.weekly.levels.sd2.low, 
+                sdData.weekly.levels.sd1.low, 
+                sdData.spot.toLocaleString(), 
+                sdData.weekly.levels.sd1.high, 
+                sdData.weekly.levels.sd2.high
+            ]
         }
     };
 
     return uiData;
 }
 
-// --- 4. RUNNER ---
+// --- RUNNER ---
 async function run() {
     console.log("🚀 Worker Started");
     await tv.setup();
-
     const oldState = loadState();
     const newState = { ...oldState };
 
-    // Process NIFTY Only for now (Test phase)
-    const result = await processAsset("NIFTY", oldState);
+    // Process List (Add more from CSV later)
+    const targets = ["NIFTY"]; 
     
-    if (result) {
-        newState["NIFTY"] = result;
-        saveState(newState);
-        console.log("💾 Saved NIFTY data.");
-    } else {
-        console.log("⚠️ Processing failed, state unchanged.");
+    for(const t of targets) {
+        const res = await processAsset(t, oldState);
+        if(res) newState[t] = res;
     }
 
+    saveState(newState);
+    console.log("💾 Saved Data.");
     tv.cleanup();
     process.exit(0);
 }
