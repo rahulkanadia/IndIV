@@ -58,18 +58,19 @@
 
     const manager = new DataManager();
 
-    function renderHeaderCluster(data) {
+     function renderHeaderCluster(data) {
         const leftContainer = document.getElementById('header-left-content');
         const centerContainer = document.getElementById('header-center-content');
         if(!leftContainer || !centerContainer) return;
 
-        // Use Data or defaults
-        const spot = data.spot || 0;
-        const fut = 26210; // Placeholder until mapped
+        // --- UPDATED THIS BLOCK ---
+        const spot = data.header ? data.header.spot : 0;
+        const fut = data.header ? data.header.futures : 0; 
+        const futChg = data.header ? data.header.futuresChange : { txt: '-', cls: 'neutral' };
+        // --------------------------
 
-        // 1. LEFT: Brand
-        // We use a simple dot to show status
         const isLive = manager.source === 'LIVE';
+        
         leftContainer.innerHTML = `
             <div class="brand-title">IndIV</div>
             <div class="neon-container">
@@ -80,7 +81,6 @@
             </div>
         `;
 
-        // 2. CENTER: Spot
         centerContainer.innerHTML = `
             <div class="price-display-group">
                 <div class="price-label">Spot</div>
@@ -88,13 +88,19 @@
                     <span>${spot.toLocaleString()}</span>
                 </div>
             </div>
+
             <div class="search-pill"><span class="search-text">NIFTY 50</span></div>
+
             <div class="price-display-group align-left">
                 <div class="price-label">Futures</div>
-                <div class="price-data-row val-up"><span>${fut.toLocaleString()}</span></div>
+                <div class="price-data-row ${futChg.cls}">
+                    <span>${fut.toLocaleString()}</span>
+                    <span style="font-size:12px; margin-left:5px;">${futChg.txt}</span>
+                </div>
             </div>
         `;
     }
+
 
     async function init() {
         console.log("Initializing...");
