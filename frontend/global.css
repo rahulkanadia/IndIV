@@ -8,9 +8,9 @@
 
     /* --- LEFT PANEL SPACING --- */
     /* Space around the inside edges of the left panel */
-    --left-panel-padding: 15px; 
+    --left-panel-padding: 10px; 
     /* Vertical space betwen Grid -> Charts -> Grid */
-    --left-panel-gap: 15px; 
+    --left-panel-gap: 10px; 
 
     /* --- RIGHT PANEL SPACING --- */
     /* Space around the inside edges of the right panel */
