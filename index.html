@@ -48,77 +48,92 @@
     </div>
 
 <script type="module">
-    import { mockData } from './frontend/mockdata.js';
+    import { DataManager } from './frontend/lib/DataManager.js';
     import { renderMarketGrid } from './frontend/components/market-grid/market-grid.js';
     import { renderChartDashboard } from './frontend/components/charts/chart-dashboard/chart-dashboard.js';
     import { renderSDTable } from './frontend/components/tables/sd-table/sd-table.js';
+    // Note: We are using the OLD greeks table for now until we update it in the next step
     import { renderGreeksTable } from './frontend/components/tables/greeks-table/greeks-table.js';
     import { renderPCRSpark } from './frontend/components/pcr-widget/pcr-widget.js';
+
+    const manager = new DataManager();
 
     function renderHeaderCluster(data) {
         const leftContainer = document.getElementById('header-left-content');
         const centerContainer = document.getElementById('header-center-content');
-        
         if(!leftContainer || !centerContainer) return;
 
-        const spotChg = 120.50; const spotPct = 0.46;
-        const futChg = 130.00; const futPct = 0.50;
-        
-        const getCls = (v) => v >= 0 ? 'val-up' : 'val-down';
-        const fmtChg = (v, p) => `${v>=0?'+':''}${v} (${p}%)`;
+        // Use Data or defaults
+        const spot = data.spot || 0;
+        const fut = 26210; // Placeholder until mapped
 
-        // 1. LEFT: Brand + Neon
-        const isOpen = true; 
+        // 1. LEFT: Brand
+        // We use a simple dot to show status
+        const isLive = manager.source === 'LIVE';
         leftContainer.innerHTML = `
             <div class="brand-title">IndIV</div>
             <div class="neon-container">
-                <span class="neon-line-1">CASINO IS</span>
-                <span class="neon-status ${isOpen ? 'status-open' : 'status-closed'}">
-                    ${isOpen ? 'OPEN' : 'CLOSED'}
+                <span class="neon-line-1">DATA SOURCE</span>
+                <span class="neon-status ${isLive ? 'status-open' : 'status-closed'}">
+                    ${isLive ? 'LIVE' : 'MOCK'}
                 </span>
             </div>
         `;
 
-        // 2. CENTER: Spot | Search | Future
+        // 2. CENTER: Spot
         centerContainer.innerHTML = `
             <div class="price-display-group">
                 <div class="price-label">Spot</div>
-                <div class="price-data-row ${getCls(spotChg)}">
-                    <span>${data.spot.toLocaleString()}</span>
-                    <span style="font-size:16px;">${fmtChg(spotChg, spotPct)}</span>
+                <div class="price-data-row val-up">
+                    <span>${spot.toLocaleString()}</span>
                 </div>
             </div>
-
-            <div class="search-pill" title="Search Asset">
-                <span class="search-text">NIFTY 50</span>
-                <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            </div>
-
+            <div class="search-pill"><span class="search-text">NIFTY 50</span></div>
             <div class="price-display-group align-left">
                 <div class="price-label">Futures</div>
-                <div class="price-data-row ${getCls(futChg)}">
-                    <span>26,210</span>
-                    <span style="font-size:16px;">${fmtChg(futChg, futPct)}</span>
-                </div>
+                <div class="price-data-row val-up"><span>${fut.toLocaleString()}</span></div>
             </div>
         `;
     }
 
+    async function init() {
+        console.log("Initializing...");
+        
+        // 1. FETCH
+        const { data, source, logs } = await manager.fetch();
+        
+        // 2. LOGGING (As per your rule: List problems in text box)
+        const quoteBox = document.getElementById('quote-box-container');
+        if (quoteBox) {
+            if (source === 'MOCK') {
+                quoteBox.style.color = '#FF5252';
+                quoteBox.innerHTML = `⚠️ ${logs[0]} | ${logs[1] || ''}`;
+            } else {
+                quoteBox.style.color = '#00E676';
+                quoteBox.innerHTML = `✅ Live Connection Active. Last Sync: ${new Date().toLocaleTimeString()}`;
+            }
+        }
 
-    function init() {
-        console.log("Initializing IndIV Monitor...");
-        renderHeaderCluster(mockData);
-        document.getElementById('last-update-time').innerText = 'last updated: 15:30:05';
+        // 3. RENDER
+        renderHeaderCluster(data);
+        document.getElementById('last-update-time').innerText = `updated: ${new Date().toLocaleTimeString()}`;
 
-        renderMarketGrid('weekly-grid-container', 'WEEKLY', mockData.gridWeekly, 't-week');
+        renderMarketGrid('weekly-grid-container', 'WEEKLY', data.gridWeekly, 't-week');
+        renderMarketGrid('monthly-grid-container', 'MONTHLY', data.gridMonthly, 't-month');
+
+        // Charts (Currently these still internally reference mockData imports, 
+        // we will update them next, but this won't break anything yet)
         renderChartDashboard('main-chart-dashboard');
-        renderMarketGrid('monthly-grid-container', 'MONTHLY', mockData.gridMonthly, 't-month');
 
-        renderPCRSpark('pcr-container', mockData.pcr);
-        renderSDTable('sd-table-container', mockData);
-        renderGreeksTable('greeks-table-container', mockData);
+        renderPCRSpark('pcr-container', data.pcr);
+        renderSDTable('sd-table-container', data); // This might look empty if backend doesn't send SD yet
+        
+        // Greeks Table (Currently still generates its own random data, so it is safe)
+        renderGreeksTable('greeks-table-container', data);
     }
+
     init();
 </script>
+
 </body>
 </html>
