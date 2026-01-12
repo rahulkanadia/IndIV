@@ -1,19 +1,45 @@
 /* =========================================
-   1. GLOBAL RESET
+   1. SPACING MANIFEST (CONTROL PANEL)
+   ========================================= */
+:root {
+    /* --- DIMENSIONS --- */
+    --header-height: 64px;
+    --split-row-height: 135px;
+
+    /* --- LEFT PANEL SPACING --- */
+    /* Space around the inside edges of the left panel */
+    --left-panel-padding: 15px; 
+    /* Vertical space betwen Grid -> Charts -> Grid */
+    --left-panel-gap: 15px; 
+
+    /* --- RIGHT PANEL SPACING --- */
+    /* Space around the inside edges of the right panel */
+    --right-panel-padding: 10px; 
+    /* Vertical space between PCR/SD -> Greeks -> Quote */
+    --right-panel-gap: 10px; 
+    
+    /* --- COLORS (Common Backgrounds) --- */
+    --bg-page: #000;
+    --bg-panel: #0a0a0a;
+    --bg-widget: #151515;
+}
+
+/* =========================================
+   2. GLOBAL RESET
    ========================================= */
 html, body {
     margin: 0; padding: 0; width: 100%; height: 100%;
-    background-color: #000; color: #e0e0e0;
+    background-color: var(--bg-page); color: #e0e0e0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden;
     display: flex; flex-direction: column;
 }
 
 /* =========================================
-   2. HEADER STYLES (Neon Terminal)
+   3. HEADER STYLES (Neon Terminal)
    ========================================= */
 header {
-    height: 64px;
+    height: var(--header-height);
     background-color: #050505;
     border-bottom: 1px solid #222;
     display: flex; align-items: center; justify-content: space-between;
@@ -51,11 +77,12 @@ header {
 .last-update { font-family: 'Consolas', monospace; font-size: 11px; color: #444; border-left: 1px solid #222; padding-left: 10px; }
 
 /* =========================================
-   3. DASHBOARD LAYOUT (Fixed 40/60 Split)
+   4. DASHBOARD LAYOUT (Fixed 40/60 Split)
    ========================================= */
 .dashboard-container {
     flex: 1; display: flex; width: 100%;
-    height: calc(100vh - 64px); /* Subtract Header Height */
+    /* DYNAMIC CALCULATION USING VARIABLE */
+    height: calc(100vh - var(--header-height));
     overflow: hidden;
 }
 
@@ -64,12 +91,23 @@ header {
     width: 40%; min-width: 40%; /* Strict 40% */
     display: flex; flex-direction: column; 
     border-right: none; height: 100%; 
+    
+    /* SPACING CONTROLLED BY VARIABLES */
+    padding: var(--left-panel-padding);
+    gap: var(--left-panel-gap);
 }
 
 /* RIGHT PANEL (PCR + Greeks) */
 .right-panel { 
-    flex: 1; min-width: 0; padding-left: 5px; 
+    flex: 1; min-width: 0; 
     display: flex; flex-direction: column; height: 100%; 
+    background: var(--bg-panel);
+
+    /* SPACING CONTROLLED BY VARIABLES */
+    /* Note: We keep left-padding distinct if needed, or map to var */
+    padding: var(--right-panel-padding);
+    padding-left: 5px; /* Keeping the slight offset from border */
+    gap: var(--right-panel-gap);
 }
 
 /* Specific Component Containers in Layout */
@@ -77,13 +115,16 @@ header {
 #main-chart-dashboard { flex: 1; min-height: 350px; background: #111; border: 1px solid #222; border-radius: 4px; position: relative; overflow: hidden; }
 
 /* Split Row (PCR / SD) */
-.split-row { flex: 0 0 135px; display: flex; border-bottom: none; margin: 0; padding: 0; }
+.split-row { 
+    flex: 0 0 var(--split-row-height); 
+    display: flex; border-bottom: none; margin: 0; padding: 0; 
+}
 .split-pcr { flex: 0 0 65%; height: 100%; border-right: 1px solid #222; position: relative; min-width: 0; }
 .split-sd { flex: 1; height: 100%; min-width: 0; }
-#pcr-container, #sd-table-container { background: #151515; border: 1px solid #222; border-radius: 4px; }
+#pcr-container, #sd-table-container { background: var(--bg-widget); border: 1px solid #222; border-radius: 4px; }
 
 /* Greeks Table Container */
-#greeks-table-container { flex: 1; min-height: 0; border-bottom: 1px solid #222; overflow: hidden; background: #151515; border-radius: 4px; }
+#greeks-table-container { flex: 1; min-height: 0; border-bottom: 1px solid #222; overflow: hidden; background: var(--bg-widget); border-radius: 4px; }
 
 /* Quote Footer */
 #quote-box-container { flex: 0 0 32px; background: #080808; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #888; font-style: italic; }
