@@ -121,9 +121,8 @@
         renderMarketGrid('weekly-grid-container', 'WEEKLY', data.gridWeekly, 't-week');
         renderMarketGrid('monthly-grid-container', 'MONTHLY', data.gridMonthly, 't-month');
 
-        // PASS 'data.charts' TO THE DASHBOARD
-renderChartDashboard('main-chart-dashboard', data.charts);
-
+// CORRECTION: Pass the root 'data' object, as it contains {intraday, term...} direct keys
+renderChartDashboard('main-chart-dashboard', data);
 
         renderPCRSpark('pcr-container', data.pcr);
         renderSDTable('sd-table-container', data); // This might look empty if backend doesn't send SD yet
